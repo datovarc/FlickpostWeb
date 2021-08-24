@@ -1,0 +1,366 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta charset="utf-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Warehouse View | Flickpost</title>
+    <meta name="description" content="Flickpost is a dynamic e-commerce solutions provider, presenting connections to 200+ countries around the world. Flickpost specializes in cross-border solutions for international shipments – whether a few grams or large parcels. Our objective is to assist e-commerce sellers and SMEs save time and reduce shipping costs, where they can send anything to anywhere affordably and hassle-free.">
+    <link rel="shortcut icon" href="icons/favicon32x32-1.jpg">
+    <link href="css/app.css" rel="stylesheet">
+    <link href="css/themify-icons.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!--Tabulator-->
+    <link href="https://unpkg.com/tabulator-tables@4.9.3/dist/css/semantic-ui/tabulator_semantic-ui.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
+    <!--Download-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/downloadjs/1.4.8/download.min.js"></script>
+    <script src="js/jquery.quicksearch.js"></script>
+    <script type="text/javascript" src="js/countries.js?v=16"></script>
+    <meta property="og:title" content="flickpost | Your e-commerce logistics solutions provider ">
+    <meta property="og:description" content="Get RM 10 off your first shipment! ">
+    <meta property="og:image" content="images/mobile_free_reg.png">
+    <meta property="og:image:secure_url" content="images/mobile_free_reg.png" />
+
+    <script>
+
+        var token = $("meta[name='_csrf']").attr("content");
+
+        function executeUploadWeight() {
+            $("body").addClass("loading");
+            $('#modal-hide-thing').modal('toggle'); //or  $('#IDModal').modal('hide');
+            $("#uploadWeightForm").submit();
+        }
+
+        function executeUploadReport() {
+            $("body").addClass("loading");
+            $('#modal-hide-thing').modal('toggle'); //or  $('#IDModal').modal('hide');
+            $("#uploadReportForm").submit();
+        }
+
+        var searching = false;
+        $(document).ready(function(){
+
+            $('#downloadButton').on('click',function(){
+                downloadExcel();
+            });
+
+            $('#searchButton').on('click',function(){
+                $('.searchform').fadeToggle();
+                if(!searching) {
+                    $("#searchButton").html("<i class=\"ti ti-eraser\"></i> Reset");
+                    searching = true;
+                } else {
+                    $("#searchButton").html("<i class=\"ti ti-search\"></i> Search");
+                    $('#from_date').val("");
+                    $('#to_date').val("");
+                    table.clearFilter();
+                    searching = false;
+                }
+            });
+
+            //Ajax search
+            $('#search-form').on('keyup change paste', 'input, select', function(){
+                doPostCall();
+            });
+        });
+
+        function doPostCall(){
+            tableFilters.length = 0;
+            var normalizedFromDate = $('#from_date').val();
+            var normalizedToDate = $('#to_date').val();
+
+            if (normalizedFromDate !== "") {
+                tableFilters.push(JSON.parse('{"field": "dateTime", "type":">=", "value":"'+ normalizedFromDate+ '"}'));
+            }
+            if (normalizedToDate !== "") {
+                tableFilters.push(JSON.parse('{"field": "dateTime", "type":"<=", "value":"'+ normalizedToDate+ '"}'));
+            }
+
+            table.setFilter(tableFilters);
+            $('.searchloader').hide();
+        }
+
+        function downloadExcel(){
+            var normalizedFromDate = $('#from_date').val();
+            var normalizedToDate = $('#to_date').val();
+
+            var downloadRequest = JSON.parse('{"from_date": "'+ normalizedFromDate+ '", "to_date": "' + normalizedToDate + '"}');
+
+            fetch('/weight/download', {
+                method: 'POST',
+                body: JSON.stringify(downloadRequest),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': token,
+                },
+            }).then(function(resp) {
+                return resp.blob();
+            }).then(function(blob) {
+                return download(blob, "packages.xls");
+            });
+        }
+
+    </script>
+</head>
+<body>
+<div id="app">
+    <nav class="navbar navbar-default navbar-static-top">
+        <div class="container">
+            <div class="navbar-header">
+
+                <!-- Branding Image -->
+                <a class="navbar-brand" href="/weight" ><img src="images/flickpost.png" alt="Flickpost"> </a>
+            </div>
+            <div class="collapse navbar-collapse" id="app-navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                            <img src="images/default.png?v=2" width="20px" th:text="${username}">
+                            <span class="ti-angle-down"></span>
+                        </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li>
+                                <a href="#" onclick="event.preventDefault();
+                                                     document.getElementById('logout-form').submit();">
+                                    <i class="ti-power-off"></i>  Logout
+                                </a>
+
+                                <form id="logout-form" th:action="@{'/doLogout'}" method="POST" style="display: none;">
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+    <div class="container">
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                        <i class="ti-angle-down"></i>
+                    </button>
+                    <span class="navbar-brand-sub" >Menu</span>
+                </div>
+                <div class="collapse navbar-collapse" id="myNavbar">
+                    <ul class="nav navbar-nav">
+                            <li sec:authorize="isAuthenticated()"><a href="/weight"><i class="ti-location-pin"></i> Audited Weight View</a></li>
+                            <li sec:authorize="hasAnyAuthority('OFFICE', 'ADMIN')"><a href="/shipments"><i class="ti-location-pin"></i> Office View</a></li>
+                            <li sec:authorize="hasAnyAuthority('WAREHOUSE', 'ADMIN')"><a href="/warehouse"><i class="ti-location-pin"></i> Warehouse View</a></li>
+                            <li sec:authorize="isAuthenticated()"><a href="#" data-toggle="modal" data-target="#uploadReportFile"><i class="ti-upload"></i> Upload Report</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <style type="text/css">
+        .searchform {
+            background: #f5f8fa;
+            padding: 15px;
+            box-shadow: 0px 5px 3px -3px #cecece;
+        }.searchform form{
+             overflow-x: auto;
+             width: 100%;
+             white-space: nowrap;
+         }
+        .searchform input , .searchform select{
+            height: 30px;
+            margin: 0 5px 5px 0;
+            width: 125px;
+            display: inline;
+            padding: 5px;
+            font-size: 12px;
+        }
+        .searchloader{
+            float: right;
+            position: absolute;
+            right: 5px;
+        }
+    </style>
+    <div class="container">
+        <ol class="breadcrumb">
+            <li><a href="/weight">Home</a></li>
+            <li class="active">Audited Weight View</li>
+        </ol>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="pull-right" style="margin:20px;">
+                    <a class="label label-light" href="#" data-toggle="modal" data-target="#uploadWeightFile"><i class="ti ti-upload"></i> Upload </a> &nbsp;
+                    <a class="label label-light" href="#", id="downloadButton"><i class="ti ti-download"></i> Download </a> &nbsp;
+                    <a href="#" id="searchButton" class="label label-light"> <i class="ti ti-search"></i> Search </a>
+                </div>
+                <div class="panel panel-default" >
+                    <div class="panel-heading" style="padding:17px;">Manage Audited Weight</div>
+                    <div class="searchform" style="display:none">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <span class="searchloader" style="display:none;"><img src="images/loader.gif" auditedWidth="30px"></span>
+                                <form method="POST" th:action="@{'/weight'}" accept-charset="UTF-8" id="search-form" class="custom-scrollbar-transparent form-horizontal form-groups">
+                                    <!--<input type="text" id="search-tracking_no" class="form-control margin-bottom-8" placeholder="Tracking No">-->
+                                    <!--<input type="text" id="search-dispatch_no" class="form-control margin-bottom-8" placeholder="Dispatch No">-->
+                                    <!--<input type="text" id="search-bag_no" class="form-control margin-bottom-8" placeholder="Bag No">-->
+                                    <!--<input type="text" id="search-sender_name" class="form-control margin-bottom-8" placeholder="Sender name">-->
+                                    <!--<input type="text" id="search-receiver_name" class="form-control margin-bottom-8" placeholder="Receiver name">-->
+                                    <!--<input type="text" id="search-origin" class="form-control margin-bottom-8" placeholder="Origin">-->
+                                    <!--<input type="text" id="search-destination" class="form-control margin-bottom-8"placeholder="Destination">-->
+                                    <!--<input type="text" id="search-status" class="form-control margin-bottom-8"placeholder="Status">-->
+                                    <input type="date" id="from_date" class="form-control margin-bottom-8"  placeholder="Date">
+                                    <input type="date" id="to_date" class="form-control margin-bottom-8"  placeholder="Date">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="packages-table"></div>
+
+                    <script th:inline="javascript">
+                            var tableFilters = [];
+
+                            var table = new Tabulator("#packages-table", {
+                                index:"ID",
+                                pagination:"remote",
+                                ajaxURL: "/weight/data",
+                                ajaxConfig: {
+                                    method: "POST",
+                                    headers:{
+                                        'X-CSRF-Token': token,
+                                    }
+                                },
+                                // ajaxConfig: "POST",
+                                ajaxContentType:"json",
+                                ajaxFiltering: true,
+                                // filters: tableFilters,
+                                paginationSize: 10,
+                                paginationSizeSelector:[10, 25, 50, 100],
+                                columns:[
+                                    {title:"ID", field:"id",resizable: true},
+                                    {title:"Tracking Number", field:"code",resizable: true},
+                                    {title:"Audited Length (cm)", field:"L",resizable: true},
+                                    {title:"Audited Width (cm)", field:"W",resizable: true},
+                                    {title:"Audited Height (cm)", field:"H",resizable: true},
+                                    {title:"Audited Weight (kg)", field:"weight",resizable: true},
+                                    {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight",resizable: true},
+                                    {title:"Chargeable Weight (kg)", field:"chargeable_weight",resizable: true},
+                                    {title:"Date and Time", field:"time",resizable: true},
+                                    {title:"Image", field:"image",resizable:true,formatter:function (cell, formatterParams) {
+                                            var val = cell.getValue();
+                                            if(val !== null && val !== ''){
+                                                return '<button onclick="showImage(\''+val+'\')">Image</button>';
+                                            }
+                                            return '<span>No Image</span>';
+                                        }},
+                                    {title:"Remarks", field:"hid",resizable: true},
+                                ]
+                            });
+
+                        function showImage(data) {
+                            var image = new Image();
+                            image.src = data;
+                            var w = window.open("");
+                            w.document.write(image.outerHTML);
+                            w.document.close();
+                        }
+
+                    </script>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<div class="container sitefooter">
+    <p align="left" style="font-size: 11px;">
+        <i class="fa fa-copyright" aria-hidden="true"></i>
+        &copy; 2021
+        Flickpost. All Rights Reserved.
+        <br><i class="ti-arrow-left"></i> Go back to <a href="http://www.flickpost.co">www.flickpost.co</a>
+    </p>
+    <div id="google_translate_element"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</div>
+
+</div>
+
+<!-- Modal -->
+<div id="uploadWeightFile" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width:700px;">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title">Upload Audited Weight</h4>
+            </div>
+
+            <div class="modal-body" style="padding: 10px 25px;">
+                <form method="POST" th:action="@{'/weight/upload'}" accept-charset="UTF-8" class="form-horizontal form-groups excelUpload" id="uploadWeightForm" enctype="multipart/form-data">
+                    <div class="form-group uploadform">
+                        <div class="col-md-6 col-md-offset-3">
+                            <h5>Audited Weight File</h5>
+                            <label class=" control-label">Choose file<br></label>
+                            <input class="fileInput" type="file" name="file" required="required" accept=".xls">
+                            <br>
+                            <p>
+                                <button type="button" id="uploadWeightBtn" class="btn btn-success btn-rounded" name="action" onclick="executeUploadWeight()" value="Submit"><i class="ti-upload"></i> Upload File</button>
+                            </p>
+
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div id="uploadReportFile" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width:700px;">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title">Upload Shipment Report</h4>
+            </div>
+
+            <div class="modal-body" style="padding: 10px 25px;">
+                <form method="POST" th:action="@{'/report/upload'}" accept-charset="UTF-8" class="form-horizontal form-groups excelUpload" id="uploadReportForm" enctype="multipart/form-data">
+                    <div class="form-group uploadform">
+                        <div class="col-md-6 col-md-offset-3">
+                            <h5>Shipment Report</h5>
+                            <label class=" control-label">Choose File<br></label>
+                            <input class="fileInput" type="file" name="file" required="required" accept=".xls">
+                            <br>
+                            <p>
+                                <button type="button" id="uploadReportBtn" class="btn btn-success btn-rounded" name="action" onclick="executeUploadReport()" value="Submit"><i class="ti-upload"></i> Upload File</button>
+                            </p>
+
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modalUploading"></div>
+<script src="js/app.js?v=3"></script>
+</body>
+</html>

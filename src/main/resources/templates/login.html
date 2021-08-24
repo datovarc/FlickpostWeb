@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login | Flickpost</title>
+    <meta name="description" content="Flickpost is a dynamic e-commerce solutions provider, presenting connections to 200+ countries around the world. Flickpost specializes in cross-border solutions for international shipments – whether a few grams or large parcels. Our objective is to assist e-commerce sellers and SMEs save time and reduce shipping costs, where they can send anything to anywhere affordably and hassle-free.">
+    <link rel="shortcut icon" href="icons/favicon32x32-1.jpg">
+    <link href="css/app.css" rel="stylesheet">
+    <link href="css/themify-icons.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="js/jquery.quicksearch.js"></script>
+    <script type="text/javascript" src="js/countries.js?v=16"></script>
+    <meta property="og:title" content="flickpost | Your e-commerce logistics solutions provider ">
+    <meta property="og:description" content="Get RM 10 off your first shipment! ">
+    <meta property="og:image" content="images/mobile_free_reg.png">
+    <meta property="og:image:secure_url" content="images/mobile_free_reg.png" />
+</head>
+<body>
+<div id="app">
+    <nav class="navbar navbar-default navbar-static-top">
+        <div class="container">
+            <div class="navbar-header">
+                <!-- Branding Image -->
+                <a class="navbar-brand" href="/weight"><img src="images/flickpost.png" alt="Flickpost"> </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container loginForm">
+        <div class="row">
+            <div class="loginBox">
+                <div class="panel panel-default mt-50 fadeInAnimate ">
+
+                    <div class="panel-heading">Login</div>
+                    <div class="panel-body">
+                        <form class="form-horizontal" method="POST" th:action="@{'/login'}">
+                            <div class="form-group">
+                                <label for="username" class="col-md-12 control-label">Username</label>
+
+                                <div class="col-md-12">
+                                    <input id="username" type="text" class="form-control" placeholder="Username" name="username" value="" required="" autofocus="">
+
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password" class="col-md-12 control-label">Password</label>
+
+                                <div class="col-md-12">
+                                    <input id="password" type="password" placeholder="Password" class="form-control" name="password" required="">
+
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom:0">
+                                <div class="col-md-6  col-sm-6 col-xs-6">
+                                    <label class="custom-check-box">
+                                        <input type="checkbox" name="remember-me" id="remember-me">
+                                        <span class="checkmark"></span>
+                                        Remember me</label>
+                                    <br>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom:0">
+                                <div class="col-md-12">
+
+
+                                    <button type="submit" class="btn btn-3d btn-primary btn-signin">
+                                        Sign in
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container sitefooter">
+        <p align="left" style="font-size: 11px;">
+            <i class="fa fa-copyright" aria-hidden="true"></i>
+            © 2021
+            Flickpost. All Rights Reserved.
+            <br><i class="ti-arrow-left"></i> Go back to <a href="http://www.flickpost.co">www.flickpost.co</a>
+        </p>
+    </div>
+
+</div>
+<script src="js/app.js?v=3"></script>
+</body></html>
