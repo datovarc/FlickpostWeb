@@ -8,5 +8,5 @@ import org.springframework.data.repository.query.Param;
 public interface UserDao extends CrudRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE u.username = :username")
-    public User getUserByUsername(@Param("username") String username);
+    User getUserByUsername(@Param("username") String username);
 }

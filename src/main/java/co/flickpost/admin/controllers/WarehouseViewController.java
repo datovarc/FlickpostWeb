@@ -11,7 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.text.SimpleDateFormat;
+import java.security.Principal;
 import java.util.List;
 
 
@@ -24,11 +24,13 @@ public class WarehouseViewController {
 
     private static final Logger logger = LogManager.getLogger(WarehouseViewController.class);
 
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-
     @GetMapping(value = "")
-    public String warehouse(Model model) {
+    public String warehouse(Model model, Principal principal) {
+        String uid = principal.getName();
+
+        logger.info("{} - Fetching most recent packages for WarehouseView.", uid);
         List<Package> packages = packageDao.getMostRecent(10);
+        logger.info("{} - Obtained {} packages for WarehouseView.", uid, packages.size());
         model.addAttribute("packages", packages);
         return "warehouse";
     }
