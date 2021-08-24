@@ -11,7 +11,9 @@ public class GlobalModelControllerAdvice {
 
     @ModelAttribute
     public void addAttributes(Model model, Principal principal) {
-        model.addAttribute("username", principal.getName());
+        if(principal != null) {
+            model.addAttribute("username", principal.getName());
+        }
     }
 
 }
