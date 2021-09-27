@@ -231,8 +231,9 @@
                             var tableFilters = [];
 
                             var table = new Tabulator("#packages-table", {
-                                index:"ID",
+                                index:"Tracking Number",
                                 pagination:"remote",
+                                layout: "fitColumns",
                                 ajaxURL: "/weight/data",
                                 ajaxConfig: {
                                     method: "POST",
@@ -247,25 +248,27 @@
                                 paginationSize: 10,
                                 paginationSizeSelector:[10, 25, 50, 100],
                                 columns:[
-                                    {title:"ID", field:"id",resizable: true},
-                                    {title:"Tracking Number", field:"code",resizable: true},
-                                    {title:"Audited Length (cm)", field:"L",resizable: true},
-                                    {title:"Audited Width (cm)", field:"W",resizable: true},
-                                    {title:"Audited Height (cm)", field:"H",resizable: true},
-                                    {title:"Audited Weight (kg)", field:"weight",resizable: true},
-                                    {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight",resizable: true},
-                                    {title:"Chargeable Weight (kg)", field:"chargeable_weight",resizable: true},
-                                    {title:"Date and Time", field:"time",resizable: true},
-                                    {title:"Image", field:"image",resizable:true,formatter:function (cell, formatterParams) {
+                                    {title:"Hub", field:"hub",resizable: true, variableHeight:true, widthGrow:0.5, titleFormatter:"textarea"},
+                                    {title:"Tracking Number", field:"code",resizable: true, variableHeight:true, titleFormatter:"textarea",},
+                                    {title:"Audited Length (cm)", field:"L",resizable: true, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Width (cm)", field:"W",resizable: true, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Height (cm)", field:"H",resizable: true, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Weight (kg)", field:"weight",resizable: true, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight",resizable: true, widthGrow:1.1, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Chargeable Weight (kg)", field:"chargeable_weight",resizable: true, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{precision:1, thousand:""}},
+                                    {title:"Date and Time", field:"time",resizable: true, variableHeight:true, titleFormatter:"textarea"},
+                                    {title:"Image", field:"image",resizable:true, variableHeight:true, titleFormatter:"textarea", formatter:function (cell, formatterParams) {
                                             var val = cell.getValue();
                                             if(val !== null && val !== ''){
                                                 return '<button onclick="showImage(\''+val+'\')">Image</button>';
                                             }
                                             return '<span>No Image</span>';
                                         }},
-                                    {title:"Remarks", field:"hid",resizable: true},
+                                    {title:"Remarks", field:"hid",resizable: true, variableHeight:true, titleFormatter:"textarea"},
                                 ]
                             });
+
+                            table.redraw(true);
 
                         function showImage(data) {
                             var image = new Image();
@@ -317,14 +320,25 @@
             <div class="modal-body" style="padding: 10px 25px;">
                 <form method="POST" th:action="@{'/weight/upload'}" accept-charset="UTF-8" class="form-horizontal form-groups excelUpload" id="uploadWeightForm" enctype="multipart/form-data">
                     <div class="form-group uploadform">
-                        <div class="col-md-6 col-md-offset-3">
+                        <div class="col-md-6">
                             <h5>Audited Weight File</h5>
+                            <div class="col-md-6 margin-bottom-8">
+                                <label class="control-label">Hub</label>
+                                <select th:disabled="${#authorization.expression('hasAnyAuthority(''WAREHOUSE'')')}" id="hub" name="hub" class="form-control">
+                                    <option th:value="${defaultCompany.code}" th:text="${defaultCompany.name}"></option>
+                                    <option th:each="company : ${companies}" th:value="${company.code}" th:text="${company.name}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 margin-bottom-8">
                             <label class=" control-label">Choose file<br></label>
                             <input class="fileInput" type="file" name="file" required="required" accept=".xls">
+                            </div>
                             <br>
                             <p>
                                 <button type="button" id="uploadWeightBtn" class="btn btn-success btn-rounded" name="action" onclick="executeUploadWeight()" value="Submit"><i class="ti-upload"></i> Upload File</button>
                             </p>
+
+                            <a style="float: right;" href="files/template_package_weight.xls" target="_blank">Download Template File</a><br>
 
                         </div>
 

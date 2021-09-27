@@ -1932,7 +1932,7 @@ th {
 .img-thumbnail,
 body {
     /* background-color: rgba(227, 232, 238, 0.50) */
-    background-color: rgba(227, 232, 238, 0.77)
+    background-color: rgba(156, 169, 186, 0.77)
 }
 
 *,
@@ -1951,7 +1951,7 @@ body {
     font-family: -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
     font-size: 13.5px;
     line-height: 1.6;
-    color: #636b6f;
+    color: #474747;
     height: 100%;
     overflow-x: hidden;
 }
@@ -7220,7 +7220,7 @@ fieldset[disabled] .navbar-inverse .btn-link:hover {
 }
 
 .breadcrumb>.active {
-    color: #777
+    color: #474747
 }
 
 .pagination {

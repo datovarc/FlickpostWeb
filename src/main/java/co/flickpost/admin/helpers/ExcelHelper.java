@@ -14,6 +14,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -27,11 +28,11 @@ public class ExcelHelper {
     final static DateTimeFormatter packageDateFormat = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");
 
     private final static String PACKAGE_SHEET_NAME = "Packages";
-    private final static String[] PACKAGE_COLUMNS = new String[]{"Tracking Number", "Audited Length(cm)", "Audited Width(cm)",
-            "Audited Height(cm)", "Audited Actual Weight(kg)", "Audited Volumetric Weight(kg)", "Chargeable Weight(kg)", "Date and Time", "Image File",
-            "Upload Status", "Remarks"};
+    private final static String[] PACKAGE_COLUMNS = new String[]{"Hub", "Tracking Number", "Audited Length(cm)", "Audited Width(cm)",
+            "Audited Height(cm)", "Audited Actual Weight(kg)", "Date and Time", "Image File",
+            "Upload Status", "Remarks", "Audited Volumetric Weight(kg)", "Chargeable Weight(kg)"};
 
-    public static List<Package> readPackages(HSSFWorkbook workbook) throws Exception {
+    public static List<Package> readPackages(HSSFWorkbook workbook, String company) throws Exception {
         List<Package> uploadedPackages = new ArrayList<>();
 
         if(workbook == null || workbook.getNumberOfSheets() < 1){
@@ -60,7 +61,7 @@ public class ExcelHelper {
             int cellIndex = 0;
             while(cellIterator.hasNext()){
                 Cell cell = cellIterator.next();
-                updatePackage(newPackage, cell, cellIndex);
+                updatePackage(newPackage, cell, cellIndex, company);
                 cellIndex++;
             }
 
@@ -145,17 +146,18 @@ public class ExcelHelper {
             for (Package pkg : packages) {
                 Row row = sheet.createRow(rowIdx++);
 
-                row.createCell(0).setCellValue(pkg.getTrackingNumber());
-                row.createCell(1).setCellValue(pkg.getAuditedLength().doubleValue());
-                row.createCell(2).setCellValue(pkg.getAuditedWidth().doubleValue());
-                row.createCell(3).setCellValue(pkg.getAuditedHeight().doubleValue());
+                row.createCell(0).setCellValue(pkg.getHub());
+                row.createCell(1).setCellValue(pkg.getTrackingNumber());
+                row.createCell(2).setCellValue(pkg.getAuditedLength().doubleValue());
+                row.createCell(3).setCellValue(pkg.getAuditedWidth().doubleValue());
                 row.createCell(4).setCellValue(pkg.getAuditedHeight().doubleValue());
-                row.createCell(5).setCellValue(pkg.getAuditedVolumetricWeight().doubleValue());
-                row.createCell(6).setCellValue(pkg.getChargeableWeight().doubleValue());
-                row.createCell(7).setCellValue(pkg.getDateTime());
-                row.createCell(8).setCellValue("");
-                row.createCell(9).setCellValue("Success");
-                row.createCell(10).setCellValue(pkg.getHid());
+                row.createCell(5).setCellValue(pkg.getAuditedHeight().doubleValue());
+                row.createCell(6).setCellValue(pkg.getDateTime());
+                row.createCell(7).setCellValue("");
+                row.createCell(8).setCellValue("Success");
+                row.createCell(9).setCellValue(pkg.getHid());
+                row.createCell(10).setCellValue(pkg.getAuditedVolumetricWeight().doubleValue());
+                row.createCell(11).setCellValue(pkg.getChargeableWeight().doubleValue());
             }
 
             workbook.write(out);
@@ -168,7 +170,7 @@ public class ExcelHelper {
         return bytes;
     }
 
-    private static void updatePackage(Package pkg, Cell cell, int cellIndex) throws Exception {
+    private static void updatePackage(Package pkg, Cell cell, int cellIndex, String company) throws Exception {
         BigDecimal value = null;
         String stringVal;
 
@@ -181,38 +183,54 @@ public class ExcelHelper {
 
         switch(cellIndex){
             case 0:
-                pkg.setTrackingNumber(stringVal);
+                if(StringUtils.isEmpty(stringVal)){
+                    stringVal = company;
+                }
+                pkg.setHub(stringVal);
                 break;
             case 1:
-                pkg.setAuditedLength(value);
+                pkg.setTrackingNumber(stringVal);
                 break;
             case 2:
-                pkg.setAuditedWidth(value);
+                pkg.setAuditedLength(value.setScale(2, RoundingMode.UP));
                 break;
             case 3:
-                pkg.setAuditedHeight(value);
+                pkg.setAuditedWidth(value.setScale(2, RoundingMode.UP));
                 break;
             case 4:
-                pkg.setAuditedWeight(value);
+                pkg.setAuditedHeight(value.setScale(2, RoundingMode.UP));
                 break;
             case 5:
+                pkg.setAuditedWeight(value.setScale(2, RoundingMode.UP));
+                break;
+            case 6:
                 if(StringUtils.isEmpty(stringVal)){
                     pkg.setDateTime(LocalDateTime.now());
                 } else{
                     pkg.setDateTime(getDateVal(stringVal, false));
                 }
                 break;
-            case 6:
+            case 7:
                 //If image is hosted, can use to obtain url TODO
                 break;
-            case 7:
+            case 8:
                 //If need to keep track of "Upload Status"
                 break;
-            case 8:
+            case 9:
                 if(StringUtils.isEmpty(stringVal)){
                     pkg.setHid(null);
                 } else{
                     pkg.setHid(stringVal);
+                }
+                break;
+            case 10:
+                if(value != null) {
+                    pkg.setAuditedVolumetricWeight(value.setScale(2, RoundingMode.UP));
+                }
+                break;
+            case 11:
+                if(value != null) {
+                    pkg.setChargeableWeight(value.setScale(1, RoundingMode.UP));
                 }
                 break;
         }

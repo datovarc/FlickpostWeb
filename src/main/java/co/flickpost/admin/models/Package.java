@@ -30,6 +30,10 @@ public class Package implements Serializable {
     @Column(name = "_id")
     private Long id;
 
+    @Column(name = "hub_symbol")
+    @JsonProperty("hub")
+    private String hub;
+
     @Column(name = "tracking_number")
     @JsonProperty("code")
     private String trackingNumber;
@@ -87,6 +91,14 @@ public class Package implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getHub() {
+        return hub;
+    }
+
+    public void setHub(String hub) {
+        this.hub = hub;
     }
 
     public String getTrackingNumber() {

@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 public class PackageHelper {
 
@@ -15,7 +16,7 @@ public class PackageHelper {
 
     public static void updateVolumetricWeight(Package pkg){
         logger.info("Started calculating Audited Volumetric Weight for: " + pkg.getTrackingNumber());
-        if(pkg.getAuditedHeight() == null || pkg.getAuditedLength() == null || pkg.getAuditedWidth() == null){
+        if(pkg.getAuditedHeight() == null || pkg.getAuditedLength() == null || pkg.getAuditedWidth() == null || pkg.getAuditedVolumetricWeight() != null){
             return;
         }
 
@@ -27,7 +28,7 @@ public class PackageHelper {
         volumetricWeight = auditedLength
                 .multiply(auditedWidth)
                 .multiply(auditedHeight)
-                .divide(BigDecimal.valueOf(5000)).setScale(4, RoundingMode.HALF_UP);
+                .divide(BigDecimal.valueOf(5000)).setScale(2, RoundingMode.UP);
 
         pkg.setAuditedVolumetricWeight(volumetricWeight);
 
@@ -36,7 +37,7 @@ public class PackageHelper {
 
     public static void updateChargeableWeight(Package pkg){
         logger.info("Started determining Chargeable Weight for: " + pkg.getTrackingNumber());
-        if(pkg.getAuditedWeight() == null || pkg.getAuditedVolumetricWeight() == null){
+        if(pkg.getAuditedWeight() == null || pkg.getAuditedVolumetricWeight() == null || pkg.getChargeableWeight() != null){
             return;
         }
 
@@ -47,8 +48,20 @@ public class PackageHelper {
         chargeableWeight = auditedWeight.compareTo(auditedVolumetricWeight) == 1
                 ? auditedWeight : auditedVolumetricWeight;
 
-        pkg.setChargeableWeight(chargeableWeight.setScale(4, RoundingMode.HALF_UP));
+        pkg.setChargeableWeight(chargeableWeight.setScale(1, RoundingMode.UP));
         logger.info("Finished determining Chargeable Weight for: " + pkg.getTrackingNumber() + " -> " + chargeableWeight.toString());
+
+    }
+
+    public static void applyRounding(List<Package> packages){
+        for(Package pkg : packages){
+            pkg.setAuditedHeight(pkg.getAuditedHeight().setScale(2, RoundingMode.UP));
+            pkg.setAuditedLength(pkg.getAuditedLength().setScale(2, RoundingMode.UP));
+            pkg.setAuditedWeight(pkg.getAuditedWeight().setScale(2, RoundingMode.UP));
+            pkg.setAuditedWidth(pkg.getAuditedWidth().setScale(2, RoundingMode.UP));
+            pkg.setAuditedVolumetricWeight(pkg.getAuditedVolumetricWeight().setScale(2, RoundingMode.UP));
+            pkg.setChargeableWeight(pkg.getChargeableWeight().setScale(1, RoundingMode.UP));
+        }
 
     }
 }

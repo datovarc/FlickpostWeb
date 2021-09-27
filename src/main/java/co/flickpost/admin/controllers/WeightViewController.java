@@ -3,11 +3,15 @@ package co.flickpost.admin.controllers;
 
 import co.flickpost.admin.configurations.FlickPostProperties;
 import co.flickpost.admin.helpers.ExcelHelper;
+import co.flickpost.admin.helpers.PackageHelper;
+import co.flickpost.admin.models.Company;
 import co.flickpost.admin.models.json.DownloadRequest;
 import co.flickpost.admin.models.Package;
 import co.flickpost.admin.models.json.PaginationRequest;
 import co.flickpost.admin.models.json.PaginationResponse;
+import co.flickpost.admin.repositories.CompanyDao;
 import co.flickpost.admin.repositories.PackageDao;
+import co.flickpost.admin.security.UserDetailsImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -15,14 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Controller
@@ -40,6 +42,8 @@ public class WeightViewController {
     @Autowired
     PackageDao packageDao;
     @Autowired
+    CompanyDao companyDao;
+    @Autowired
     FlickPostProperties properties;
     @Autowired
     BCryptPasswordEncoder encoder;
@@ -47,7 +51,13 @@ public class WeightViewController {
     private static final Logger logger = LogManager.getLogger(WeightViewController.class);
 
     @GetMapping(value = "")
-    public String weightView() {
+    public String weightView(Model model, Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        List<Company> companies =  companyDao.getAllCompanies();
+        companies = companies.stream().filter(company -> !company.equals(userDetails.getCompany())).collect(Collectors.toList());
+        model.addAttribute("companies", companies);
+        model.addAttribute("defaultCompany", userDetails.getCompany());
         return "weight";
     }
 
@@ -66,6 +76,7 @@ public class WeightViewController {
 
         Long count = (Long) packagesPagination.get("count");
         List<Package> packages = (List) packagesPagination.get("packages");
+        PackageHelper.applyRounding(packages);
 
         logger.info("{} - There was a total of {} packages for Audited Weight View", uid, count);
         logger.info("{} - Currently displaying Page {} for Audited Weight View", uid, request.getPageNumber());
@@ -108,7 +119,7 @@ public class WeightViewController {
 
 
     @PostMapping(value = "/upload")
-    public String fileUpload(@RequestParam("file") MultipartFile file, Principal principal) {
+    public String fileUpload(@RequestParam("file") MultipartFile file, @ModelAttribute("hub") String selectedCompany, Principal principal) {
 
         String uid = principal.getName();
 
@@ -123,7 +134,7 @@ public class WeightViewController {
 
             logger.info("{} - Started Analyzing Package file.", uid);
             HSSFWorkbook wb  = new HSSFWorkbook(file.getInputStream());
-            List<Package> packages = ExcelHelper.readPackages(wb);
+            List<Package> packages = ExcelHelper.readPackages(wb, selectedCompany);
             logger.info("{} - Finished Analyzing Package file. There were a total of: " + packages.size() + " Packages.", uid);
 
             if(packages != null && !packages.isEmpty()){

@@ -13,10 +13,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.PersistenceUnit;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -78,6 +75,7 @@ public class PackageDao {
         Root<Package> selectRoot = selectQuery.from(Package.class);
         selectRoot.alias("rootAlias");
         CriteriaQuery<Package> paged = selectQuery.select(selectRoot);
+        paged.orderBy(selectCriteriaBuilder.desc(selectRoot.get("dateTime")));
 
         //Counting
         CriteriaBuilder countCriteriaBuilder = entityManager.getCriteriaBuilder();

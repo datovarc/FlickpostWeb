@@ -1,5 +1,6 @@
 package co.flickpost.admin.security;
 
+import co.flickpost.admin.models.Company;
 import co.flickpost.admin.models.Role;
 import co.flickpost.admin.models.User;
 import org.springframework.security.core.GrantedAuthority;
@@ -59,5 +60,7 @@ public class UserDetailsImpl implements UserDetails {
     public boolean isEnabled() {
         return user.isEnabled();
     }
+
+    public Company getCompany(){ return user.getCompany();}
 
 }
