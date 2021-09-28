@@ -64,11 +64,12 @@ public class WeightViewController {
 
     @PostMapping(value = "/data")
     @ResponseBody
-    public PaginationResponse weightPagination(@RequestBody PaginationRequest request, Principal principal) {
-        String uid = principal.getName();
+    public PaginationResponse weightPagination(@RequestBody PaginationRequest request, Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String uid = userDetails.getUsername();
 
         logger.info("{} - Started fetching data for Audited Weight View", uid);
-        Map<String, Object> packagesPagination = packageDao.pagination(request);
+        Map<String, Object> packagesPagination = packageDao.pagination(request, userDetails.getCompany().getCode());
         if(packagesPagination == null){
             logger.info("{} - There was no data for Audited Weight View", uid);
             return new PaginationResponse(0, Collections.EMPTY_LIST);
@@ -95,13 +96,14 @@ public class WeightViewController {
 
     @PostMapping(value = "/download")
     @ResponseBody
-    public ResponseEntity<byte[]> downloadWeight(@RequestBody DownloadRequest request, Principal principal) throws IOException {
-        String uid = principal.getName();
+    public ResponseEntity<byte[]> downloadWeight(@RequestBody DownloadRequest request, Authentication authentication) throws IOException {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String uid = userDetails.getUsername();
 
         logger.info("{} - Started downloading Package Excel from Audited Weight View", uid);
 
         String filename = "packages.xls";
-        List<Package> packages = packageDao.search(request);
+        List<Package> packages = packageDao.search(request, userDetails.getCompany().getCode());
         byte[] excel = ExcelHelper.packagesToExcel(packages);
 
 

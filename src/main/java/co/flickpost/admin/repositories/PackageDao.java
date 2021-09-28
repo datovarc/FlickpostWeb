@@ -31,6 +31,13 @@ public class PackageDao {
 
     final static DateTimeFormatter packageDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+    private final static String HQ = "HQ";
+    private final static String ALL = "ALL";
+
+    private final static String DATE_TIME = "dateTime";
+    private final static String HUB = "hub";
+    private final static String TRACKING_NUMBER = "trackingNumber";
+
     public void batchUpdate(List<Package> packages, int batchSize){
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction entityTransaction = entityManager.getTransaction();
@@ -62,7 +69,7 @@ public class PackageDao {
 
     }
 
-    public Map<String, Object> pagination(PaginationRequest request) {
+    public Map<String, Object> pagination(PaginationRequest request, String userCompany) {
         int pageSize = request.getPageSize();
         int pageNumber = request.getPageNumber();
         List<PaginationFilter> filters = request.getFilters();
@@ -83,7 +90,8 @@ public class PackageDao {
         Root<Package> countRoot = countQuery.from(Package.class);
         countRoot.alias("rootAlias");
         countQuery.select(countCriteriaBuilder.count(countRoot));
-        List<Predicate> predicates = processPredicates(filters, countCriteriaBuilder, countRoot);
+        List<Predicate> predicates = processPredicates(filters, countCriteriaBuilder, countRoot, userCompany);
+
         if(predicates != null && !predicates.isEmpty()){
             countQuery.where(predicates.toArray(new Predicate[]{}));
             paged.where(predicates.toArray(new Predicate[]{}));
@@ -110,27 +118,37 @@ public class PackageDao {
     }
 
 
-    private List<Predicate> processPredicates(List<PaginationFilter> filters, CriteriaBuilder cb, Root<Package> rootEntry){
-        if(filters == null || filters.isEmpty()) return null;
+    private List<Predicate> processPredicates(List<PaginationFilter> filters, CriteriaBuilder cb, Root<Package> rootEntry, String userCompany){
+        List<Predicate> predicates = new ArrayList<>();
 
         LocalDateValidator dateValidator = new LocalDateValidator(packageDateFormat);
 
-        List<Predicate> predicates = new ArrayList<>();
         for(PaginationFilter filter : filters){
             Predicate newPredicate = null;
             Object value = filter.getValue();
+            String field = filter.getField();
 
-            if(dateValidator.isValid(value.toString())) {
+            if(DATE_TIME.equalsIgnoreCase(field) && dateValidator.isValid(value.toString())) {
                 if(">=".equalsIgnoreCase(filter.getType())){
                     newPredicate = cb.greaterThanOrEqualTo(rootEntry.get(filter.getField()), LocalDate.parse(value.toString(), packageDateFormat).atStartOfDay());
 
                 } else if("<=".equalsIgnoreCase(filter.getType())){
                     newPredicate = cb.lessThanOrEqualTo(rootEntry.get(filter.getField()), LocalDate.parse(value.toString(), packageDateFormat).atTime(23,59,59));
                 }
+            } else if(HUB.equalsIgnoreCase(field) && !ALL.equalsIgnoreCase(value.toString())){
+                newPredicate = cb.equal(rootEntry.get(HUB), value.toString());
+            } else if(TRACKING_NUMBER.equalsIgnoreCase(field)){
+                newPredicate = cb.like(rootEntry.<String>get(TRACKING_NUMBER), "%"+value.toString()+"%");
             }
 
+            if(newPredicate != null) {
+                predicates.add(newPredicate);
+            }
+        }
 
-            predicates.add(newPredicate);
+        //Add User Filter
+        if(!HQ.equalsIgnoreCase(userCompany)){
+            predicates.add(cb.equal(rootEntry.get(HUB), userCompany));
         }
 
         return predicates;
@@ -142,7 +160,7 @@ public class PackageDao {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Package> cq = cb.createQuery(Package.class);
         Root<Package> root = cq.from(Package.class);
-        cq.orderBy(cb.desc(root.get("dateTime")));
+        cq.orderBy(cb.desc(root.get(DATE_TIME)));
 
         List<Package> packages = entityManager.createQuery(cq).setMaxResults(max).getResultList();
 
@@ -152,7 +170,7 @@ public class PackageDao {
     }
 
 
-    public List<Package> search(DownloadRequest request) {
+    public List<Package> search(DownloadRequest request, String userCompany) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Package> cq = cb.createQuery(Package.class);
@@ -161,10 +179,15 @@ public class PackageDao {
 
         List<Predicate> predicates = new ArrayList<>();
         if(request.getFromDate() != null){
-            predicates.add(cb.greaterThanOrEqualTo(rootEntry.get("dateTime"), request.getFromDate().atStartOfDay()));
+            predicates.add(cb.greaterThanOrEqualTo(rootEntry.get(DATE_TIME), request.getFromDate().atStartOfDay()));
         }
         if(request.getToDate() != null){
-            predicates.add(cb.lessThanOrEqualTo(rootEntry.get("dateTime"), request.getToDate().atTime(23,59,59)));
+            predicates.add(cb.lessThanOrEqualTo(rootEntry.get(DATE_TIME), request.getToDate().atTime(23,59,59)));
+        }
+        if(HQ.equalsIgnoreCase(userCompany) && !ALL.equalsIgnoreCase(request.getHub())){
+            predicates.add(cb.equal(rootEntry.get(HUB), request.getHub()));
+        } else if(!HQ.equalsIgnoreCase(userCompany)){
+            predicates.add(cb.equal(rootEntry.get(HUB), userCompany));
         }
 
         CriteriaQuery<Package> filtered = cq.select(rootEntry).where(predicates.toArray(new Predicate[]{}));

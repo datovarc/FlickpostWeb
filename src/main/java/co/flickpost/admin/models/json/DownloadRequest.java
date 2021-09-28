@@ -19,6 +19,9 @@ public class DownloadRequest implements Serializable {
     @JsonProperty("to_date")
     private LocalDate toDate;
 
+    @JsonProperty("hub")
+    private String hub;
+
     public LocalDate getFromDate() {
         return fromDate;
     }
@@ -33,5 +36,13 @@ public class DownloadRequest implements Serializable {
 
     public void setToDate(LocalDate toDate) {
         this.toDate = toDate;
+    }
+
+    public String getHub() {
+        return hub;
+    }
+
+    public void setHub(String hub) {
+        this.hub = hub;
     }
 }
