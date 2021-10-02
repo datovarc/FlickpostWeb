@@ -12,6 +12,7 @@ import co.flickpost.admin.models.json.PaginationResponse;
 import co.flickpost.admin.repositories.CompanyDao;
 import co.flickpost.admin.repositories.PackageDao;
 import co.flickpost.admin.security.UserDetailsImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -27,7 +28,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.Principal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -151,6 +157,58 @@ public class WeightViewController {
             logger.error("{} - Error processing Package file.", uid);
             return "redirect:/weight";
         }
+
+        return "redirect:/weight";
+    }
+
+    @PostMapping(value = "/add")
+    public String addWeight(@RequestParam("image") MultipartFile file,
+                            @RequestParam("hub_add") String hubAdd,
+                            @RequestParam("tracking_number") String trackingNumber,
+                            @RequestParam("audited_length") String auditedLength,
+                            @RequestParam("audited_width") String auditedWidth,
+                            @RequestParam("audited_height") String auditedHeight,
+                            @RequestParam("audited_weight") String auditedWeight,
+                            @RequestParam("audited_volumetric_weight") String auditedVolumetricWeight,
+                            @RequestParam("chargeable_weight") String chargeableWeight,
+                            @RequestParam("date_add") String date,
+                            Principal principal) {
+
+        String uid = principal.getName();
+
+        Package newPackage = new Package();
+        newPackage.setHub(hubAdd);
+        newPackage.setTrackingNumber(trackingNumber);
+
+        newPackage.setAuditedWidth(new BigDecimal(auditedWidth).setScale(2, RoundingMode.UP));
+        newPackage.setAuditedWeight(new BigDecimal(auditedWeight).setScale(2, RoundingMode.UP));
+        newPackage.setAuditedLength(new BigDecimal(auditedLength).setScale(2, RoundingMode.UP));
+        newPackage.setAuditedHeight(new BigDecimal(auditedHeight).setScale(2, RoundingMode.UP));
+
+        if(StringUtils.isEmpty(chargeableWeight)){
+            PackageHelper.updateChargeableWeight(newPackage);
+        } else {
+            newPackage.setChargeableWeight(new BigDecimal(chargeableWeight).setScale(1, RoundingMode.UP));
+        }
+
+        if(StringUtils.isEmpty(auditedVolumetricWeight)){
+            PackageHelper.updateVolumetricWeight(newPackage);
+        } else {
+            newPackage.setAuditedVolumetricWeight(new BigDecimal(auditedVolumetricWeight).setScale(2, RoundingMode.UP));
+        }
+
+
+        LocalDate localDate = LocalDate.parse(date);
+        LocalDateTime dateTime = LocalDateTime.of(localDate, LocalTime.now());
+        newPackage.setDateTime(dateTime);
+        newPackage.setStatus(null);
+        try {
+            newPackage.setImage(file.getBytes());
+        } catch(IOException io){
+            logger.error("{} - Could not add image file.", uid);
+        }
+
+        String insertedTrackingNo = packageDao.insert(newPackage);
 
         return "redirect:/weight";
     }

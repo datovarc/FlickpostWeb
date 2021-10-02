@@ -38,6 +38,22 @@ public class PackageDao {
     private final static String HUB = "hub";
     private final static String TRACKING_NUMBER = "trackingNumber";
 
+    public String insert(Package pkg) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction entityTransaction = entityManager.getTransaction();
+
+        entityTransaction.begin();
+        entityManager.clear();
+
+        entityManager.persist(pkg);
+
+
+        entityTransaction.commit();
+        entityManager.close();
+
+        return pkg.getTrackingNumber();
+    }
+
     public void batchUpdate(List<Package> packages, int batchSize){
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction entityTransaction = entityManager.getTransaction();

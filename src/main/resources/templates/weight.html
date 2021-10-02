@@ -26,19 +26,25 @@
     <meta property="og:image" content="images/mobile_free_reg.png">
     <meta property="og:image:secure_url" content="images/mobile_free_reg.png" />
 
-    <script>
+    <script th:inline="javascript">
 
         var token = $("meta[name='_csrf']").attr("content");
 
+        function executeAddWeight() {
+            $("body").addClass("loading");
+            $('#modal-hide-thing').modal('toggle');
+            $("#addWeightForm").submit();
+        }
+
         function executeUploadWeight() {
             $("body").addClass("loading");
-            $('#modal-hide-thing').modal('toggle'); //or  $('#IDModal').modal('hide');
+            $('#modal-hide-thing').modal('toggle');
             $("#uploadWeightForm").submit();
         }
 
         function executeUploadReport() {
             $("body").addClass("loading");
-            $('#modal-hide-thing').modal('toggle'); //or  $('#IDModal').modal('hide');
+            $('#modal-hide-thing').modal('toggle');
             $("#uploadReportForm").submit();
         }
 
@@ -211,8 +217,9 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="pull-right" style="margin:20px;">
+                    <a class="label label-light" href="#" data-toggle="modal" data-target="#addLine"><i class="ti ti-plus"></i> Add </a> &nbsp;
                     <a class="label label-light" href="#" data-toggle="modal" data-target="#uploadWeightFile"><i class="ti ti-upload"></i> Upload </a> &nbsp;
-                    <a class="label label-light" href="#", id="downloadButton"><i class="ti ti-download"></i> Download </a> &nbsp;
+                    <a class="label label-light" href="#" id="downloadButton"><i class="ti ti-download"></i> Download </a> &nbsp;
                     <a href="#" id="searchButton" class="label label-light"> <i class="ti ti-search"></i> Search </a>
                 </div>
                 <div class="panel panel-default" >
@@ -251,6 +258,7 @@
                             var table = new Tabulator("#packages-table", {
                                 index:"Tracking Number",
                                 pagination:"remote",
+                                paginationAddRow:"table",
                                 layout: "fitColumns",
                                 ajaxURL: "/weight/data",
                                 ajaxConfig: {
@@ -324,6 +332,88 @@
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </div>
 
+</div>
+
+
+<!-- Modal -->
+<div id="addLine" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width:700px;">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title">Add Package Info</h4>
+            </div>
+
+            <div class="modal-body" style="padding: 10px 25px;">
+                <form method="POST" th:action="@{'/weight/add'}" accept-charset="UTF-8" class="form-horizontal form-groups" id="addWeightForm" enctype="multipart/form-data">
+                    <div class="form-group addform">
+                            <div class="row">
+                                <div class="col-md-6 margin-bottom-8">
+                                    <label class="control-label">Hub</label>
+                                    <select th:disabled="${#authorization.expression('hasAnyAuthority(''WAREHOUSE'')')}" id="hubAdd" name="hub_add" class="form-control">
+                                        <option th:value="${defaultCompany.code}" th:text="${defaultCompany.name}"></option>
+                                        <option th:each="company : ${companies}" th:value="${company.code}" th:text="${company.name}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Tracking Number*</label><br>
+                                    <input type="text" name="tracking_number" class="form-control margin-bottom-8" required="required" placeholder="Tracking No.">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>Audited Length (cm)*</label><br>
+                                    <input type="number" pattern="^\d*(\.\d{0,4})?$" name="audited_length" class="form-control margin-bottom-8" required="required" placeholder="0.00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Audited Width (cm)*</label><br>
+                                    <input type="number" pattern="^\d*(\.\d{0,4})?$" name="audited_width" class="form-control margin-bottom-8" required="required" placeholder="0.00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Audited Height (cm)*</label><br>
+                                    <input type="number" pattern="^\d*(\.\d{0,4})?$" name="audited_height" class="form-control margin-bottom-8" required="required" placeholder="0.00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Audited Weight (kg)*</label><br>
+                                    <input type="number" pattern="^\d*(\.\d{0,4})?$" name="audited_weight" class="form-control margin-bottom-8" required="required" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>Audited Volumetric Weight (kg)</label><br>
+                                    <input type="number" pattern="^\d*(\.\d{0,4})?$" name="audited_volumetric_weight" class="form-control margin-bottom-8" placeholder="0.00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Chargeable Weight (kg)</label><br>
+                                    <input type="number" pattern="^\d*(\.\d{0,4})?$" name="chargeable_weight" class="form-control margin-bottom-8" placeholder="0.00">
+                                </div>
+                            </div>
+
+                        <div class="row">
+                        <div class="col-md-4 margin-bottom-8">
+                            <label class="control-label">Date*<span class="important">*</span></label>
+                            <input type="date" name="date_add" class="form-control datepicker" id="addDate" required="required" placeholder="Select date">
+                        </div>
+                            <div class="col-md-4 margin-bottom-8">
+                                <label class=" control-label">Package Image<br></label>
+                                <input class="fileInput" type="file" name="image" accept="image/*">
+                            </div>
+                        </div>
+
+
+                            <br>
+                            <p>
+                                <button type="button" id="addWeightBtn" class="btn btn-success btn-rounded" name="action" onclick="executeAddWeight()" value="Submit"><i class="ti-plus"></i> Add Package</button>
+                            </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <!-- Modal -->
