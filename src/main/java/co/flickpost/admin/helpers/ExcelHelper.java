@@ -66,7 +66,7 @@ public class ExcelHelper {
             }
 
             if(StringUtils.isNotEmpty(newPackage.getTrackingNumber())){
-                newPackage.setImage(null);
+                newPackage.setImageInfos(null);
                 newPackage.setHid(null);
                 PackageHelper.updateVolumetricWeight(newPackage);
                 PackageHelper.updateChargeableWeight(newPackage);

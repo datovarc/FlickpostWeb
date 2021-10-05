@@ -1,23 +1,16 @@
 package co.flickpost.admin.models;
 
+import co.flickpost.admin.helpers.ImageInfoConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -80,10 +73,11 @@ public class Package implements Serializable {
     @JsonProperty("image")
     private String encodedImage;
 
-    @Lob
-    @Column
-    @JsonIgnore
-    private byte[] image;
+    @Column(name = "images")
+    @JsonInclude
+    @JsonProperty("images")
+    @Convert(converter = ImageInfoConverter.class)
+    private List<ImageInfo> imageInfos;
 
     public Long getId() {
         return id;
@@ -181,12 +175,12 @@ public class Package implements Serializable {
         this.encodedImage = encodedImage;
     }
 
-    public byte[] getImage() {
-        return image;
+    public List<ImageInfo> getImageInfos() {
+        return imageInfos;
     }
 
-    public void setImage(byte[] image) {
-        this.image = image;
+    public void setImageInfos(List<ImageInfo> imageInfos) {
+        this.imageInfos = imageInfos;
     }
 
     public String getStatus() {
@@ -203,6 +197,7 @@ public class Package implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         Package aPackage = (Package) o;
         return Objects.equals(id, aPackage.id) &&
+                Objects.equals(hub, aPackage.hub) &&
                 Objects.equals(trackingNumber, aPackage.trackingNumber) &&
                 Objects.equals(auditedLength, aPackage.auditedLength) &&
                 Objects.equals(auditedWidth, aPackage.auditedWidth) &&
@@ -211,16 +206,15 @@ public class Package implements Serializable {
                 Objects.equals(auditedVolumetricWeight, aPackage.auditedVolumetricWeight) &&
                 Objects.equals(chargeableWeight, aPackage.chargeableWeight) &&
                 Objects.equals(hid, aPackage.hid) &&
+                Objects.equals(status, aPackage.status) &&
                 Objects.equals(dateTime, aPackage.dateTime) &&
                 Objects.equals(encodedImage, aPackage.encodedImage) &&
-                Arrays.equals(image, aPackage.image);
+                Objects.equals(imageInfos, aPackage.imageInfos);
     }
 
     @Override
     public int hashCode() {
 
-        int result = Objects.hash(id, trackingNumber, auditedLength, auditedWidth, auditedHeight, auditedWeight, auditedVolumetricWeight, chargeableWeight, hid, dateTime, encodedImage);
-        result = 31 * result + Arrays.hashCode(image);
-        return result;
+        return Objects.hash(id, hub, trackingNumber, auditedLength, auditedWidth, auditedHeight, auditedWeight, auditedVolumetricWeight, chargeableWeight, hid, status, dateTime, encodedImage, imageInfos);
     }
 }

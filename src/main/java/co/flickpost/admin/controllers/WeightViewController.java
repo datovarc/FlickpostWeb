@@ -3,8 +3,10 @@ package co.flickpost.admin.controllers;
 
 import co.flickpost.admin.configurations.FlickPostProperties;
 import co.flickpost.admin.helpers.ExcelHelper;
+import co.flickpost.admin.helpers.ImageHelper;
 import co.flickpost.admin.helpers.PackageHelper;
 import co.flickpost.admin.models.Company;
+import co.flickpost.admin.models.ImageInfo;
 import co.flickpost.admin.models.json.DownloadRequest;
 import co.flickpost.admin.models.Package;
 import co.flickpost.admin.models.json.PaginationRequest;
@@ -34,7 +36,6 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,8 @@ public class WeightViewController {
     BCryptPasswordEncoder encoder;
 
     private static final Logger logger = LogManager.getLogger(WeightViewController.class);
+
+    private final String DEFAULT_STATUS = "Processing at Hub";
 
     @GetMapping(value = "")
     public String weightView(Model model, Authentication authentication) {
@@ -88,9 +91,9 @@ public class WeightViewController {
         logger.info("{} - There was a total of {} packages for Audited Weight View", uid, count);
         logger.info("{} - Currently displaying Page {} for Audited Weight View", uid, request.getPageNumber());
 
-        logger.info("{} - Started processing images for Audited Weight View", uid);
-        processImages(packages);
-        logger.info("{} - Finished processing images for Audited Weight View", uid);
+//        logger.info("{} - Started processing images for Audited Weight View", uid);
+//        processImages(packages);
+//        logger.info("{} - Finished processing images for Audited Weight View", uid);
 
         int numPages = count.intValue() / request.getPageSize() + ((count.intValue() % request.getPageSize() == 0) ? 0 : 1);
         logger.info("{} - Total of {} pages available for Audited Weight View", uid, numPages);
@@ -202,25 +205,16 @@ public class WeightViewController {
         LocalDateTime dateTime = LocalDateTime.of(localDate, LocalTime.now());
         newPackage.setDateTime(dateTime);
         newPackage.setStatus(null);
-        try {
-            newPackage.setImage(file.getBytes());
-        } catch(IOException io){
-            logger.error("{} - Could not add image file.", uid);
-        }
+        if(StringUtils.isNotEmpty(properties.getImageUploadPath())) {
+                String destinationUrl = ImageHelper.writeFile(properties.getImageUploadPath(), newPackage, file);
+                List<ImageInfo> imageInfos = List.of(new ImageInfo(DEFAULT_STATUS, destinationUrl));
+                newPackage.setImageInfos(imageInfos);
+            }
+
 
         String insertedTrackingNo = packageDao.insert(newPackage);
 
         return "redirect:/weight";
-    }
-
-
-    private void processImages(List<Package> packages){
-        for (Package pkg : packages) {
-            if (pkg.getImage() != null) {
-                String decodedPicture = Base64.getEncoder().encodeToString(pkg.getImage());
-                pkg.setEncodedImage("data:image/jpg;base64," + decodedPicture);
-            }
-        }
     }
 
 }

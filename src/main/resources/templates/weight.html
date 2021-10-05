@@ -20,6 +20,7 @@
     <!--Download-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/downloadjs/1.4.8/download.min.js"></script>
     <script src="js/jquery.quicksearch.js"></script>
+    <script src="js/lightbox/fslightbox.js"></script>
     <script type="text/javascript" src="js/countries.js?v=16"></script>
     <meta property="og:title" content="flickpost | Your e-commerce logistics solutions provider ">
     <meta property="og:description" content="Get RM 10 off your first shipment! ">
@@ -29,6 +30,8 @@
     <script th:inline="javascript">
 
         var token = $("meta[name='_csrf']").attr("content");
+
+        var lightbox = new FsLightbox();
 
         function executeAddWeight() {
             $("body").addClass("loading");
@@ -286,18 +289,29 @@
                                     {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight",resizable: true, widthGrow:1.1, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
                                     {title:"Chargeable Weight (kg)", field:"chargeable_weight",resizable: true, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{precision:1, thousand:""}},
                                     {title:"Date and Time", field:"time",resizable: true, variableHeight:true, titleFormatter:"textarea"},
-                                    {title:"Image", field:"image",resizable:true, variableHeight:true, titleFormatter:"textarea", formatter:function (cell, formatterParams) {
-                                            var val = cell.getValue();
-                                            if(val !== null && val !== ''){
-                                                return '<button onclick="showImage(\''+val+'\')">Image</button>';
-                                            }
-                                            return '<span>No Image</span>';
-                                        }},
+                                    {title:"Image", field:"images",resizable:true, variableHeight:true, titleFormatter:"textarea", formatter:buttonFormatter},
                                     {title:"Remarks", field:"hid",resizable: true, variableHeight:true, titleFormatter:"textarea"},
                                 ]
                             });
 
                             table.redraw(true);
+
+
+                            function buttonFormatter(cell){
+                                var val = cell.getValue();
+                                if(val !== null && val !== ''){
+                                    var button = document.createElement('button');
+                                    button.innerHTML = 'Image';
+                                    button.onclick = function(){openLightbox(val)};
+                                    return button;
+
+                                } else{
+                                    var span = document.createElement('span');
+                                    span.innerHTML = 'No Image';
+                                    return span
+                                }
+                            }
+
 
                         function showImage(data) {
                             var image = new Image();
@@ -305,6 +319,13 @@
                             var w = window.open("");
                             w.document.write(image.outerHTML);
                             w.document.close();
+                        }
+
+                        function openLightbox(data) {
+                            for (var index = 0; index < data.length; ++index) {
+                                lightbox.props.sources.push(data[index].path);
+                            }
+                            lightbox.open();
                         }
 
                     </script>
