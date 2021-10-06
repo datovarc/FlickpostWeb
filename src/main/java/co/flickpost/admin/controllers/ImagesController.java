@@ -25,9 +25,10 @@ public class ImagesController {
 
     private static final Logger logger = LogManager.getLogger(ImagesController.class);
 
-    @CrossOrigin(origins = {"https://flickpost.co", "http://flickpost.co","https://flickpost.com", "http://flickpost.com","https://api.flickpost.com", "http://api.flickpost.com"})
-    @GetMapping("/{directory}/{filename}")
+    @CrossOrigin
+    @GetMapping(value = "/{directory}/{filename}")
     public ResponseEntity<byte[]> getImage(@PathVariable("directory") String directory, @PathVariable("filename") String filename) {
+        logger.info("Trying to access image {} in directory {}.", filename, directory);
         byte[] image = new byte[0];
         try {
             image = FileUtils.readFileToByteArray(new File(properties.getImageUploadPath() + directory + "/"+filename));
@@ -36,6 +37,7 @@ public class ImagesController {
         }
 
         MediaType mediaType = ImageHelper.determineMediaType(filename);
+        logger.info("MediaType determined is {}.", mediaType.toString());
 
         return ResponseEntity.ok().contentType(mediaType).body(image);
     }

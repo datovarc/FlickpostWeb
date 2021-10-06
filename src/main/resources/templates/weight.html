@@ -11,6 +11,7 @@
     <meta name="description" content="Flickpost is a dynamic e-commerce solutions provider, presenting connections to 200+ countries around the world. Flickpost specializes in cross-border solutions for international shipments – whether a few grams or large parcels. Our objective is to assist e-commerce sellers and SMEs save time and reduce shipping costs, where they can send anything to anywhere affordably and hassle-free.">
     <link rel="shortcut icon" href="icons/favicon32x32-1.jpg">
     <link href="css/app.css" rel="stylesheet">
+    <link href="css/lightbox.css" rel="stylesheet">
     <link href="css/themify-icons.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -20,7 +21,7 @@
     <!--Download-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/downloadjs/1.4.8/download.min.js"></script>
     <script src="js/jquery.quicksearch.js"></script>
-    <script src="js/lightbox/fslightbox.js"></script>
+    <script src="js/lightbox.js"></script>
     <script type="text/javascript" src="js/countries.js?v=16"></script>
     <meta property="og:title" content="flickpost | Your e-commerce logistics solutions provider ">
     <meta property="og:description" content="Get RM 10 off your first shipment! ">
@@ -30,8 +31,6 @@
     <script th:inline="javascript">
 
         var token = $("meta[name='_csrf']").attr("content");
-
-        var lightbox = new FsLightbox();
 
         function executeAddWeight() {
             $("body").addClass("loading");
@@ -302,7 +301,7 @@
                                 if(val !== null && val !== ''){
                                     var button = document.createElement('button');
                                     button.innerHTML = 'Image';
-                                    button.onclick = function(){openLightbox(val)};
+                                    button.onclick = function(){openModal(val)};
                                     return button;
 
                                 } else{
@@ -311,22 +310,6 @@
                                     return span
                                 }
                             }
-
-
-                        function showImage(data) {
-                            var image = new Image();
-                            image.src = data;
-                            var w = window.open("");
-                            w.document.write(image.outerHTML);
-                            w.document.close();
-                        }
-
-                        function openLightbox(data) {
-                            for (var index = 0; index < data.length; ++index) {
-                                lightbox.props.sources.push(data[index].path);
-                            }
-                            lightbox.open();
-                        }
 
                     </script>
                     </div>
@@ -355,6 +338,36 @@
 
 </div>
 
+
+<!-- The Modal/Lightbox -->
+<div id="lightbox" class="lightbox">
+    <span class="lightbox-close cursor" onclick="closeModal()">&times;</span>
+    <div class="lightbox-modal-content">
+
+        <div class="dynamicImages"></div>
+
+        <!-- Next/previous controls -->
+        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+        <a class="next" onclick="plusSlides(1)">&#10095;</a>
+
+        <!-- Caption text -->
+        <div class="caption-container">
+            <p id="caption"></p>
+        </div>
+
+        <div class="thumbnails" style="padding-left:7.5%;">
+            <div class="dynamicThumbs"></div>
+            <div class="addImages">
+                <img class="addImageThumb" src="images/add_image.png" onclick="">
+            </div>
+        </div>
+
+        <!-- Next/previous controls -->
+        <a class="prevThumb" onclick="plusThumbs(-1)">&#10094;</a>
+        <a class="nextThumb" onclick="plusThumbs(1)">&#10095;</a>
+
+    </div>
+</div>
 
 <!-- Modal -->
 <div id="addLine" class="modal fade" role="dialog">
