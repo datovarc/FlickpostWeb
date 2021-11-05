@@ -16,7 +16,7 @@ function openModal(imageInfo) {
 
         var lightboxImage = document.createElement('img');
         lightboxImage.src = imageInfo[i].path;
-        lightboxImage.style = "width:85%;margin: auto;";
+        lightboxImage.style = "width:70%;margin: auto;";
 
         lightboxImageDiv.appendChild(numberText);
         lightboxImageDiv.appendChild(lightboxImage);
