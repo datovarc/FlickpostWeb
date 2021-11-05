@@ -16,7 +16,7 @@ function openModal(imageInfo) {
 
         var lightboxImage = document.createElement('img');
         lightboxImage.src = imageInfo[i].path;
-        lightboxImage.style = "width:90%;margin: 0 0 0 5%;";
+        lightboxImage.style = "width:85%;margin: auto;";
 
         lightboxImageDiv.appendChild(numberText);
         lightboxImageDiv.appendChild(lightboxImage);
@@ -44,6 +44,10 @@ function openModal(imageInfo) {
 }
 
 function closeModal() {
+    var allImages = document.getElementsByClassName("dynamicImages")[0];
+    allImages.innerHTML = '';
+    var allThumbs = document.getElementsByClassName("dynamicThumbs")[0];
+    allThumbs.innerHTML = '';
     document.getElementById("lightbox").style.display = "none";
     document.getElementsByClassName("addImages")[0].style.display = "none";
 }

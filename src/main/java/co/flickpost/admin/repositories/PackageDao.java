@@ -8,11 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import co.flickpost.admin.models.Package;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.PersistenceUnit;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
@@ -54,6 +50,31 @@ public class PackageDao {
         return pkg.getTrackingNumber();
     }
 
+    public boolean batchDelete(List<Long> ids) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction entityTransaction = entityManager.getTransaction();
+
+        entityTransaction.begin();
+        entityManager.clear();
+
+        for(Long id : ids) {
+            entityManager.remove(entityManager.getReference(Package.class, id));
+        }
+
+        entityTransaction.commit();
+        entityManager.close();
+
+        return true;
+    }
+
+    public Package findByTrackingNumber(String trackingNumber){
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        Query query = entityManager.createNativeQuery("SELECT * FROM package where tracking_number = ?", Package.class);
+        query.setParameter(1, trackingNumber);
+        List<Package> result = query.getResultList();
+        return result != null && !result.isEmpty()? result.get(0) : null;
+    }
+
     public void batchUpdate(List<Package> packages, int batchSize){
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction entityTransaction = entityManager.getTransaction();
@@ -74,6 +95,24 @@ public class PackageDao {
                 entityManager.persist(packages.get(i));
             }
 
+            entityTransaction.commit();
+        } catch (RuntimeException e) {
+            if (entityTransaction.isActive()) {
+                entityTransaction.rollback();
+            }
+            throw e;
+        }
+        entityManager.close();
+
+    }
+
+    public void singleUpdate(Package packages){
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction entityTransaction = entityManager.getTransaction();
+
+        try {
+            entityTransaction.begin();
+            entityManager.merge(packages);
             entityTransaction.commit();
         } catch (RuntimeException e) {
             if (entityTransaction.isActive()) {

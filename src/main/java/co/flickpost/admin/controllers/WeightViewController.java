@@ -36,9 +36,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -65,6 +63,8 @@ public class WeightViewController {
 
         List<Company> companies =  companyDao.getAllCompanies();
         companies = companies.stream().filter(company -> !company.equals(userDetails.getCompany())).collect(Collectors.toList());
+        List<String> statuses = properties.getPackageImageStatuses();
+        model.addAttribute("statuses", statuses);
         model.addAttribute("companies", companies);
         model.addAttribute("defaultCompany", userDetails.getCompany());
         return "weight";
@@ -90,10 +90,6 @@ public class WeightViewController {
 
         logger.info("{} - There was a total of {} packages for Audited Weight View", uid, count);
         logger.info("{} - Currently displaying Page {} for Audited Weight View", uid, request.getPageNumber());
-
-//        logger.info("{} - Started processing images for Audited Weight View", uid);
-//        processImages(packages);
-//        logger.info("{} - Finished processing images for Audited Weight View", uid);
 
         int numPages = count.intValue() / request.getPageSize() + ((count.intValue() % request.getPageSize() == 0) ? 0 : 1);
         logger.info("{} - Total of {} pages available for Audited Weight View", uid, numPages);
@@ -125,6 +121,21 @@ public class WeightViewController {
         logger.info("{} - Finished downloading Package Excel from Audited Weight View", uid);
 
         return new ResponseEntity<>(excel, headers, HttpStatus.CREATED);
+
+    }
+
+    @PostMapping(value = "/delete")
+    public String deleteSelected(@RequestBody List<Package> request, Authentication authentication) throws IOException {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String uid = userDetails.getUsername();
+
+        packageDao.batchDelete(request.stream().map((p) -> p.getId()).collect(Collectors.toList()));
+
+        ImageHelper.delete(properties.getImageUploadPath(), request.stream().map((p) -> p.getTrackingNumber()).collect(Collectors.toList()));
+
+        logger.info("{} - Finished deleting Packages", uid);
+
+        return "redirect:/weight";
 
     }
 
@@ -160,6 +171,29 @@ public class WeightViewController {
             logger.error("{} - Error processing Package file.", uid);
             return "redirect:/weight";
         }
+
+        return "redirect:/weight";
+    }
+
+    @PostMapping(value = "/uploadImage")
+    public String uploadImage (@RequestParam("image") MultipartFile file,
+                            @RequestParam("status_add") String status,
+                               @RequestParam("selectedPackage") String selectedPackage,
+                            Principal principal) {
+
+        String uid = principal.getName();
+
+        Package pkg = packageDao.findByTrackingNumber(selectedPackage);
+
+        List<ImageInfo> originalImageInfos = pkg.getImageInfos();
+
+        if(StringUtils.isNotEmpty(properties.getImageUploadPath()) && !file.isEmpty()) {
+            String destinationUrl = ImageHelper.writeFile(properties.getImageUploadPath(), properties.getImageUploadUrl(), pkg, file);
+            originalImageInfos.add(new ImageInfo(status, destinationUrl));
+            pkg.setImageInfos(originalImageInfos);
+        }
+
+        packageDao.singleUpdate(pkg);
 
         return "redirect:/weight";
     }
@@ -205,14 +239,74 @@ public class WeightViewController {
         LocalDateTime dateTime = LocalDateTime.of(localDate, LocalTime.now());
         newPackage.setDateTime(dateTime);
         newPackage.setStatus(null);
-        if(StringUtils.isNotEmpty(properties.getImageUploadPath())) {
-                String destinationUrl = ImageHelper.writeFile(properties.getImageUploadPath(), newPackage, file);
+        if(StringUtils.isNotEmpty(properties.getImageUploadPath()) && !file.isEmpty()) {
+                String destinationUrl = ImageHelper.writeFile(properties.getImageUploadPath(), properties.getImageUploadUrl(), newPackage, file);
                 List<ImageInfo> imageInfos = List.of(new ImageInfo(DEFAULT_STATUS, destinationUrl));
                 newPackage.setImageInfos(imageInfos);
             }
 
 
         String insertedTrackingNo = packageDao.insert(newPackage);
+
+        return "redirect:/weight";
+    }
+
+    @PostMapping(value = "/edit")
+    public String packageUpdate(@RequestParam("image") MultipartFile file,
+                                @RequestParam("editOriginalTN") String originalTrackingNumber,
+                                @RequestParam("editId") String editId,
+                                @RequestParam("hub_edit") String hubAdd,
+                            @RequestParam("tracking_number") String trackingNumber,
+                            @RequestParam("audited_length") String auditedLength,
+                            @RequestParam("audited_width") String auditedWidth,
+                            @RequestParam("audited_height") String auditedHeight,
+                            @RequestParam("audited_weight") String auditedWeight,
+                            @RequestParam("audited_volumetric_weight") String auditedVolumetricWeight,
+                            @RequestParam("chargeable_weight") String chargeableWeight,
+                            @RequestParam("date_edit") String date,
+                            Principal principal) {
+
+        String uid = principal.getName();
+
+        Package newPackage = new Package();
+        newPackage.setId(Long.valueOf(editId));
+        newPackage.setHub(hubAdd);
+        newPackage.setTrackingNumber(trackingNumber);
+
+        newPackage.setAuditedWidth(new BigDecimal(auditedWidth).setScale(2, RoundingMode.UP));
+        newPackage.setAuditedWeight(new BigDecimal(auditedWeight).setScale(2, RoundingMode.UP));
+        newPackage.setAuditedLength(new BigDecimal(auditedLength).setScale(2, RoundingMode.UP));
+        newPackage.setAuditedHeight(new BigDecimal(auditedHeight).setScale(2, RoundingMode.UP));
+
+        if(StringUtils.isEmpty(chargeableWeight)){
+            PackageHelper.updateChargeableWeight(newPackage);
+        } else {
+            newPackage.setChargeableWeight(new BigDecimal(chargeableWeight).setScale(1, RoundingMode.UP));
+        }
+
+        if(StringUtils.isEmpty(auditedVolumetricWeight)){
+            PackageHelper.updateVolumetricWeight(newPackage);
+        } else {
+            newPackage.setAuditedVolumetricWeight(new BigDecimal(auditedVolumetricWeight).setScale(2, RoundingMode.UP));
+        }
+
+
+        LocalDate localDate = LocalDate.parse(date);
+        LocalDateTime dateTime = LocalDateTime.of(localDate, LocalTime.now());
+        newPackage.setDateTime(dateTime);
+        newPackage.setStatus(null);
+        if(!originalTrackingNumber.equalsIgnoreCase(newPackage.getTrackingNumber())){
+            ImageHelper.renameDirectory(properties.getImageUploadPath(), originalTrackingNumber, newPackage.getTrackingNumber());
+        }
+
+        if(StringUtils.isNotEmpty(properties.getImageUploadPath()) && !file.isEmpty()) {
+            String destinationUrl = ImageHelper.writeFile(properties.getImageUploadPath(), properties.getImageUploadUrl(), newPackage, file);
+            List<ImageInfo> imageInfos = List.of(new ImageInfo(DEFAULT_STATUS, destinationUrl));
+            newPackage.setImageInfos(imageInfos);
+        }
+
+
+        packageDao.singleUpdate(newPackage);
 
         return "redirect:/weight";
     }

@@ -9667,3 +9667,7 @@ body.loading .modalUploading {
     width: 25%;
     margin: 2.5% auto;
 }
+
+.tabulator-col-title {
+    text-align: center;
+}

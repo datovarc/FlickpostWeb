@@ -12,6 +12,7 @@
     <link rel="shortcut icon" href="icons/favicon32x32-1.jpg">
     <link href="css/app.css" rel="stylesheet">
     <link href="css/lightbox.css" rel="stylesheet">
+    <link href="css/contextmenu.css" rel="stylesheet">
     <link href="css/themify-icons.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -22,6 +23,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/downloadjs/1.4.8/download.min.js"></script>
     <script src="js/jquery.quicksearch.js"></script>
     <script src="js/lightbox.js"></script>
+    <script src="js/contextmenu.js"></script>
     <script type="text/javascript" src="js/countries.js?v=16"></script>
     <meta property="og:title" content="flickpost | Your e-commerce logistics solutions provider ">
     <meta property="og:description" content="Get RM 10 off your first shipment! ">
@@ -31,6 +33,12 @@
     <script th:inline="javascript">
 
         var token = $("meta[name='_csrf']").attr("content");
+
+        function executeEditWeight() {
+            $("body").addClass("loading");
+            $('#modal-hide-thing').modal('toggle');
+            $("#editWeightForm").submit();
+        }
 
         function executeAddWeight() {
             $("body").addClass("loading");
@@ -44,14 +52,29 @@
             $("#uploadWeightForm").submit();
         }
 
+        function executeUploadImage() {
+            $("body").addClass("loading");
+            $('#modal-hide-thing').modal('toggle');
+            $("#uploadImageForm").submit();
+        }
+
         function executeUploadReport() {
             $("body").addClass("loading");
             $('#modal-hide-thing').modal('toggle');
             $("#uploadReportForm").submit();
         }
 
+        function doCheckboxOptions(){
+            if(document.getElementById("custom-menu").offsetParent == null){
+                selectedData = table.getSelectedData();
+                showContextMenu();
+            }
+        }
+
         var searching = false;
         $(document).ready(function(){
+
+            var selectedData = null;
 
             $('#downloadButton').on('click',function(){
                 downloadExcel();
@@ -122,6 +145,21 @@
             }).then(function(blob) {
                 return download(blob, "packages.xls");
             });
+        }
+
+        function deleteSelected(){
+            fetch('/weight/delete', {
+                method: 'POST',
+                body: JSON.stringify(selectedData),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': token,
+                },
+            }).then(function(resp) {
+                table.replaceData();
+                return true;
+            })
+
         }
 
     </script>
@@ -219,6 +257,7 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="pull-right" style="margin:20px;">
+                    <a class="label label-light" onclick="doCheckboxOptions()" id="checkboxOptionsButton"><i class="ti ti-check-box"></i> Checkbox Options </a> &nbsp;
                     <a class="label label-light" href="#" data-toggle="modal" data-target="#addLine"><i class="ti ti-plus"></i> Add </a> &nbsp;
                     <a class="label label-light" href="#" data-toggle="modal" data-target="#uploadWeightFile"><i class="ti ti-upload"></i> Upload </a> &nbsp;
                     <a class="label label-light" href="#" id="downloadButton"><i class="ti ti-download"></i> Download </a> &nbsp;
@@ -231,15 +270,7 @@
                             <div class="col-md-12">
                                 <span class="searchloader" style="display:none;"><img src="images/loader.gif" auditedWidth="30px"></span>
                                 <form method="POST" th:action="@{'/weight'}" accept-charset="UTF-8" id="search-form" class="custom-scrollbar-transparent form-horizontal form-groups">
-
-                                    <!--<input type="text" id="search-dispatch_no" class="form-control margin-bottom-8" placeholder="Dispatch No">-->
-                                    <!--<input type="text" id="search-bag_no" class="form-control margin-bottom-8" placeholder="Bag No">-->
-                                    <!--<input type="text" id="search-sender_name" class="form-control margin-bottom-8" placeholder="Sender name">-->
-                                    <!--<input type="text" id="search-receiver_name" class="form-control margin-bottom-8" placeholder="Receiver name">-->
-                                    <!--<input type="text" id="search-origin" class="form-control margin-bottom-8" placeholder="Origin">-->
-                                    <!--<input type="text" id="search-destination" class="form-control margin-bottom-8"placeholder="Destination">-->
-                                    <!--<input type="text" id="search-status" class="form-control margin-bottom-8"placeholder="Status">-->
-                                        <select sec:authorize="hasAnyAuthority('ADMIN', 'OFFICE')" id="search_hub" name="hub" class="form-control">
+                                     <select sec:authorize="hasAnyAuthority('ADMIN', 'OFFICE')" id="search_hub" name="hub" class="form-control">
                                             <option th:value="ALL">All Hubs</option>
                                             <option th:value="${defaultCompany.code}" th:text="${defaultCompany.name}"></option>
                                             <option th:each="company : ${companies}" th:value="${company.code}" th:text="${company.name}"></option>
@@ -259,6 +290,7 @@
 
                             var table = new Tabulator("#packages-table", {
                                 index:"Tracking Number",
+                                resizableColumns:"header",
                                 pagination:"remote",
                                 paginationAddRow:"table",
                                 layout: "fitColumns",
@@ -276,20 +308,23 @@
                                 paginationSize: 10,
                                 paginationSizeSelector:[10, 25, 50, 100],
                                 columns:[
-                                    {title:"Hub", field:"hub",resizable: true, variableHeight:true, widthGrow:0.5, titleFormatter:"textarea", formatter:function (cell, formatterParams) {
+                                    {formatter:"rowSelection", titleFormatter:"rowSelection", variableHeight:true, widthGrow:0.5, hozAlign:"center", vertAlign:"middle" , headerSort:false, cellClick:function(e, cell){
+                                            cell.getRow().toggleSelect();
+                                        }},
+                                    {title:"Hub", field:"hub", variableHeight:true, widthGrow:0.5, titleFormatter:"textarea", formatter:function (cell, formatterParams) {
                                         var imgName = cell.getValue();
                                         return '<img src="images/hubs/' + imgName +'.png" width="35" height="35"/>';
                                         }},
-                                    {title:"Tracking Number", field:"code",resizable: true, variableHeight:true, titleFormatter:"textarea",},
-                                    {title:"Audited Length (cm)", field:"L",resizable: true, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Audited Width (cm)", field:"W",resizable: true, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Audited Height (cm)", field:"H",resizable: true, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Audited Weight (kg)", field:"weight",resizable: true, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight",resizable: true, widthGrow:1.1, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Chargeable Weight (kg)", field:"chargeable_weight",resizable: true, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{precision:1, thousand:""}},
-                                    {title:"Date and Time", field:"time",resizable: true, variableHeight:true, titleFormatter:"textarea"},
-                                    {title:"Image", field:"images",resizable:true, variableHeight:true, titleFormatter:"textarea", formatter:buttonFormatter},
-                                    {title:"Remarks", field:"hid",resizable: true, variableHeight:true, titleFormatter:"textarea"},
+                                    {title:"Tracking Number", field:"code", variableHeight:true, titleFormatter:"textarea",},
+                                    {title:"Audited Length (cm)", field:"L", variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Width (cm)", field:"W", variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Height (cm)", field:"H", variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Weight (kg)", field:"weight", variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight", widthGrow:1.20, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Chargeable Weight (kg)", field:"chargeable_weight", variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{precision:1, thousand:""}},
+                                    {title:"Date and Time", field:"time", variableHeight:true, titleFormatter:"textarea"},
+                                    {title:"Image", field:"images", variableHeight:true, widthGrow:0.7, titleFormatter:"textarea", formatter:buttonFormatter},
+                                    {title:"Remarks", field:"hid", variableHeight:true, titleFormatter:"textarea"},
                                 ]
                             });
 
@@ -298,16 +333,25 @@
 
                             function buttonFormatter(cell){
                                 var val = cell.getValue();
+                                let trackingNumber = cell.getRow().getCells()[1].getValue();
                                 if(val !== null && val !== ''){
                                     var button = document.createElement('button');
                                     button.innerHTML = 'Image';
-                                    button.onclick = function(){openModal(val)};
+                                    button.onclick = function(){
+                                        document.getElementById('selectedPackage').value=trackingNumber;
+                                        openModal(val)
+                                    };
                                     return button;
 
                                 } else{
-                                    var span = document.createElement('span');
-                                    span.innerHTML = 'No Image';
-                                    return span
+                                    var button = document.createElement('button');
+                                    button.innerHTML = 'Image';
+                                    button.onclick = function(){
+                                        document.getElementById('selectedPackage').value=trackingNumber;
+                                        $("#uploadImageFile").modal('toggle'); //see here usage
+                                    };
+
+                                    return button;
                                 }
                             }
 
@@ -338,13 +382,22 @@
 
 </div>
 
+<ul class='custom-menu' id='custom-menu'>
+    <li id="updateStatusOption" data-action="updateStatus"><i class="ti ti-ticket">&nbsp;</i>Update Status</li>
+    <li id="addCommentOption" data-action="addComment"><i class="ti ti-comment">&nbsp;</i>Add Comment</li>
+    <li id="exportShipmentsOption" data-action="exportShipments"><i class="ti ti-download">&nbsp;</i>Export Shipments</li>
+    <li id="assignHubOption" data-action="assignHub"><i class="ti ti-location-pin">&nbsp;</i>Assign To Hub</li>
+    <li id="printLabelOption" data-action="printLabel"><i class="ti ti-printer">&nbsp;</i>Print Label</li>
+    <li id="editSelectedOption" data-action="editSelected"><i class="ti ti-pencil">&nbsp;</i>Edit Selected</li>
+    <li id="deleteSelectedOption" data-action="deleteSelected"><i class="ti ti-trash">&nbsp;</i>Delete Selected</li>
+</ul>
 
 <!-- The Modal/Lightbox -->
 <div id="lightbox" class="lightbox">
     <span class="lightbox-close cursor" onclick="closeModal()">&times;</span>
     <div class="lightbox-modal-content">
 
-        <div class="dynamicImages"></div>
+        <div class="dynamicImages" style="height:78vh;text-align: center"></div>
 
         <!-- Next/previous controls -->
         <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
@@ -358,13 +411,138 @@
         <div class="thumbnails" style="padding-left:7.5%;">
             <div class="dynamicThumbs"></div>
             <div class="addImages">
-                <img class="addImageThumb" src="images/add_image.png" onclick="">
+                <img class="addImageThumb" src="images/add_image.png" href="#" data-toggle="modal" data-target="#uploadImageFile">
             </div>
         </div>
 
         <!-- Next/previous controls -->
         <a class="prevThumb" onclick="plusThumbs(-1)">&#10094;</a>
         <a class="nextThumb" onclick="plusThumbs(1)">&#10095;</a>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="uploadImageFile" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width:700px;">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title">Upload Image</h4>
+            </div>
+
+            <div class="modal-body" style="padding: 10px 25px;">
+                <form method="POST" th:action="@{'/weight/uploadImage'}" accept-charset="UTF-8" class="form-horizontal form-groups excelUpload" id="uploadImageForm" enctype="multipart/form-data">
+                    <div class="form-group imageform">
+                        <div class="row">
+                            <input type="hidden" id="selectedPackage" value="" name="selectedPackage">
+                            <div class="col-md-6 margin-bottom-8">
+                                <label class="control-label">Status</label>
+                                <select id="statusAddImage" name="status_add" class="form-control">
+                                    <option th:each="status : ${statuses}" th:value="${status}" th:text="${status}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 margin-bottom-8">
+                                <label class=" control-label">Package Image<br></label>
+                                <input class="fileInput" type="file" name="image" accept="image/*">
+                            </div>
+                        </div>
+
+
+                        <br>
+                        <p>
+                            <button type="button" id="uploadImageBtn" class="btn btn-success btn-rounded" name="action" onclick="executeUploadImage()" value="Submit"><i class="ti-plus"></i>Add Image</button>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="editLine" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width:700px;">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title">Edit Package Info</h4>
+            </div>
+
+            <div class="modal-body" style="padding: 10px 25px;">
+                <form method="POST" th:action="@{'/weight/edit'}" accept-charset="UTF-8" class="form-horizontal form-groups" id="editWeightForm" enctype="multipart/form-data">
+                    <div class="form-group editform">
+                        <input type="hidden" id="editId" name="editId">
+                        <input type="hidden" id="editOriginalTN" name="editOriginalTN">
+                        <div class="row">
+                            <div class="col-md-6 margin-bottom-8">
+                                <label class="control-label">Hub</label>
+                                <select th:disabled="${#authorization.expression('hasAnyAuthority(''WAREHOUSE'')')}" id="hubEdit" name="hub_edit" class="form-control">
+                                    <option th:value="${defaultCompany.code}" th:text="${defaultCompany.name}"></option>
+                                    <option th:each="company : ${companies}" th:value="${company.code}" th:text="${company.name}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label>Tracking Number*</label><br>
+                                <input type="text" id="trackingNumberEdit" name="tracking_number" class="form-control margin-bottom-8" required="required" placeholder="Tracking No.">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label>Audited Length (cm)*</label><br>
+                                <input type="number" pattern="^\d*(\.\d{0,4})?$" id="auditedLengthEdit" name="audited_length" class="form-control margin-bottom-8" required="required" placeholder="0.00">
+                            </div>
+                            <div class="col-md-6">
+                                <label>Audited Width (cm)*</label><br>
+                                <input type="number" pattern="^\d*(\.\d{0,4})?$" id="auditedWidthEdit" name="audited_width" class="form-control margin-bottom-8" required="required" placeholder="0.00">
+                            </div>
+                            <div class="col-md-6">
+                                <label>Audited Height (cm)*</label><br>
+                                <input type="number" pattern="^\d*(\.\d{0,4})?$" id="auditedHeightEdit" name="audited_height" class="form-control margin-bottom-8" required="required" placeholder="0.00">
+                            </div>
+                            <div class="col-md-6">
+                                <label>Audited Weight (kg)*</label><br>
+                                <input type="number" pattern="^\d*(\.\d{0,4})?$" id="auditedWeightEdit" name="audited_weight" class="form-control margin-bottom-8" required="required" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label>Audited Volumetric Weight (kg)</label><br>
+                                <input type="number" pattern="^\d*(\.\d{0,4})?$" id="auditedVolumetricWeightEdit" name="audited_volumetric_weight" class="form-control margin-bottom-8" placeholder="0.00">
+                            </div>
+                            <div class="col-md-6">
+                                <label>Chargeable Weight (kg)</label><br>
+                                <input type="number" pattern="^\d*(\.\d{0,4})?$" id="chargeableWeightEdit" name="chargeable_weight" class="form-control margin-bottom-8" placeholder="0.00">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 margin-bottom-8">
+                                <label class="control-label">Date*<span class="important">*</span></label>
+                                <input type="date" name="date_edit" class="form-control datepicker" id="dateEdit" required="required" placeholder="Select date">
+                            </div>
+                            <div class="col-md-4 margin-bottom-8">
+                                <label class=" control-label">Package Image<br></label>
+                                <input class="fileInput" type="file" name="image" accept="image/*">
+                            </div>
+                        </div>
+
+
+                        <br>
+                        <p>
+                            <button type="button" id="editWeightBtn" class="btn btn-success btn-rounded" name="action" onclick="executeEditWeight()" value="Submit"><i class="ti-pencil"></i> Edit Package</button>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
 
     </div>
 </div>

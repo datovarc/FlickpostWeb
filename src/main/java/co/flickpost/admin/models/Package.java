@@ -21,6 +21,7 @@ public class Package implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "_id")
+    @JsonProperty("id")
     private Long id;
 
     @Column(name = "hub_symbol")
