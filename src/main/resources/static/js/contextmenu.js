@@ -61,6 +61,7 @@ $(document).ready(function(){
             case "editSelected":
                 document.getElementById('editId').value = selectedData[0].id;
                 document.getElementById('editOriginalTN').value = selectedData[0].code;
+                document.getElementById('editImageInfos').value = JSON.stringify(selectedData[0].images);
 
                 document.getElementById('hubEdit').value = selectedData[0].hub;
                 document.getElementById('trackingNumberEdit').value = selectedData[0].code;

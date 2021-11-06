@@ -14,10 +14,14 @@ import co.flickpost.admin.models.json.PaginationResponse;
 import co.flickpost.admin.repositories.CompanyDao;
 import co.flickpost.admin.repositories.PackageDao;
 import co.flickpost.admin.security.UserDetailsImpl;
+import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -254,6 +258,7 @@ public class WeightViewController {
     @PostMapping(value = "/edit")
     public String packageUpdate(@RequestParam("image") MultipartFile file,
                                 @RequestParam("editOriginalTN") String originalTrackingNumber,
+                                @RequestParam("editImageInfos") String originalImagInfos,
                                 @RequestParam("editId") String editId,
                                 @RequestParam("hub_edit") String hubAdd,
                             @RequestParam("tracking_number") String trackingNumber,
@@ -266,7 +271,21 @@ public class WeightViewController {
                             @RequestParam("date_edit") String date,
                             Principal principal) {
 
+        List<ImageInfo> imageInfos = new ArrayList<>();
         String uid = principal.getName();
+
+        try {
+            JSONArray jsonArr = (JSONArray) new JSONParser().parse(originalImagInfos);
+            Gson gson = new Gson();
+
+            Iterator it = jsonArr.iterator();
+            while(it.hasNext()){
+                ImageInfo imgInfo = gson.fromJson(it.next().toString(), ImageInfo.class);
+                imageInfos.add(imgInfo);
+            }
+        } catch(ParseException pE){
+            logger.error("{} - Error processing original Image Infos for package.", originalTrackingNumber);
+        }
 
         Package newPackage = new Package();
         newPackage.setId(Long.valueOf(editId));
@@ -297,14 +316,20 @@ public class WeightViewController {
         newPackage.setStatus(null);
         if(!originalTrackingNumber.equalsIgnoreCase(newPackage.getTrackingNumber())){
             ImageHelper.renameDirectory(properties.getImageUploadPath(), originalTrackingNumber, newPackage.getTrackingNumber());
+            if(imageInfos != null && !imageInfos.isEmpty()){
+                for(ImageInfo imgInfo : imageInfos){
+                    String oldPath = imgInfo.getPath();
+                    imgInfo.setPath(oldPath.replace(originalTrackingNumber, trackingNumber));
+                }
+            }
         }
 
         if(StringUtils.isNotEmpty(properties.getImageUploadPath()) && !file.isEmpty()) {
             String destinationUrl = ImageHelper.writeFile(properties.getImageUploadPath(), properties.getImageUploadUrl(), newPackage, file);
-            List<ImageInfo> imageInfos = List.of(new ImageInfo(DEFAULT_STATUS, destinationUrl));
-            newPackage.setImageInfos(imageInfos);
+            imageInfos.add(new ImageInfo(DEFAULT_STATUS, destinationUrl));
         }
 
+        newPackage.setImageInfos(imageInfos);
 
         packageDao.singleUpdate(newPackage);
 
