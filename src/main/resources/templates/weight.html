@@ -347,7 +347,7 @@
 
                             function buttonFormatter(cell){
                                 var val = cell.getValue();
-                                let trackingNumber = cell.getRow().getCells()[1].getValue();
+                                let trackingNumber = cell.getRow().getCells()[2].getValue();
                                 if(val !== null && val !== ''){
                                     var button = document.createElement('button');
                                     button.innerHTML = 'Image';
