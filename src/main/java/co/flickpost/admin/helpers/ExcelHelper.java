@@ -15,6 +15,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -26,6 +28,7 @@ public class ExcelHelper {
 
     final static DateTimeFormatter sdf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     final static DateTimeFormatter packageDateFormat = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");
+    final static NumberFormat df = DecimalFormat.getInstance();
 
     private final static String PACKAGE_SHEET_NAME = "Packages";
     private final static String[] PACKAGE_COLUMNS = new String[]{"Hub", "Tracking Number", "Audited Length(cm)", "Audited Width(cm)",
@@ -148,16 +151,16 @@ public class ExcelHelper {
 
                 row.createCell(0).setCellValue(pkg.getHub());
                 row.createCell(1).setCellValue(pkg.getTrackingNumber());
-                row.createCell(2).setCellValue(pkg.getAuditedLength().doubleValue());
-                row.createCell(3).setCellValue(pkg.getAuditedWidth().doubleValue());
-                row.createCell(4).setCellValue(pkg.getAuditedHeight().doubleValue());
-                row.createCell(5).setCellValue(pkg.getAuditedHeight().doubleValue());
+                row.createCell(2).setCellValue(getDoubleValue(pkg.getAuditedLength(), 2));
+                row.createCell(3).setCellValue(getDoubleValue(pkg.getAuditedWidth(), 2));
+                row.createCell(4).setCellValue(getDoubleValue(pkg.getAuditedHeight(), 2));
+                row.createCell(5).setCellValue(getDoubleValue(pkg.getAuditedHeight(), 2));
                 row.createCell(6).setCellValue(pkg.getDateTime());
                 row.createCell(7).setCellValue("");
                 row.createCell(8).setCellValue("Success");
                 row.createCell(9).setCellValue(pkg.getHid());
-                row.createCell(10).setCellValue(pkg.getAuditedVolumetricWeight().doubleValue());
-                row.createCell(11).setCellValue(pkg.getChargeableWeight().doubleValue());
+                row.createCell(10).setCellValue(getDoubleValue(pkg.getAuditedVolumetricWeight(), 2));
+                row.createCell(11).setCellValue(getDoubleValue(pkg.getChargeableWeight(), 1));
             }
 
             workbook.write(out);
@@ -168,6 +171,15 @@ public class ExcelHelper {
         }
 
         return bytes;
+    }
+
+    private static String getDoubleValue(BigDecimal bd, int decimals){
+
+        df.setMinimumFractionDigits(decimals);
+        df.setMaximumFractionDigits(decimals);
+        df.setRoundingMode(RoundingMode.UP);
+
+        return bd != null? df.format(bd.doubleValue()) : "";
     }
 
     private static void updatePackage(Package pkg, Cell cell, int cellIndex, String company) throws Exception {

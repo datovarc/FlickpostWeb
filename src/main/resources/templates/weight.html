@@ -127,11 +127,25 @@
         }
 
         function downloadExcel(){
-            var normalizedFromDate = $('#from_date').val();
-            var normalizedToDate = $('#to_date').val();
-            var normalizedHub = $('#search_hub').val();
 
-            var downloadRequest = JSON.parse('{"from_date": "'+ normalizedFromDate+ '", "to_date": "' + normalizedToDate + '", "hub": "' + normalizedHub + '"}');
+            selectedData = table.getSelectedData();
+            if(selectedData.length > 0){
+                var selectedIds = [];
+                selectedData.forEach(function (data) {
+                    selectedIds.push(data.code);
+                });
+                var normalizedFromDate = "";
+                var normalizedToDate = "";
+                var normalizedHub = null;
+            } else {
+                var normalizedFromDate = $('#from_date').val();
+                var normalizedToDate = $('#to_date').val();
+                var normalizedHub = $('#search_hub').val();
+                var selectedIds = null;
+            }
+
+            var downloadRequest =
+                JSON.parse('{"from_date": "'+ normalizedFromDate+ '", "to_date": "' + normalizedToDate + '", "hub": "' + normalizedHub + '", "selected": "' + selectedIds + '"}');
 
             fetch('/weight/download', {
                 method: 'POST',

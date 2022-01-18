@@ -255,4 +255,26 @@ public class PackageDao {
         return queryResult;
     }
 
+    public List<Package> searchByCode(List<String> codes) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Package> cq = cb.createQuery(Package.class);
+        Root<Package> rootEntry = cq.from(Package.class);
+
+
+        List<Predicate> predicates = new ArrayList<>();
+        Expression<String> trackingNumberExpression = rootEntry.get(TRACKING_NUMBER);
+        Predicate codePredicate = trackingNumberExpression.in(codes);
+        predicates.add(codePredicate);
+
+        CriteriaQuery<Package> filtered = cq.select(rootEntry).where(predicates.toArray(new Predicate[]{}));
+
+        TypedQuery<Package> filteredQuery = entityManager.createQuery(filtered);
+        List<Package> queryResult = filteredQuery.getResultList();
+
+        entityManager.close();
+
+        return queryResult;
+    }
+
 }

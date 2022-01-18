@@ -112,7 +112,16 @@ public class WeightViewController {
         logger.info("{} - Started downloading Package Excel from Audited Weight View", uid);
 
         String filename = "packages.xls";
-        List<Package> packages = packageDao.search(request, userDetails.getCompany().getCode());
+
+        List<Package> packages;
+        if(StringUtils.isNotEmpty(request.getSelected()) && !"null".equalsIgnoreCase(request.getSelected())){
+            List<String> selectedIds = Arrays.asList(request.getSelected().split(","));
+            packages = packageDao.searchByCode(selectedIds);
+        } else {
+            packages = packageDao.search(request, userDetails.getCompany().getCode());
+        }
+
+
         byte[] excel = ExcelHelper.packagesToExcel(packages);
 
 
