@@ -69,8 +69,6 @@ $(document).ready(function(){
                 document.getElementById('auditedWidthEdit').value = selectedData[0].W;
                 document.getElementById('auditedHeightEdit').value = selectedData[0].H;
                 document.getElementById('auditedWeightEdit').value = selectedData[0].weight;
-                document.getElementById('auditedVolumetricWeightEdit').value = selectedData[0].audited_volumetric_weight;
-                document.getElementById('chargeableWeightEdit').value = selectedData[0].chargeable_weight;
                 document.getElementById('dateEdit').value = selectedData[0].time.substring(0, 10);
                 $("#editLine").modal('toggle');
 

@@ -199,6 +199,9 @@ public class WeightViewController {
         Package pkg = packageDao.findByTrackingNumber(selectedPackage);
 
         List<ImageInfo> originalImageInfos = pkg.getImageInfos();
+        if(originalImageInfos == null){
+            originalImageInfos = new ArrayList<>();
+        }
 
         if(StringUtils.isNotEmpty(properties.getImageUploadPath()) && !file.isEmpty()) {
             String destinationUrl = ImageHelper.writeFile(properties.getImageUploadPath(), properties.getImageUploadUrl(), pkg, file);
@@ -219,8 +222,6 @@ public class WeightViewController {
                             @RequestParam("audited_width") String auditedWidth,
                             @RequestParam("audited_height") String auditedHeight,
                             @RequestParam("audited_weight") String auditedWeight,
-                            @RequestParam("audited_volumetric_weight") String auditedVolumetricWeight,
-                            @RequestParam("chargeable_weight") String chargeableWeight,
                             @RequestParam("date_add") String date,
                             Principal principal) {
 
@@ -235,17 +236,8 @@ public class WeightViewController {
         newPackage.setAuditedLength(new BigDecimal(auditedLength).setScale(2, RoundingMode.UP));
         newPackage.setAuditedHeight(new BigDecimal(auditedHeight).setScale(2, RoundingMode.UP));
 
-        if(StringUtils.isEmpty(chargeableWeight)){
-            PackageHelper.updateChargeableWeight(newPackage);
-        } else {
-            newPackage.setChargeableWeight(new BigDecimal(chargeableWeight).setScale(1, RoundingMode.UP));
-        }
-
-        if(StringUtils.isEmpty(auditedVolumetricWeight)){
-            PackageHelper.updateVolumetricWeight(newPackage);
-        } else {
-            newPackage.setAuditedVolumetricWeight(new BigDecimal(auditedVolumetricWeight).setScale(2, RoundingMode.UP));
-        }
+        PackageHelper.updateVolumetricWeight(newPackage);
+        PackageHelper.updateChargeableWeight(newPackage);
 
 
         LocalDate localDate = LocalDate.parse(date);
@@ -275,25 +267,25 @@ public class WeightViewController {
                             @RequestParam("audited_width") String auditedWidth,
                             @RequestParam("audited_height") String auditedHeight,
                             @RequestParam("audited_weight") String auditedWeight,
-                            @RequestParam("audited_volumetric_weight") String auditedVolumetricWeight,
-                            @RequestParam("chargeable_weight") String chargeableWeight,
                             @RequestParam("date_edit") String date,
                             Principal principal) {
 
         List<ImageInfo> imageInfos = new ArrayList<>();
         String uid = principal.getName();
 
-        try {
-            JSONArray jsonArr = (JSONArray) new JSONParser().parse(originalImagInfos);
-            Gson gson = new Gson();
+        if(originalImagInfos != null && !"null".equalsIgnoreCase(originalImagInfos)) {
+            try {
+                JSONArray jsonArr = (JSONArray) new JSONParser().parse(originalImagInfos);
+                Gson gson = new Gson();
 
-            Iterator it = jsonArr.iterator();
-            while(it.hasNext()){
-                ImageInfo imgInfo = gson.fromJson(it.next().toString(), ImageInfo.class);
-                imageInfos.add(imgInfo);
+                Iterator it = jsonArr.iterator();
+                while (it.hasNext()) {
+                    ImageInfo imgInfo = gson.fromJson(it.next().toString(), ImageInfo.class);
+                    imageInfos.add(imgInfo);
+                }
+            } catch (ParseException pE) {
+                logger.error("{} - Error processing original Image Infos for package.", originalTrackingNumber);
             }
-        } catch(ParseException pE){
-            logger.error("{} - Error processing original Image Infos for package.", originalTrackingNumber);
         }
 
         Package newPackage = new Package();
@@ -306,17 +298,8 @@ public class WeightViewController {
         newPackage.setAuditedLength(new BigDecimal(auditedLength).setScale(2, RoundingMode.UP));
         newPackage.setAuditedHeight(new BigDecimal(auditedHeight).setScale(2, RoundingMode.UP));
 
-        if(StringUtils.isEmpty(chargeableWeight)){
-            PackageHelper.updateChargeableWeight(newPackage);
-        } else {
-            newPackage.setChargeableWeight(new BigDecimal(chargeableWeight).setScale(1, RoundingMode.UP));
-        }
-
-        if(StringUtils.isEmpty(auditedVolumetricWeight)){
-            PackageHelper.updateVolumetricWeight(newPackage);
-        } else {
-            newPackage.setAuditedVolumetricWeight(new BigDecimal(auditedVolumetricWeight).setScale(2, RoundingMode.UP));
-        }
+        PackageHelper.updateVolumetricWeight(newPackage);
+        PackageHelper.updateChargeableWeight(newPackage);
 
 
         LocalDate localDate = LocalDate.parse(date);

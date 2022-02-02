@@ -52,20 +52,13 @@ public class ExcelHelper {
         while(rowIterator.hasNext()){
             Package newPackage = new Package();
             Row row = rowIterator.next();
-            if(row == null){
+            if(row == null || row.getPhysicalNumberOfCells() == 0){
                 continue;
             }
 
-            Iterator<Cell> cellIterator = row.cellIterator();
-            if(cellIterator == null){
-                continue;
-            }
-
-            int cellIndex = 0;
-            while(cellIterator.hasNext()){
-                Cell cell = cellIterator.next();
+            for(int cellIndex = 0; cellIndex< PACKAGE_COLUMNS.length; cellIndex++){
+                Cell cell = row.getCell(cellIndex);
                 updatePackage(newPackage, cell, cellIndex, company);
-                cellIndex++;
             }
 
             if(StringUtils.isNotEmpty(newPackage.getTrackingNumber())){
@@ -186,7 +179,10 @@ public class ExcelHelper {
         BigDecimal value = null;
         String stringVal;
 
-        if(cell.getCellType() == CellType.NUMERIC){
+        if(cell == null){
+            stringVal = "";
+        }
+        else if(cell.getCellType() == CellType.NUMERIC){
             value = new BigDecimal(cell.getNumericCellValue());
             stringVal = value.toString();
         } else{
