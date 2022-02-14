@@ -284,15 +284,15 @@
                             <div class="col-md-12">
                                 <span class="searchloader" style="display:none;"><img src="images/loader.gif" auditedWidth="30px"></span>
                                 <form method="POST" th:action="@{'/weight'}" accept-charset="UTF-8" id="search-form" class="custom-scrollbar-transparent form-horizontal form-groups">
-                                     <select sec:authorize="hasAnyAuthority('ADMIN', 'OFFICE')" id="search_hub" name="hub" class="form-control">
+                                     <select sec:authorize="hasAnyAuthority('ADMIN', 'OFFICE')" id="search_hub" name="hub" class="form-control margin-bottom-8">
                                             <option th:value="ALL">All Hubs</option>
                                             <option th:value="${defaultCompany.code}" th:text="${defaultCompany.name}"></option>
                                             <option th:each="company : ${companies}" th:value="${company.code}" th:text="${company.name}"></option>
                                         </select>
 
                                     <input type="text" id="search-tracking_no" class="form-control margin-bottom-8" placeholder="Tracking No">
-                                    <input type="date" id="from_date" class="form-control margin-bottom-8"  placeholder="Date">
-                                    <input type="date" id="to_date" class="form-control margin-bottom-8"  placeholder="Date">
+                                    <input type="date" id="from_date" class="form-control margin-bottom-8"  placeholder="yyyy-mm-dd">
+                                    <input type="date" id="to_date" class="form-control margin-bottom-8"  placeholder="yyyy-mm-dd">
                                 </form>
                             </div>
                         </div>
@@ -530,8 +530,8 @@
 
                         <div class="row">
                             <div class="col-md-4 margin-bottom-8">
-                                <label class="control-label">Date*<span class="important">*</span></label>
-                                <input type="date" name="date_edit" class="form-control datepicker" id="dateEdit" required="required" placeholder="Select date">
+                                <label class="control-label">Date*</label>
+                                <input type="date" name="date_edit" class="form-control datepicker" id="dateEdit" required="required" placeholder="yyyy-mm-dd">
                             </div>
                             <div class="col-md-4 margin-bottom-8">
                                 <label class=" control-label">Package Image<br></label>
@@ -601,8 +601,8 @@
 
                         <div class="row">
                         <div class="col-md-4 margin-bottom-8">
-                            <label class="control-label">Date*<span class="important">*</span></label>
-                            <input type="date" name="date_add" class="form-control datepicker" id="addDate" required="required" placeholder="Select date">
+                            <label class="control-label">Date*</label>
+                            <input type="date" name="date_add" class="form-control datepicker" id="addDate" required="required" placeholder="yyyy-mm-dd">
                         </div>
                             <div class="col-md-4 margin-bottom-8">
                                 <label class=" control-label">Package Image<br></label>
