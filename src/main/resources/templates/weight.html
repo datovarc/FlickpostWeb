@@ -76,6 +76,12 @@
 
             var selectedData = null;
 
+            document.addEventListener('keyup', function(e) {
+                if (e.keyCode == 27) {
+                    closeModal()
+                }
+            });
+
             $('#downloadButton').on('click',function(){
                 downloadExcel();
             });
@@ -408,9 +414,8 @@
 
 <!-- The Modal/Lightbox -->
 <div id="lightbox" class="lightbox">
-    <span class="lightbox-close cursor" onclick="closeModal()">&times;</span>
     <div class="lightbox-modal-content">
-
+        <span class="lightbox-close cursor" onclick="closeModal()">&times;</span>
         <div class="dynamicImages" style="height:78vh;text-align: center"></div>
 
         <!-- Next/previous controls -->

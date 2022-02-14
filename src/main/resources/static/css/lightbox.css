@@ -36,8 +36,8 @@
 .lightbox-close {
     color: white;
     position: absolute;
-    top: 2%;
-    right: 10%;
+    top: -2%;
+    right: -5%;
     font-size: 35px;
     font-weight: bold;
 }
