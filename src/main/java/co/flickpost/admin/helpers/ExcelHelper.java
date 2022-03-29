@@ -27,6 +27,7 @@ import java.util.List;
 public class ExcelHelper {
 
     final static DateTimeFormatter sdf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    final static DateTimeFormatter sdfExcelDownload = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     final static DateTimeFormatter packageDateFormat = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");
     final static NumberFormat df = DecimalFormat.getInstance();
 
@@ -148,7 +149,7 @@ public class ExcelHelper {
                 row.createCell(3).setCellValue(getDoubleValue(pkg.getAuditedWidth(), 2));
                 row.createCell(4).setCellValue(getDoubleValue(pkg.getAuditedHeight(), 2));
                 row.createCell(5).setCellValue(getDoubleValue(pkg.getAuditedWeight(), 2));
-                row.createCell(6).setCellValue(pkg.getDateTime());
+                row.createCell(6).setCellValue(sdfExcelDownload.format(pkg.getDateTime()));
                 row.createCell(7).setCellValue("");
                 row.createCell(8).setCellValue("Success");
                 row.createCell(9).setCellValue(pkg.getHid());
