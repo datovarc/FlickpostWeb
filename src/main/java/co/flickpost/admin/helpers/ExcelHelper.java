@@ -147,7 +147,7 @@ public class ExcelHelper {
                 row.createCell(2).setCellValue(getDoubleValue(pkg.getAuditedLength(), 2));
                 row.createCell(3).setCellValue(getDoubleValue(pkg.getAuditedWidth(), 2));
                 row.createCell(4).setCellValue(getDoubleValue(pkg.getAuditedHeight(), 2));
-                row.createCell(5).setCellValue(getDoubleValue(pkg.getAuditedHeight(), 2));
+                row.createCell(5).setCellValue(getDoubleValue(pkg.getAuditedWeight(), 2));
                 row.createCell(6).setCellValue(pkg.getDateTime());
                 row.createCell(7).setCellValue("");
                 row.createCell(8).setCellValue("Success");
