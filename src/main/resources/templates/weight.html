@@ -24,7 +24,6 @@
     <script src="js/jquery.quicksearch.js"></script>
     <script src="js/lightbox.js"></script>
     <script src="js/contextmenu.js"></script>
-    <script src="js/search.js"></script>
     <script type="text/javascript" src="js/countries.js?v=16"></script>
     <meta property="og:title" content="flickpost | Your e-commerce logistics solutions provider ">
     <meta property="og:description" content="Get RM 10 off your first shipment! ">
@@ -77,6 +76,15 @@
 
             var selectedData = null;
 
+            $(document).ready(function() {
+                $(window).keydown(function(event){
+                    if(event.keyCode == 13) {
+                        event.preventDefault();
+                        return false;
+                    }
+                });
+            });
+
             document.addEventListener('keyup', function(e) {
                 if (e.keyCode == 27) {
                     closeModal()
@@ -108,6 +116,30 @@
                 doPostCall();
             });
         });
+
+        function doPostCall(){
+            tableFilters.length = 0;
+            var normalizedFromDate = $('#from_date').val();
+            var normalizedToDate = $('#to_date').val();
+            var normalizedHub = $('#search_hub').val();
+            var normalizedTrackingNo = $('#search-tracking_no').val();
+
+            if (normalizedFromDate !== "") {
+                tableFilters.push(JSON.parse('{"field": "dateTime", "type":">=", "value":"'+ normalizedFromDate+ '"}'));
+            }
+            if (normalizedToDate !== "") {
+                tableFilters.push(JSON.parse('{"field": "dateTime", "type":"<=", "value":"'+ normalizedToDate+ '"}'));
+            }
+            if (normalizedHub !== "") {
+                tableFilters.push(JSON.parse('{"field": "hub", "type":"=", "value":"'+ normalizedHub+ '"}'));
+            }
+            if (normalizedTrackingNo !== "") {
+                tableFilters.push(JSON.parse('{"field": "trackingNumber", "type":"=", "value":"'+ normalizedTrackingNo+ '"}'));
+            }
+
+            table.setFilter(tableFilters);
+            $('.searchloader').hide();
+        }
 
         function downloadExcel(){
 
