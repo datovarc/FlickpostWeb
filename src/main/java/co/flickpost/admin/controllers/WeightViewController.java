@@ -33,6 +33,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -62,6 +63,7 @@ public class WeightViewController {
     private final String DEFAULT_STATUS = "Processing at Hub";
 
     @GetMapping(value = "")
+    @Transactional
     public String weightView(Model model, Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
@@ -77,6 +79,7 @@ public class WeightViewController {
 
     @PostMapping(value = "/data")
     @ResponseBody
+    @Transactional
     public PaginationResponse weightPagination(@RequestBody PaginationRequest request, Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String uid = userDetails.getUsername();
@@ -105,6 +108,7 @@ public class WeightViewController {
 
     @PostMapping(value = "/download")
     @ResponseBody
+    @Transactional
     public ResponseEntity<byte[]> downloadWeight(@RequestBody DownloadRequest request, Authentication authentication) throws IOException {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String uid = userDetails.getUsername();
@@ -138,6 +142,7 @@ public class WeightViewController {
     }
 
     @PostMapping(value = "/delete")
+    @Transactional
     public String deleteSelected(@RequestBody List<Package> request, Authentication authentication) throws IOException {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String uid = userDetails.getUsername();
@@ -154,6 +159,7 @@ public class WeightViewController {
 
 
     @PostMapping(value = "/upload")
+    @Transactional
     public String fileUpload(@RequestParam("file") MultipartFile file, @ModelAttribute("hub") String selectedCompany, Principal principal) {
 
         String uid = principal.getName();
@@ -189,6 +195,7 @@ public class WeightViewController {
     }
 
     @PostMapping(value = "/uploadImage")
+    @Transactional
     public String uploadImage (@RequestParam("image") MultipartFile file,
                             @RequestParam("status_add") String status,
                                @RequestParam("selectedPackage") String selectedPackage,
@@ -215,6 +222,7 @@ public class WeightViewController {
     }
 
     @PostMapping(value = "/add")
+    @Transactional
     public String addWeight(@RequestParam("image") MultipartFile file,
                             @RequestParam("hub_add") String hubAdd,
                             @RequestParam("tracking_number") String trackingNumber,
@@ -257,6 +265,7 @@ public class WeightViewController {
     }
 
     @PostMapping(value = "/edit")
+    @Transactional
     public String packageUpdate(@RequestParam("image") MultipartFile file,
                                 @RequestParam("editOriginalTN") String originalTrackingNumber,
                                 @RequestParam("editImageInfos") String originalImagInfos,
