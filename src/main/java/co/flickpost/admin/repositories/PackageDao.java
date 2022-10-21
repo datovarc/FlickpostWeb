@@ -34,6 +34,7 @@ public class PackageDao {
     private final static String HUB = "hub";
     private final static String TRACKING_NUMBER = "trackingNumber";
 
+    @Transactional
     public String insert(Package pkg) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction entityTransaction = entityManager.getTransaction();
@@ -50,6 +51,7 @@ public class PackageDao {
         return pkg.getTrackingNumber();
     }
 
+    @Transactional
     public boolean batchDelete(List<Long> ids) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction entityTransaction = entityManager.getTransaction();
@@ -67,14 +69,19 @@ public class PackageDao {
         return true;
     }
 
+    @Transactional
     public Package findByTrackingNumber(String trackingNumber){
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        entityManager.getTransaction().begin();
         Query query = entityManager.createNativeQuery("SELECT * FROM package where tracking_number = ?", Package.class);
         query.setParameter(1, trackingNumber);
         List<Package> result = query.getResultList();
+        entityManager.getTransaction().commit();
+        entityManager.close();
         return result != null && !result.isEmpty()? result.get(0) : null;
     }
 
+    @Transactional
     public void batchUpdate(List<Package> packages, int batchSize){
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction entityTransaction = entityManager.getTransaction();
@@ -106,6 +113,7 @@ public class PackageDao {
 
     }
 
+    @Transactional
     public void singleUpdate(Package packages){
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction entityTransaction = entityManager.getTransaction();
@@ -124,12 +132,14 @@ public class PackageDao {
 
     }
 
+    @Transactional
     public Map<String, Object> pagination(PaginationRequest request, String userCompany) {
         int pageSize = request.getPageSize();
         int pageNumber = request.getPageNumber();
         List<PaginationFilter> filters = request.getFilters();
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        entityManager.getTransaction().begin();
 
         //Selecting
         CriteriaBuilder selectCriteriaBuilder = entityManager.getCriteriaBuilder();
@@ -167,6 +177,7 @@ public class PackageDao {
         paginationResult.put("packages", pagedQuery.getResultList());
         paginationResult.put("count", count);
 
+        entityManager.getTransaction().commit();
         entityManager.close();
 
         return paginationResult;
@@ -210,8 +221,11 @@ public class PackageDao {
 
     }
 
+    @Transactional
     public List<Package> getMostRecent(int max){
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        entityManager.getTransaction().begin();
+
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Package> cq = cb.createQuery(Package.class);
         Root<Package> root = cq.from(Package.class);
@@ -219,14 +233,17 @@ public class PackageDao {
 
         List<Package> packages = entityManager.createQuery(cq).setMaxResults(max).getResultList();
 
+        entityManager.getTransaction().commit();
         entityManager.close();
 
         return packages;
     }
 
-
+    @Transactional
     public List<Package> search(DownloadRequest request, String userCompany) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        entityManager.getTransaction().begin();
+
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Package> cq = cb.createQuery(Package.class);
         Root<Package> rootEntry = cq.from(Package.class);
@@ -250,13 +267,17 @@ public class PackageDao {
         TypedQuery<Package> filteredQuery = entityManager.createQuery(filtered);
         List<Package> queryResult = filteredQuery.getResultList();
 
+        entityManager.getTransaction().commit();
         entityManager.close();
 
         return queryResult;
     }
 
+    @Transactional
     public List<Package> searchByCode(List<String> codes) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        entityManager.getTransaction().begin();
+
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Package> cq = cb.createQuery(Package.class);
         Root<Package> rootEntry = cq.from(Package.class);
@@ -272,6 +293,7 @@ public class PackageDao {
         TypedQuery<Package> filteredQuery = entityManager.createQuery(filtered);
         List<Package> queryResult = filteredQuery.getResultList();
 
+        entityManager.getTransaction().commit();
         entityManager.close();
 
         return queryResult;

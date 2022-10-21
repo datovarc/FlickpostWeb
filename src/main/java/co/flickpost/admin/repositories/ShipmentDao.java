@@ -33,6 +33,7 @@ public class ShipmentDao {
         return shipment.getTrackingNumber();
     }
 
+    @Transactional
     public void batchUpdate(List<Shipment> shipments, int batchSize){
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction entityTransaction = entityManager.getTransaction();
