@@ -66,8 +66,13 @@ public class WeightViewController {
     @Transactional
     public String weightView(Model model, Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String uid = userDetails.getUsername();
+        logger.info("{} - Started fetching All companies", uid);
 
         List<Company> companies =  companyDao.getAllCompanies();
+
+        logger.info("{} - Finished fetching All companies", uid);
+
         companies = companies.stream().filter(company -> !company.equals(userDetails.getCompany())).collect(Collectors.toList());
         List<String> statuses = properties.getPackageImageStatuses();
         model.addAttribute("statuses", statuses);
