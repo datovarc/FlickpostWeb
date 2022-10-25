@@ -4,6 +4,8 @@ import co.flickpost.admin.models.json.DownloadRequest;
 import co.flickpost.admin.models.json.PaginationFilter;
 import co.flickpost.admin.models.json.PaginationRequest;
 import co.flickpost.admin.validators.LocalDateValidator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
 import co.flickpost.admin.models.Package;
@@ -21,6 +23,8 @@ import java.util.Map;
 @Repository
 @Transactional
 public class PackageDao {
+
+    private static final Logger logger = LogManager.getLogger(PackageDao.class);
 
     @PersistenceUnit
     private EntityManagerFactory entityManagerFactory;
@@ -72,11 +76,18 @@ public class PackageDao {
     @Transactional
     public Package findByTrackingNumber(String trackingNumber){
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        entityManager.getTransaction().begin();
+        EntityTransaction transaction = entityManager.getTransaction();
+
+        logger.info("Started searching for trackingNumber: {}", trackingNumber);
+        transaction.begin();
+
         Query query = entityManager.createNativeQuery("SELECT * FROM package where tracking_number = ?", Package.class);
         query.setParameter(1, trackingNumber);
         List<Package> result = query.getResultList();
-        entityManager.getTransaction().commit();
+
+        transaction.commit();
+        logger.info("Finished searching for trackingNumber: {}", trackingNumber);
+
         entityManager.close();
         return result != null && !result.isEmpty()? result.get(0) : null;
     }
@@ -139,7 +150,10 @@ public class PackageDao {
         List<PaginationFilter> filters = request.getFilters();
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        entityManager.getTransaction().begin();
+        EntityTransaction transaction = entityManager.getTransaction();
+
+        logger.info("Started pagination transaction. Pg. {}", request.getPageNumber());
+        transaction.begin();
 
         //Selecting
         CriteriaBuilder selectCriteriaBuilder = entityManager.getCriteriaBuilder();
@@ -168,6 +182,9 @@ public class PackageDao {
 
         int currentFirstValue = (pageNumber - 1) * pageSize;
         if(currentFirstValue >= count.intValue()) {
+            transaction.commit();
+            logger.info("Committed pagination transaction. Pg. {}", request.getPageNumber());
+            entityManager.close();
             return null;
         }
 
@@ -177,7 +194,9 @@ public class PackageDao {
         paginationResult.put("packages", pagedQuery.getResultList());
         paginationResult.put("count", count);
 
-        entityManager.getTransaction().commit();
+        transaction.commit();
+        logger.info("Committed pagination transaction. Pg. {}", request.getPageNumber());
+
         entityManager.close();
 
         return paginationResult;
