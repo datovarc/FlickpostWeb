@@ -122,6 +122,9 @@
             var normalizedFromDate = $('#from_date').val();
             var normalizedToDate = $('#to_date').val();
             var normalizedHub = $('#search_hub').val();
+            if(normalizedHub == undefined){
+                normalizedHub = $('#default_hub').val();
+            }
             var normalizedTrackingNo = $('#search-tracking_no').val();
 
             if (normalizedFromDate !== "") {
@@ -304,7 +307,7 @@
                                             <option th:value="${defaultCompany.code}" th:text="${defaultCompany.name}"></option>
                                             <option th:each="company : ${companies}" th:value="${company.code}" th:text="${company.name}"></option>
                                         </select>
-
+                                    <input sec:authorize="hasAnyAuthority('WAREHOUSE')" type="hidden" id="default_hub" th:value="${defaultCompany.code}" name="hub"></option>
                                     <input type="text" id="search-tracking_no" class="form-control margin-bottom-8" placeholder="Tracking No">
                                     <input type="date" id="from_date" class="form-control margin-bottom-8"  placeholder="yyyy-mm-dd">
                                     <input type="date" id="to_date" class="form-control margin-bottom-8"  placeholder="yyyy-mm-dd">

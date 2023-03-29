@@ -149,7 +149,7 @@ public class ExcelHelper {
                 row.createCell(3).setCellValue(getDoubleValue(pkg.getAuditedWidth(), 2));
                 row.createCell(4).setCellValue(getDoubleValue(pkg.getAuditedHeight(), 2));
                 row.createCell(5).setCellValue(getDoubleValue(pkg.getAuditedWeight(), 2));
-                row.createCell(6).setCellValue(sdfExcelDownload.format(pkg.getDateTime()));
+                row.createCell(6).setCellValue(pkg.getDateTime() == null ? "" : sdfExcelDownload.format(pkg.getDateTime()));
                 row.createCell(7).setCellValue("");
                 row.createCell(8).setCellValue("Success");
                 row.createCell(9).setCellValue(pkg.getHid());
