@@ -302,6 +302,12 @@
         #packages-table .tabulator-row .tabulator-cell {
             padding: 6px 8px;
             line-height: 1.2;
+            overflow: visible;
+        }
+        #packages-table .tabulator-row,
+        #packages-table .tabulator-tableholder,
+        #packages-table .tabulator-table {
+            overflow: visible;
         }
         #packages-table .tabulator-cell img,
         #packages-table .tabulator-cell button {
@@ -357,6 +363,11 @@
         .condition-indicator:hover .condition-tooltip {
             opacity: 1;
             visibility: visible;
+        }
+        #packages-table .tabulator-row:hover,
+        #packages-table .tabulator-row:hover .tabulator-cell {
+            z-index: 30;
+            position: relative;
         }
         #packages-table .tabulator-frozen,
         #packages-table .tabulator-frozen.tabulator-frozen-left,
