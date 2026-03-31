@@ -286,12 +286,34 @@
         #packages-table .tabulator {
             min-width: 2400px;
         }
+        #packages-table .tabulator-header .tabulator-col,
+        #packages-table .tabulator-row .tabulator-cell {
+            text-align: center;
+            vertical-align: middle;
+        }
+        #packages-table .tabulator-header .tabulator-col {
+            background: #fff;
+            min-height: 44px;
+            padding: 6px 8px;
+        }
+        #packages-table .tabulator-header .tabulator-col .tabulator-col-content {
+            padding: 0;
+        }
+        #packages-table .tabulator-row .tabulator-cell {
+            padding: 6px 8px;
+            line-height: 1.2;
+        }
+        #packages-table .tabulator-cell img,
+        #packages-table .tabulator-cell button {
+            vertical-align: middle;
+        }
         #packages-table .tabulator-frozen,
         #packages-table .tabulator-frozen.tabulator-frozen-left,
         #packages-table .tabulator-col.tabulator-frozen,
         #packages-table .tabulator-cell.tabulator-frozen {
             background: #fff;
             z-index: 20;
+            will-change: transform;
         }
         #packages-table .tabulator-col.tabulator-frozen {
             z-index: 25;
@@ -356,35 +378,35 @@
                                 paginationSize: 10,
                                 paginationSizeSelector:[10, 25, 50, 100],
                                 columns:[
-                                    {formatter:"rowSelection", titleFormatter:"rowSelection", variableHeight:true, width:60, hozAlign:"center", vertAlign:"middle" , headerSort:false, frozen:true, cellClick:function(e, cell){
+                                    {formatter:"rowSelection", titleFormatter:"rowSelection", width:60, hozAlign:"center", vertAlign:"middle" , headerSort:false, frozen:true, cellClick:function(e, cell){
                                             cell.getRow().toggleSelect();
                                         }},
-                                    {title:"Hub", field:"hub", variableHeight:true, width:90, titleFormatter:"textarea", frozen:true, formatter:function (cell, formatterParams) {
+                                    {title:"Hub", field:"hub", width:90, hozAlign:"center", vertAlign:"middle", frozen:true, formatter:function (cell, formatterParams) {
                                         var imgName = cell.getValue();
                                         return '<img src="images/hubs/' + imgName +'.png" width="35" height="35"/>';
                                         }},
-                                    {title:"Tracking Number", field:"code", variableHeight:true, width:180, titleFormatter:"textarea", frozen:true},
-                                    {title:"Status", field:"status", variableHeight:true, width:140, titleFormatter:"textarea"},
-                                    {title:"Audited Length (cm)", field:"L", variableHeight:true, width:150, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Audited Width (cm)", field:"W", variableHeight:true, width:150, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Audited Height (cm)", field:"H", variableHeight:true, width:150, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Audited Weight (kg)", field:"weight", variableHeight:true, width:150, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Declared Length (cm)", field:"declaredLength", variableHeight:true, width:160, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Declared Width (cm)", field:"declaredWidth", variableHeight:true, width:160, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Declared Height (cm)", field:"declaredHeight", variableHeight:true, width:160, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Declared Weight (kg)", field:"declaredWeight", variableHeight:true, width:160, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Client Paid Height (cm)", field:"clientPaidHeight", variableHeight:true, width:180, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Destination Country", field:"destinationCountry", variableHeight:true, width:180, titleFormatter:"textarea"},
-                                    {title:"Item Condition", field:"itemCondition", variableHeight:true, width:160, titleFormatter:"textarea"},
-                                    {title:"Contains Liquid", field:"containsLiquid", variableHeight:true, width:140, titleFormatter:"textarea", formatter:"tickCross", formatterParams:{allowEmpty:true}},
-                                    {title:"Contains Battery", field:"containsBattery", variableHeight:true, width:150, titleFormatter:"textarea", formatter:"tickCross", formatterParams:{allowEmpty:true}},
-                                    {title:"Commercial Packaging", field:"isCommercialPackaging", variableHeight:true, width:180, titleFormatter:"textarea", formatter:"tickCross", formatterParams:{allowEmpty:true}},
-                                    {title:"Shipping Mode", field:"shippingMode", variableHeight:true, width:150, titleFormatter:"textarea"},
-                                    {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight", width:190, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Chargeable Weight (kg)", field:"chargeable_weight", variableHeight:true, width:170, titleFormatter:"textarea", formatter:"money", formatterParams:{precision:1, thousand:""}},
-                                    {title:"Date and Time", field:"time", variableHeight:true, width:180, titleFormatter:"textarea"},
-                                    {title:"Image", field:"images", variableHeight:true, width:110, titleFormatter:"textarea", formatter:buttonFormatter},
-                                    {title:"Remarks", field:"hid", variableHeight:true, width:180, titleFormatter:"textarea"},
+                                    {title:"Tracking Number", field:"code", width:180, hozAlign:"center", vertAlign:"middle", frozen:true},
+                                    {title:"Status", field:"status", width:140, hozAlign:"center", vertAlign:"middle"},
+                                    {title:"Audited Length (cm)", field:"L", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Width (cm)", field:"W", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Height (cm)", field:"H", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Weight (kg)", field:"weight", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Declared Length (cm)", field:"declaredLength", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Declared Width (cm)", field:"declaredWidth", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Declared Height (cm)", field:"declaredHeight", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Declared Weight (kg)", field:"declaredWeight", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Client Paid Height (cm)", field:"clientPaidHeight", width:180, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Destination Country", field:"destinationCountry", width:180, hozAlign:"center", vertAlign:"middle"},
+                                    {title:"Item Condition", field:"itemCondition", width:160, hozAlign:"center", vertAlign:"middle"},
+                                    {title:"Contains Liquid", field:"containsLiquid", width:140, hozAlign:"center", vertAlign:"middle", formatter:"tickCross", formatterParams:{allowEmpty:true}},
+                                    {title:"Contains Battery", field:"containsBattery", width:150, hozAlign:"center", vertAlign:"middle", formatter:"tickCross", formatterParams:{allowEmpty:true}},
+                                    {title:"Commercial Packaging", field:"isCommercialPackaging", width:180, hozAlign:"center", vertAlign:"middle", formatter:"tickCross", formatterParams:{allowEmpty:true}},
+                                    {title:"Shipping Mode", field:"shippingMode", width:150, hozAlign:"center", vertAlign:"middle"},
+                                    {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight", width:190, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Chargeable Weight (kg)", field:"chargeable_weight", width:170, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{precision:1, thousand:""}},
+                                    {title:"Date and Time", field:"time", width:180, hozAlign:"center", vertAlign:"middle"},
+                                    {title:"Image", field:"images", width:110, hozAlign:"center", vertAlign:"middle", formatter:buttonFormatter},
+                                    {title:"Remarks", field:"hid", width:180, hozAlign:"center", vertAlign:"middle"},
                                 ]
                             });
 
