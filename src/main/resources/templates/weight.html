@@ -307,6 +307,17 @@
         #packages-table .tabulator-cell button {
             vertical-align: middle;
         }
+        .condition-indicators {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .condition-indicators img {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+        }
         #packages-table .tabulator-frozen,
         #packages-table .tabulator-frozen.tabulator-frozen-left,
         #packages-table .tabulator-col.tabulator-frozen,
@@ -397,10 +408,7 @@
                                     {title:"Declared Weight (kg)", field:"declaredWeight", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
                                     {title:"Client Paid Height (cm)", field:"clientPaidHeight", width:180, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
                                     {title:"Destination Country", field:"destinationCountry", width:180, hozAlign:"center", vertAlign:"middle"},
-                                    {title:"Item Condition", field:"itemCondition", width:160, hozAlign:"center", vertAlign:"middle"},
-                                    {title:"Contains Liquid", field:"containsLiquid", width:140, hozAlign:"center", vertAlign:"middle", formatter:"tickCross", formatterParams:{allowEmpty:true}},
-                                    {title:"Contains Battery", field:"containsBattery", width:150, hozAlign:"center", vertAlign:"middle", formatter:"tickCross", formatterParams:{allowEmpty:true}},
-                                    {title:"Commercial Packaging", field:"isCommercialPackaging", width:180, hozAlign:"center", vertAlign:"middle", formatter:"tickCross", formatterParams:{allowEmpty:true}},
+                                    {title:"Conditions", field:"itemCondition", width:170, hozAlign:"center", vertAlign:"middle", formatter:conditionsFormatter},
                                     {title:"Shipping Mode", field:"shippingMode", width:150, hozAlign:"center", vertAlign:"middle"},
                                     {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight", width:190, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
                                     {title:"Chargeable Weight (kg)", field:"chargeable_weight", width:170, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{precision:1, thousand:""}},
@@ -412,6 +420,22 @@
 
                             table.redraw(true);
 
+
+                            function conditionsFormatter(cell){
+                                var rowData = cell.getRow().getData();
+                                var containsBattery = rowData.containsBattery === true;
+                                var containsLiquid = rowData.containsLiquid === true;
+                                var isCommercialPackaging = rowData.isCommercialPackaging === true;
+                                var isUsed = (rowData.itemCondition || '').toString().toLowerCase() === 'used';
+
+                                return '' +
+                                    '<div class="condition-indicators">' +
+                                        '<img src="images/conditions/battery_' + (containsBattery ? 'true' : 'false') + '.png" alt="Battery" title="Contains Battery">' +
+                                        '<img src="images/conditions/liquid_' + (containsLiquid ? 'true' : 'false') + '.png" alt="Liquid" title="Contains Liquid">' +
+                                        '<img src="images/conditions/commercial_' + (isCommercialPackaging ? 'true' : 'false') + '.png" alt="Commercial Packaging" title="Commercial Packaging">' +
+                                        '<img src="images/conditions/used_' + (isUsed ? 'true' : 'false') + '.png" alt="Used" title="Item Condition Used">' +
+                                    '</div>';
+                            }
 
                             function buttonFormatter(cell){
                                 var val = cell.getValue();
