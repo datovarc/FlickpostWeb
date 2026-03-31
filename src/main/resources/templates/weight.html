@@ -477,7 +477,7 @@
                                 var containsBattery = rowData.containsBattery === true;
                                 var containsLiquid = rowData.containsLiquid === true;
                                 var isCommercialPackaging = rowData.isCommercialPackaging === true;
-                                var isUsed = (rowData.itemCondition || '').toString().toLowerCase() === 'used';
+                                var isNew = (rowData.itemCondition || '').toString().toLowerCase() === 'new';
 
                                 function conditionIcon(src, altText, tooltipText) {
                                     return '' +
@@ -505,9 +505,9 @@
                                             'Commercial packaging - ' + (isCommercialPackaging ? 'yes' : 'no')
                                         ) +
                                         conditionIcon(
-                                            'images/conditions/used_' + (isUsed ? 'true' : 'false') + '.png',
+                                            'images/conditions/new_' + (isNew ? 'true' : 'false') + '.png',
                                             'item',
-                                            'Item condition - ' + (isUsed ? 'used' : 'new')
+                                            'Item condition - ' + (isNew ? 'new' : 'used')
                                         ) +
                                     '</div>';
                             }
