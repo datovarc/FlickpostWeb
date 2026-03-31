@@ -32,6 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 
+### properties
+application.properties
+
 *.p12
 logs/
 .mvn/
