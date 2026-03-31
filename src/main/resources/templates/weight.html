@@ -280,6 +280,13 @@
             position: absolute;
             right: 5px;
         }
+        .packages-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+        #packages-table {
+            min-width: 2400px;
+        }
     </style>
     <div class="container">
         <ol class="breadcrumb">
@@ -315,7 +322,9 @@
                             </div>
                         </div>
                     </div>
-                    <div id="packages-table"></div>
+                    <div class="packages-table-wrapper">
+                        <div id="packages-table"></div>
+                    </div>
 
                     <script th:inline="javascript">
                             var tableFilters = [];
@@ -325,7 +334,7 @@
                                 resizableColumns:"header",
                                 pagination:"remote",
                                 paginationAddRow:"table",
-                                layout: "fitColumns",
+                                layout: "fitDataStretch",
                                 ajaxURL: "/weight/data",
                                 ajaxConfig: {
                                     method: "POST",
@@ -340,23 +349,35 @@
                                 paginationSize: 10,
                                 paginationSizeSelector:[10, 25, 50, 100],
                                 columns:[
-                                    {formatter:"rowSelection", titleFormatter:"rowSelection", variableHeight:true, widthGrow:0.5, hozAlign:"center", vertAlign:"middle" , headerSort:false, cellClick:function(e, cell){
+                                    {formatter:"rowSelection", titleFormatter:"rowSelection", variableHeight:true, width:60, hozAlign:"center", vertAlign:"middle" , headerSort:false, frozen:true, cellClick:function(e, cell){
                                             cell.getRow().toggleSelect();
                                         }},
-                                    {title:"Hub", field:"hub", variableHeight:true, widthGrow:0.5, titleFormatter:"textarea", formatter:function (cell, formatterParams) {
+                                    {title:"Hub", field:"hub", variableHeight:true, width:90, titleFormatter:"textarea", frozen:true, formatter:function (cell, formatterParams) {
                                         var imgName = cell.getValue();
                                         return '<img src="images/hubs/' + imgName +'.png" width="35" height="35"/>';
                                         }},
-                                    {title:"Tracking Number", field:"code", variableHeight:true, titleFormatter:"textarea",},
-                                    {title:"Audited Length (cm)", field:"L", variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Audited Width (cm)", field:"W", variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Audited Height (cm)", field:"H", variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Audited Weight (kg)", field:"weight", variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight", widthGrow:1.20, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
-                                    {title:"Chargeable Weight (kg)", field:"chargeable_weight", variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{precision:1, thousand:""}},
-                                    {title:"Date and Time", field:"time", variableHeight:true, titleFormatter:"textarea"},
-                                    {title:"Image", field:"images", variableHeight:true, widthGrow:0.7, titleFormatter:"textarea", formatter:buttonFormatter},
-                                    {title:"Remarks", field:"hid", variableHeight:true, titleFormatter:"textarea"},
+                                    {title:"Tracking Number", field:"code", variableHeight:true, width:180, titleFormatter:"textarea", frozen:true},
+                                    {title:"Status", field:"status", variableHeight:true, width:140, titleFormatter:"textarea"},
+                                    {title:"Audited Length (cm)", field:"L", variableHeight:true, width:150, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Width (cm)", field:"W", variableHeight:true, width:150, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Height (cm)", field:"H", variableHeight:true, width:150, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Audited Weight (kg)", field:"weight", variableHeight:true, width:150, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Declared Length (cm)", field:"declaredLength", variableHeight:true, width:160, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Declared Width (cm)", field:"declaredWidth", variableHeight:true, width:160, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Declared Height (cm)", field:"declaredHeight", variableHeight:true, width:160, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Declared Weight (kg)", field:"declaredWeight", variableHeight:true, width:160, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Client Paid Height (cm)", field:"clientPaidHeight", variableHeight:true, width:180, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Destination Country", field:"destinationCountry", variableHeight:true, width:180, titleFormatter:"textarea"},
+                                    {title:"Item Condition", field:"itemCondition", variableHeight:true, width:160, titleFormatter:"textarea"},
+                                    {title:"Contains Liquid", field:"containsLiquid", variableHeight:true, width:140, titleFormatter:"textarea", formatter:"tickCross", formatterParams:{allowEmpty:true}},
+                                    {title:"Contains Battery", field:"containsBattery", variableHeight:true, width:150, titleFormatter:"textarea", formatter:"tickCross", formatterParams:{allowEmpty:true}},
+                                    {title:"Commercial Packaging", field:"isCommercialPackaging", variableHeight:true, width:180, titleFormatter:"textarea", formatter:"tickCross", formatterParams:{allowEmpty:true}},
+                                    {title:"Shipping Mode", field:"shippingMode", variableHeight:true, width:150, titleFormatter:"textarea"},
+                                    {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight", width:190, variableHeight:true, titleFormatter:"textarea", formatter:"money", formatterParams:{thousand:""}},
+                                    {title:"Chargeable Weight (kg)", field:"chargeable_weight", variableHeight:true, width:170, titleFormatter:"textarea", formatter:"money", formatterParams:{precision:1, thousand:""}},
+                                    {title:"Date and Time", field:"time", variableHeight:true, width:180, titleFormatter:"textarea"},
+                                    {title:"Image", field:"images", variableHeight:true, width:110, titleFormatter:"textarea", formatter:buttonFormatter},
+                                    {title:"Remarks", field:"hid", variableHeight:true, width:180, titleFormatter:"textarea"},
                                 ]
                             });
 
