@@ -307,6 +307,57 @@
         #packages-table .tabulator-cell button {
             vertical-align: middle;
         }
+        .condition-indicators {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .condition-indicator {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .condition-indicators img {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+            display: block;
+        }
+        .condition-tooltip {
+            position: absolute;
+            left: 50%;
+            top: calc(100% + 6px);
+            transform: translateX(-50%);
+            background: rgba(20, 20, 20, 0.96);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.2;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+            z-index: 50;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        .condition-tooltip::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 100%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent rgba(20, 20, 20, 0.96) transparent;
+        }
+        .condition-indicator:hover .condition-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
         #packages-table .tabulator-frozen,
         #packages-table .tabulator-frozen.tabulator-frozen-left,
         #packages-table .tabulator-col.tabulator-frozen,
@@ -397,10 +448,7 @@
                                     {title:"Declared Weight (kg)", field:"declaredWeight", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
                                     {title:"Client Paid Height (cm)", field:"clientPaidHeight", width:180, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
                                     {title:"Destination Country", field:"destinationCountry", width:180, hozAlign:"center", vertAlign:"middle"},
-                                    {title:"Item Condition", field:"itemCondition", width:160, hozAlign:"center", vertAlign:"middle"},
-                                    {title:"Contains Liquid", field:"containsLiquid", width:140, hozAlign:"center", vertAlign:"middle", formatter:"tickCross", formatterParams:{allowEmpty:true}},
-                                    {title:"Contains Battery", field:"containsBattery", width:150, hozAlign:"center", vertAlign:"middle", formatter:"tickCross", formatterParams:{allowEmpty:true}},
-                                    {title:"Commercial Packaging", field:"isCommercialPackaging", width:180, hozAlign:"center", vertAlign:"middle", formatter:"tickCross", formatterParams:{allowEmpty:true}},
+                                    {title:"Conditions", field:"itemCondition", width:170, hozAlign:"center", vertAlign:"middle", formatter:conditionsFormatter},
                                     {title:"Shipping Mode", field:"shippingMode", width:150, hozAlign:"center", vertAlign:"middle"},
                                     {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight", width:190, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
                                     {title:"Chargeable Weight (kg)", field:"chargeable_weight", width:170, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{precision:1, thousand:""}},
@@ -412,6 +460,46 @@
 
                             table.redraw(true);
 
+
+                            function conditionsFormatter(cell){
+                                var rowData = cell.getRow().getData();
+                                var containsBattery = rowData.containsBattery === true;
+                                var containsLiquid = rowData.containsLiquid === true;
+                                var isCommercialPackaging = rowData.isCommercialPackaging === true;
+                                var isUsed = (rowData.itemCondition || '').toString().toLowerCase() === 'used';
+
+                                function conditionIcon(src, altText, tooltipText) {
+                                    return '' +
+                                        '<span class="condition-indicator">' +
+                                            '<img src="' + src + '" alt="' + altText + '">' +
+                                            '<span class="condition-tooltip">' + tooltipText + '</span>' +
+                                        '</span>';
+                                }
+
+                                return '' +
+                                    '<div class="condition-indicators">' +
+                                        conditionIcon(
+                                            'images/conditions/battery_' + (containsBattery ? 'true' : 'false') + '.png',
+                                            'battery',
+                                            'Contains battery - ' + (containsBattery ? 'yes' : 'no')
+                                        ) +
+                                        conditionIcon(
+                                            'images/conditions/liquid_' + (containsLiquid ? 'true' : 'false') + '.png',
+                                            'liquid',
+                                            'Contains liquid - ' + (containsLiquid ? 'yes' : 'no')
+                                        ) +
+                                        conditionIcon(
+                                            'images/conditions/commercial_' + (isCommercialPackaging ? 'true' : 'false') + '.png',
+                                            'commercial packaging',
+                                            'Commercial packaging - ' + (isCommercialPackaging ? 'yes' : 'no')
+                                        ) +
+                                        conditionIcon(
+                                            'images/conditions/used_' + (isUsed ? 'true' : 'false') + '.png',
+                                            'item',
+                                            'Item condition - ' + (isUsed ? 'used' : 'new')
+                                        ) +
+                                    '</div>';
+                            }
 
                             function buttonFormatter(cell){
                                 var val = cell.getValue();
