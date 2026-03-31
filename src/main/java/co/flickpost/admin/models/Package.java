@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -16,6 +19,9 @@ import java.util.Objects;
 @Entity
 @Table(name = "package")
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = false)
 public class Package implements Serializable {
 
     @Id
@@ -80,142 +86,47 @@ public class Package implements Serializable {
     @Convert(converter = ImageInfoConverter.class)
     private List<ImageInfo> imageInfos;
 
-    public Long getId() {
-        return id;
-    }
+    @Column(name = "declared_weight", scale = 2)
+    @JsonProperty("declaredWeight")
+    private BigDecimal declaredWeight;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(name = "declared_length", scale = 2)
+    @JsonProperty("declaredLength")
+    private BigDecimal declaredLength;
 
-    public String getHub() {
-        return hub;
-    }
+    @Column(name = "declared_width", scale = 2)
+    @JsonProperty("declaredWidth")
+    private BigDecimal declaredWidth;
 
-    public void setHub(String hub) {
-        this.hub = hub;
-    }
+    @Column(name = "declared_height", scale = 2)
+    @JsonProperty("declaredHeight")
+    private BigDecimal declaredHeight;
 
-    public String getTrackingNumber() {
-        return trackingNumber;
-    }
+    @Column(name = "client_paid_height", scale = 2)
+    @JsonProperty("clientPaidHeight")
+    private BigDecimal clientPaidHeight;
 
-    public void setTrackingNumber(String trackingNumber) {
-        this.trackingNumber = trackingNumber;
-    }
+    @Column(name = "destination_country")
+    @JsonProperty("destinationCountry")
+    private String destinationCountry;
 
-    public BigDecimal getAuditedLength() {
-        return auditedLength;
-    }
+    @Column(name = "item_condition")
+    @JsonProperty("itemCondition")
+    private String itemCondition;
 
-    public void setAuditedLength(BigDecimal auditedLength) {
-        this.auditedLength = auditedLength;
-    }
+    @Column(name = "contains_liquid")
+    @JsonProperty("containsLiquid")
+    private Boolean containsLiquid;
 
-    public BigDecimal getAuditedWidth() {
-        return auditedWidth;
-    }
+    @Column(name = "contains_battery")
+    @JsonProperty("containsBattery")
+    private Boolean containsBattery;
 
-    public void setAuditedWidth(BigDecimal auditedWidth) {
-        this.auditedWidth = auditedWidth;
-    }
+    @Column(name = "is_commercial_packaging")
+    @JsonProperty("isCommercialPackaging")
+    private Boolean isCommercialPackaging;
 
-    public BigDecimal getAuditedHeight() {
-        return auditedHeight;
-    }
-
-    public void setAuditedHeight(BigDecimal auditedHeight) {
-        this.auditedHeight = auditedHeight;
-    }
-
-    public BigDecimal getAuditedWeight() {
-        return auditedWeight;
-    }
-
-    public void setAuditedWeight(BigDecimal auditedWeight) {
-        this.auditedWeight = auditedWeight;
-    }
-
-    public BigDecimal getAuditedVolumetricWeight() {
-        return auditedVolumetricWeight;
-    }
-
-    public void setAuditedVolumetricWeight(BigDecimal auditedVolumetricWeight) {
-        this.auditedVolumetricWeight = auditedVolumetricWeight;
-    }
-
-    public BigDecimal getChargeableWeight() {
-        return chargeableWeight;
-    }
-
-    public void setChargeableWeight(BigDecimal chargeableWeight) {
-        this.chargeableWeight = chargeableWeight;
-    }
-
-    public String getHid() {
-        return hid;
-    }
-
-    public void setHid(String hid) {
-        this.hid = hid;
-    }
-
-    public LocalDateTime getDateTime() {
-        return dateTime;
-    }
-
-    public void setDateTime(LocalDateTime dateTime) {
-        this.dateTime = dateTime;
-    }
-
-    public String getEncodedImage() {
-        return encodedImage;
-    }
-
-    public void setEncodedImage(String encodedImage) {
-        this.encodedImage = encodedImage;
-    }
-
-    public List<ImageInfo> getImageInfos() {
-        return imageInfos;
-    }
-
-    public void setImageInfos(List<ImageInfo> imageInfos) {
-        this.imageInfos = imageInfos;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Package aPackage = (Package) o;
-        return Objects.equals(id, aPackage.id) &&
-                Objects.equals(hub, aPackage.hub) &&
-                Objects.equals(trackingNumber, aPackage.trackingNumber) &&
-                Objects.equals(auditedLength, aPackage.auditedLength) &&
-                Objects.equals(auditedWidth, aPackage.auditedWidth) &&
-                Objects.equals(auditedHeight, aPackage.auditedHeight) &&
-                Objects.equals(auditedWeight, aPackage.auditedWeight) &&
-                Objects.equals(auditedVolumetricWeight, aPackage.auditedVolumetricWeight) &&
-                Objects.equals(chargeableWeight, aPackage.chargeableWeight) &&
-                Objects.equals(hid, aPackage.hid) &&
-                Objects.equals(status, aPackage.status) &&
-                Objects.equals(dateTime, aPackage.dateTime) &&
-                Objects.equals(encodedImage, aPackage.encodedImage) &&
-                Objects.equals(imageInfos, aPackage.imageInfos);
-    }
-
-    @Override
-    public int hashCode() {
-
-        return Objects.hash(id, hub, trackingNumber, auditedLength, auditedWidth, auditedHeight, auditedWeight, auditedVolumetricWeight, chargeableWeight, hid, status, dateTime, encodedImage, imageInfos);
-    }
+    @Column(name = "shipping_mode")
+    @JsonProperty("shippingMode")
+    private String shippingMode;
 }
