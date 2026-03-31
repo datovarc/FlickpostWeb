@@ -280,12 +280,21 @@
             position: absolute;
             right: 5px;
         }
-        .packages-table-wrapper {
-            width: 100%;
-            overflow-x: auto;
-        }
         #packages-table {
+            width: 100%;
+        }
+        #packages-table .tabulator {
             min-width: 2400px;
+        }
+        #packages-table .tabulator-frozen,
+        #packages-table .tabulator-frozen.tabulator-frozen-left,
+        #packages-table .tabulator-col.tabulator-frozen,
+        #packages-table .tabulator-cell.tabulator-frozen {
+            background: #fff;
+            z-index: 20;
+        }
+        #packages-table .tabulator-col.tabulator-frozen {
+            z-index: 25;
         }
     </style>
     <div class="container">
@@ -322,9 +331,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="packages-table-wrapper">
-                        <div id="packages-table"></div>
-                    </div>
+                    <div id="packages-table"></div>
 
                     <script th:inline="javascript">
                             var tableFilters = [];
