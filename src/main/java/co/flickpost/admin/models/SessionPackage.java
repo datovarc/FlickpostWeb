@@ -14,15 +14,14 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
-@Table(name = "package")
+@Table(name = "session_package")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = false)
-public class Package implements Serializable {
+public class SessionPackage implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
