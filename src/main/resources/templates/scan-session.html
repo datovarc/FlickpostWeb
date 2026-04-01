@@ -77,9 +77,10 @@
                 columns:[
                     {title:"Hub", field:"hub", width:90, hozAlign:"center", vertAlign:"middle", frozen:true, formatter:function (cell) {
                         var imgName = cell.getValue();
-                        return '<img src="images/hubs/' + imgName +'.png" width="35" height="35"/>';
+                        return getHubImageHtml(imgName);
                     }},
                     {title:"Tracking Number", field:"code", width:180, hozAlign:"center", vertAlign:"middle", frozen:true},
+                    {title:"Shipment ID", field:"shipmentId", width:180, hozAlign:"center", vertAlign:"middle"},
                     {title:"Status", field:"status", width:140, hozAlign:"center", vertAlign:"middle"},
                     {title:"Audited Length (cm)", field:"L", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
                     {title:"Audited Width (cm)", field:"W", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
@@ -111,11 +112,15 @@
             }
 
             syncEmptyTableState();
-            table.on("dataLoaded", function(){
+            renderLatestSummary(null);
+            table.on("dataLoaded", function(data){
                 syncEmptyTableState();
+                renderLatestSummary(data && data.length > 0 ? data[0] : null);
             });
             table.on("renderComplete", function(){
                 syncEmptyTableState();
+                var currentData = table.getData();
+                renderLatestSummary(currentData && currentData.length > 0 ? currentData[0] : null);
             });
         });
 
@@ -146,6 +151,90 @@
             table.setFilter(tableFilters);
             syncEmptyTableState();
             $('.searchloader').hide();
+        }
+
+        function getHubImageHtml(imgName) {
+            return '<img src="images/hubs/' + imgName + '.png" width="35" height="35"/>';
+        }
+
+        function getConditionIcons(rowData) {
+            var containsBattery = rowData.containsBattery === true;
+            var containsLiquid = rowData.containsLiquid === true;
+            var isCommercialPackaging = rowData.isCommercialPackaging === true;
+            var isNew = (rowData.itemCondition || '').toString().toLowerCase() === 'new';
+
+            function conditionIcon(src, altText, tooltipText) {
+                return '' +
+                    '<span class="condition-indicator">' +
+                        '<img src="' + src + '" alt="' + altText + '">' +
+                        '<span class="condition-tooltip">' + tooltipText + '</span>' +
+                    '</span>';
+            }
+
+            return '' +
+                '<div class="condition-indicators">' +
+                    conditionIcon(
+                        'images/conditions/new_' + (isNew ? 'true' : 'false') + '.png',
+                        'item',
+                        'Item condition - ' + (isNew ? 'new' : 'used')
+                    ) +
+                    conditionIcon(
+                        'images/conditions/liquid_' + (containsLiquid ? 'true' : 'false') + '.png',
+                        'liquid',
+                        'Contains liquid - ' + (containsLiquid ? 'yes' : 'no')
+                    ) +
+                    conditionIcon(
+                        'images/conditions/battery_' + (containsBattery ? 'true' : 'false') + '.png',
+                        'battery',
+                        'Contains battery - ' + (containsBattery ? 'yes' : 'no')
+                    ) +
+                    conditionIcon(
+                        'images/conditions/commercial_' + (isCommercialPackaging ? 'true' : 'false') + '.png',
+                        'commercial packaging',
+                        'Commercial packaging - ' + (isCommercialPackaging ? 'yes' : 'no')
+                    ) +
+                '</div>';
+        }
+
+        function getStatusClass(status) {
+            var normalizedStatus = (status || '').toString().toUpperCase();
+            if (normalizedStatus === 'PROCEED') {
+                return 'scan-session-status scan-session-status-proceed';
+            }
+            if (normalizedStatus === 'ON-HOLD') {
+                return 'scan-session-status scan-session-status-hold';
+            }
+            return 'scan-session-status';
+        }
+
+        function renderLatestSummary(rowData) {
+            var summaryBlock = document.getElementById('scan-session-latest-summary');
+            if (!summaryBlock) {
+                return;
+            }
+
+            if (!rowData) {
+                summaryBlock.innerHTML = '' +
+                    '<div class="scan-session-summary-header">' +
+                        '<div class="scan-session-summary-hub">' + getHubImageHtml('HQ') + '</div>' +
+                        '<div class="scan-session-summary-shipment">Shipment ID: -</div>' +
+                    '</div>' +
+                    '<div class="scan-session-summary-tracking">-</div>' +
+                    '<div class="scan-session-summary-mode">(-)</div>' +
+                    '<div class="scan-session-status">-</div>' +
+                    '<div class="scan-session-summary-conditions">' + getConditionIcons({}) + '</div>';
+                return;
+            }
+
+            summaryBlock.innerHTML = '' +
+                '<div class="scan-session-summary-header">' +
+                    '<div class="scan-session-summary-hub">' + getHubImageHtml(rowData.hub) + '</div>' +
+                    '<div class="scan-session-summary-shipment">Shipment ID: ' + (rowData.shipmentId || '-') + '</div>' +
+                '</div>' +
+                '<div class="scan-session-summary-tracking">' + (rowData.code || '-') + '</div>' +
+                '<div class="scan-session-summary-mode">(' + ((rowData.shippingMode || '-').toString()) + ')</div>' +
+                '<div class="' + getStatusClass(rowData.status) + '">' + (rowData.status || '-') + '</div>' +
+                '<div class="scan-session-summary-conditions">' + getConditionIcons(rowData) + '</div>';
         }
 
         function conditionsFormatter(cell){
@@ -265,6 +354,63 @@
             font-weight: 600;
             cursor: default;
             pointer-events: none;
+        }
+        .scan-session-latest-summary {
+            width: 420px;
+            max-width: 100%;
+            margin: 34px auto 18px;
+            background: #fff;
+            border: 1px solid #e8eef4;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+            padding: 18px 20px 16px;
+        }
+        .scan-session-summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 12px;
+        }
+        .scan-session-summary-shipment {
+            font-size: 14px;
+            font-weight: 600;
+            color: #516173;
+            text-align: right;
+        }
+        .scan-session-summary-tracking {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #243240;
+            line-height: 1.2;
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+        .scan-session-summary-mode {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #5a6a7b;
+            line-height: 1.2;
+            margin-bottom: 10px;
+        }
+        .scan-session-status {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #5f6f82;
+            line-height: 1.2;
+            margin-bottom: 12px;
+        }
+        .scan-session-status-proceed {
+            color: #3d7d57;
+        }
+        .scan-session-status-hold {
+            color: #9b4f4f;
+        }
+        .scan-session-summary-conditions .condition-indicators {
+            justify-content: center;
         }
         .searchform {
             background: #f5f8fa;
@@ -438,6 +584,7 @@
                     <a href="#" id="searchButton" class="label label-light"><i class="ti ti-search"></i> Search </a>
                 </div>
                 <div class="panel panel-default">
+                    <div id="scan-session-latest-summary" class="scan-session-latest-summary"></div>
                     <div class="searchform" style="display:none">
                         <div class="row">
                             <div class="col-md-12">

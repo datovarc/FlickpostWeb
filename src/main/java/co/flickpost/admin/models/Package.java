@@ -130,6 +130,10 @@ public class Package implements Serializable {
     @JsonProperty("shippingMode")
     private String shippingMode;
 
+    @Column(name = "shipment_id")
+    @JsonProperty("shipmentId")
+    private String shipmentId;
+
     @Column(name = "session_id")
     @JsonProperty("sessionId")
     private Long sessionId;
