@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta charset="utf-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scan Session | Flickpost</title>
+    <meta name="description" content="Flickpost is a dynamic e-commerce solutions provider, presenting connections to 200+ countries around the world. Flickpost specializes in cross-border solutions for international shipments – whether a few grams or large parcels. Our objective is to assist e-commerce sellers and SMEs save time and reduce shipping costs, where they can send anything to anywhere affordably and hassle-free.">
+    <link rel="shortcut icon" href="icons/favicon32x32-1.jpg">
+    <link href="css/app.css" rel="stylesheet">
+    <link href="css/themify-icons.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link href="https://unpkg.com/tabulator-tables@4.9.3/dist/css/semantic-ui/tabulator_semantic-ui.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
+
+    <script th:inline="javascript">
+        var token = $("meta[name='_csrf']").attr("content");
+        var searching = false;
+        var tableFilters = [];
+        var table = null;
+
+        function executeUploadReport() {
+            $("body").addClass("loading");
+            $('#modal-hide-thing').modal('toggle');
+            $("#uploadReportForm").submit();
+        }
+
+        $(document).ready(function(){
+            $(window).keydown(function(event){
+                if(event.keyCode == 13) {
+                    event.preventDefault();
+                    return false;
+                }
+            });
+
+            $('#searchButton').on('click',function(){
+                $('.searchform').fadeToggle();
+                if(!searching) {
+                    $("#searchButton").html("<i class=\"ti ti-eraser\"></i> Reset");
+                    searching = true;
+                } else {
+                    $("#searchButton").html("<i class=\"ti ti-search\"></i> Search");
+                    $('#from_date').val("");
+                    $('#to_date').val("");
+                    $('#search_hub').val("");
+                    $('#search-tracking_no').val("");
+                    if (table) {
+                        table.clearFilter();
+                        table.setData();
+                    }
+                    searching = false;
+                }
+            });
+
+            $('#search-form').on('keyup change', 'input, select', function(){
+                doPostCall();
+            });
+
+            table = new Tabulator("#packages-table", {
+                index:"Tracking Number",
+                resizableColumns:"header",
+                layout: "fitDataStretch",
+                ajaxURL: "/scan-session/data",
+                ajaxConfig: {
+                    method: "POST",
+                    headers:{
+                        'X-CSRF-Token': token,
+                    }
+                },
+                ajaxContentType:"json",
+                ajaxFiltering: true,
+                height: "4444px",
+                placeholder: " ",
+                columns:[
+                    {title:"Hub", field:"hub", width:90, hozAlign:"center", vertAlign:"middle", frozen:true, formatter:function (cell) {
+                        var imgName = cell.getValue();
+                        return '<img src="images/hubs/' + imgName +'.png" width="35" height="35"/>';
+                    }},
+                    {title:"Tracking Number", field:"code", width:180, hozAlign:"center", vertAlign:"middle", frozen:true},
+                    {title:"Status", field:"status", width:140, hozAlign:"center", vertAlign:"middle"},
+                    {title:"Audited Length (cm)", field:"L", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                    {title:"Audited Width (cm)", field:"W", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                    {title:"Audited Height (cm)", field:"H", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                    {title:"Audited Weight (kg)", field:"weight", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                    {title:"Declared Length (cm)", field:"declaredLength", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                    {title:"Declared Width (cm)", field:"declaredWidth", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                    {title:"Declared Height (cm)", field:"declaredHeight", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                    {title:"Declared Weight (kg)", field:"declaredWeight", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                    {title:"Client Paid Height (cm)", field:"clientPaidHeight", width:180, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                    {title:"Destination Country", field:"destinationCountry", width:180, hozAlign:"center", vertAlign:"middle"},
+                    {title:"Conditions", field:"itemCondition", width:170, hozAlign:"center", vertAlign:"middle", formatter:conditionsFormatter},
+                    {title:"Shipping Mode", field:"shippingMode", width:150, hozAlign:"center", vertAlign:"middle"},
+                    {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight", width:190, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
+                    {title:"Chargeable Weight (kg)", field:"chargeable_weight", width:170, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{precision:1, thousand:""}},
+                    {title:"Date and Time", field:"time", width:180, hozAlign:"center", vertAlign:"middle"},
+                    {title:"Remarks", field:"hid", width:180, hozAlign:"center", vertAlign:"middle"}
+                ]
+            });
+
+            table.redraw(true);
+            table.on("dataLoaded", function(data){
+                var emptyRow = document.getElementById("scan-session-empty-row");
+                if(emptyRow){
+                    emptyRow.style.display = (data && data.length > 0) ? "none" : "block";
+                }
+            });
+        });
+
+        function doPostCall(){
+            tableFilters.length = 0;
+            var normalizedFromDate = $('#from_date').val();
+            var normalizedToDate = $('#to_date').val();
+            var normalizedHub = $('#search_hub').val();
+            if(normalizedHub == undefined){
+                normalizedHub = $('#default_hub').val();
+            }
+            var normalizedTrackingNo = $('#search-tracking_no').val();
+
+            if (normalizedFromDate !== "") {
+                tableFilters.push(JSON.parse('{"field": "dateTime", "type":">=", "value":"'+ normalizedFromDate+ '"}'));
+            }
+            if (normalizedToDate !== "") {
+                tableFilters.push(JSON.parse('{"field": "dateTime", "type":"<=", "value":"'+ normalizedToDate+ '"}'));
+            }
+            if (normalizedHub !== "") {
+                tableFilters.push(JSON.parse('{"field": "hub", "type":"=", "value":"'+ normalizedHub+ '"}'));
+            }
+            if (normalizedTrackingNo !== "") {
+                tableFilters.push(JSON.parse('{"field": "trackingNumber", "type":"=", "value":"'+ normalizedTrackingNo+ '"}'));
+            }
+
+            table.setData();
+            table.setFilter(tableFilters);
+            $('.searchloader').hide();
+        }
+
+        function conditionsFormatter(cell){
+            var rowData = cell.getRow().getData();
+            var containsBattery = rowData.containsBattery === true;
+            var containsLiquid = rowData.containsLiquid === true;
+            var isCommercialPackaging = rowData.isCommercialPackaging === true;
+            var isNew = (rowData.itemCondition || '').toString().toLowerCase() === 'new';
+
+            function conditionIcon(src, altText, tooltipText) {
+                return '' +
+                    '<span class="condition-indicator">' +
+                        '<img src="' + src + '" alt="' + altText + '">' +
+                        '<span class="condition-tooltip">' + tooltipText + '</span>' +
+                    '</span>';
+            }
+
+            return '' +
+                '<div class="condition-indicators">' +
+                    conditionIcon(
+                        'images/conditions/new_' + (isNew ? 'true' : 'false') + '.png',
+                        'item',
+                        'Item condition - ' + (isNew ? 'new' : 'used')
+                    ) +
+                    conditionIcon(
+                        'images/conditions/liquid_' + (containsLiquid ? 'true' : 'false') + '.png',
+                        'liquid',
+                        'Contains liquid - ' + (containsLiquid ? 'yes' : 'no')
+                    ) +
+                    conditionIcon(
+                        'images/conditions/battery_' + (containsBattery ? 'true' : 'false') + '.png',
+                        'battery',
+                        'Contains battery - ' + (containsBattery ? 'yes' : 'no')
+                    ) +
+                    conditionIcon(
+                        'images/conditions/commercial_' + (isCommercialPackaging ? 'true' : 'false') + '.png',
+                        'commercial packaging',
+                        'Commercial packaging - ' + (isCommercialPackaging ? 'yes' : 'no')
+                    ) +
+                '</div>';
+        }
+    </script>
+</head>
+<body>
+<div id="app">
+    <nav class="navbar navbar-default navbar-static-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#app-navbar-collapse">
+                    <span class="sr-only">Toggle Navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/scan-session" ><img src="images/flickpost.png" alt="Flickpost"> </a>
+            </div>
+            <div class="collapse navbar-collapse" id="app-navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                            <img src="images/default.png?v=2" width="20px" th:text="${username}">
+                            <span class="ti-angle-down"></span>
+                        </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li>
+                                <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                    <i class="ti-power-off"></i>  Logout
+                                </a>
+                                <form id="logout-form" th:action="@{'/doLogout'}" method="POST" style="display: none;"></form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                        <i class="ti-angle-down"></i>
+                    </button>
+                    <span class="navbar-brand-sub" >Menu</span>
+                </div>
+                <div class="collapse navbar-collapse" id="myNavbar">
+                    <ul class="nav navbar-nav">
+                        <li sec:authorize="isAuthenticated()"><a href="/weight"><i class="ti-location-pin"></i> Audited Weight View</a></li>
+                        <li sec:authorize="isAuthenticated()"><a href="/scan-session"><i class="ti-control-play"></i> Scan Session</a></li>
+                        <li sec:authorize="hasAnyAuthority('OFFICE', 'ADMIN')"><a href="/shipments"><i class="ti-location-pin"></i> Office View</a></li>
+                        <li sec:authorize="hasAnyAuthority('WAREHOUSE', 'ADMIN')"><a href="/warehouse"><i class="ti-location-pin"></i> Warehouse View</a></li>
+                        <li sec:authorize="isAuthenticated()"><a href="#" data-toggle="modal" data-target="#uploadReportFile"><i class="ti-upload"></i> Upload Report</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <style type="text/css">
+        .searchform {
+            background: #f5f8fa;
+            padding: 15px;
+            box-shadow: 0px 5px 3px -3px #cecece;
+        }
+        .searchform form{
+            overflow-x: auto;
+            width: 100%;
+            white-space: nowrap;
+        }
+        .searchform input , .searchform select{
+            height: 30px;
+            margin: 0 5px 5px 0;
+            width: 125px;
+            display: inline;
+            padding: 5px;
+            font-size: 12px;
+        }
+        .searchloader{
+            float: right;
+            position: absolute;
+            right: 5px;
+        }
+        #packages-table {
+            width: 100%;
+            margin-top: 12px;
+            max-height: calc(44px * 101);
+            overflow: auto;
+        }
+        #packages-table .tabulator {
+            min-width: 2300px;
+        }
+        #packages-table .tabulator-header .tabulator-col,
+        #packages-table .tabulator-row .tabulator-cell {
+            text-align: center;
+            vertical-align: middle;
+        }
+        #packages-table .tabulator-header .tabulator-col {
+            background: #fff;
+            min-height: 44px;
+            padding: 6px 8px;
+        }
+        #packages-table .tabulator-header .tabulator-col .tabulator-col-content {
+            padding: 0;
+        }
+        #packages-table .tabulator-row .tabulator-cell {
+            padding: 6px 8px;
+            line-height: 1.2;
+            overflow: visible;
+        }
+        #packages-table .tabulator-row,
+        #packages-table .tabulator-tableholder,
+        #packages-table .tabulator-table {
+            overflow: visible;
+        }
+        #packages-table .tabulator-cell img {
+            vertical-align: middle;
+        }
+        .condition-indicators {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .condition-indicator {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .condition-indicators img {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+            display: block;
+        }
+        .condition-tooltip {
+            position: absolute;
+            left: 50%;
+            top: calc(100% + 6px);
+            transform: translateX(-50%);
+            background: rgba(20, 20, 20, 0.96);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.2;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+            z-index: 50;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        .condition-tooltip::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 100%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent rgba(20, 20, 20, 0.96) transparent;
+        }
+        .condition-indicator:hover .condition-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        .scan-session-empty-row {
+            height: 44px;
+            border-left: 1px solid #dfe6ee;
+            border-right: 1px solid #dfe6ee;
+            border-bottom: 1px solid #dfe6ee;
+            background: #fff;
+        }
+        #packages-table .tabulator-row:hover,
+        #packages-table .tabulator-row:hover .tabulator-cell {
+            z-index: 30;
+            position: relative;
+        }
+        #packages-table .tabulator-frozen,
+        #packages-table .tabulator-frozen.tabulator-frozen-left,
+        #packages-table .tabulator-col.tabulator-frozen,
+        #packages-table .tabulator-cell.tabulator-frozen {
+            background: #fff;
+            z-index: 20;
+            will-change: transform;
+        }
+        #packages-table .tabulator-col.tabulator-frozen {
+            z-index: 25;
+        }
+    </style>
+    <div class="container">
+        <ol class="breadcrumb">
+            <li><a href="/weight">Home</a></li>
+            <li class="active">Scan Session</li>
+        </ol>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="pull-right" style="margin:20px;">
+                    <a class="label label-light" href="#" id="startButton"><i class="ti ti-control-play"></i> Start </a> &nbsp;
+                    <a href="#" id="searchButton" class="label label-light"><i class="ti ti-search"></i> Search </a>
+                </div>
+                <div class="panel panel-default">
+                    <div class="searchform" style="display:none">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <span class="searchloader" style="display:none;"><img src="images/loader.gif" auditedWidth="30px"></span>
+                                <form method="POST" th:action="@{'/scan-session'}" accept-charset="UTF-8" id="search-form" class="custom-scrollbar-transparent form-horizontal form-groups">
+                                    <select sec:authorize="hasAnyAuthority('ADMIN', 'OFFICE')" id="search_hub" name="hub" class="form-control margin-bottom-8">
+                                        <option th:value="ALL">All Hubs</option>
+                                        <option th:value="${defaultCompany.code}" th:text="${defaultCompany.name}"></option>
+                                        <option th:each="company : ${companies}" th:value="${company.code}" th:text="${company.name}"></option>
+                                    </select>
+                                    <input sec:authorize="hasAnyAuthority('WAREHOUSE')" type="hidden" id="default_hub" th:value="${defaultCompany.code}" name="hub">
+                                    <input type="text" id="search-tracking_no" class="form-control margin-bottom-8" placeholder="Tracking No">
+                                    <input type="date" id="from_date" class="form-control margin-bottom-8" placeholder="yyyy-mm-dd">
+                                    <input type="date" id="to_date" class="form-control margin-bottom-8" placeholder="yyyy-mm-dd">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="packages-table"></div>
+                    <div id="scan-session-empty-row" class="scan-session-empty-row" aria-hidden="true"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container sitefooter">
+        <p align="left" style="font-size: 11px;">
+            <i class="fa fa-copyright" aria-hidden="true"></i>
+            &copy; 2021
+            Flickpost. All Rights Reserved.
+            <br><i class="ti-arrow-left"></i> Go back to <a href="http://www.flickpost.co">www.flickpost.co</a>
+        </p>
+        <div id="google_translate_element"></div>
+        <script type="text/javascript">
+            function googleTranslateElementInit() {
+                new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
+            }
+        </script>
+        <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    </div>
+</div>
+
+<div id="uploadReportFile" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Upload Report</h4>
+            </div>
+            <div class="modal-body">
+                <form method="POST" enctype="multipart/form-data" th:action="@{'/uploadReport'}" id="uploadReportForm">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                    <div class="form-group">
+                        <input type="file" name="file" class="form-control" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="executeUploadReport()">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
