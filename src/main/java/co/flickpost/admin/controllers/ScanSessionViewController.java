@@ -18,11 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.transaction.Transactional;
-import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -58,17 +55,8 @@ public class ScanSessionViewController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String uid = userDetails.getUsername();
 
-        request.setPageNumber(1);
-        request.setPageSize(Integer.MAX_VALUE);
-
         logger.info("{} - Started fetching data for Scan Session View", uid);
-        Map<String, Object> packagesPagination = sessionPackageDao.pagination(request, userDetails.getCompany().getCode());
-        if (packagesPagination == null) {
-            logger.info("{} - There was no data for Scan Session View", uid);
-            return Collections.emptyList();
-        }
-
-        List<SessionPackage> packages = (List<SessionPackage>) packagesPagination.get("packages");
+        List<SessionPackage> packages = sessionPackageDao.findAllByFilters(request.getFilters(), userDetails.getCompany().getCode());
         applyRounding(packages);
         logger.info("{} - Returning {} session packages for Scan Session View", uid, packages.size());
         return packages;
