@@ -77,7 +77,7 @@
                 columns:[
                     {title:"Hub", field:"hub", width:90, hozAlign:"center", vertAlign:"middle", frozen:true, formatter:function (cell) {
                         var imgName = cell.getValue();
-                        return '<img src="images/hubs/' + imgName +'.png" width="35" height="35"/>';
+                        return '<img src="images/hubs/' + imgName +'.png" width="35" height="35" onerror="this.onerror=null;this.src=\'images/hubs/HQ.png\';"/>';
                     }},
                     {title:"Tracking Number", field:"code", width:180, hozAlign:"center", vertAlign:"middle", frozen:true},
                     {title:"Status", field:"status", width:140, hozAlign:"center", vertAlign:"middle"},
