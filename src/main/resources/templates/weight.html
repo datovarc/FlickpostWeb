@@ -326,8 +326,8 @@
             justify-content: center;
         }
         .condition-indicators img {
-            width: 22px;
-            height: 22px;
+            width: 18px;
+            height: 18px;
             object-fit: contain;
             display: block;
         }
@@ -490,9 +490,9 @@
                                 return '' +
                                     '<div class="condition-indicators">' +
                                         conditionIcon(
-                                            'images/conditions/battery_' + (containsBattery ? 'true' : 'false') + '.png',
-                                            'battery',
-                                            'Contains battery - ' + (containsBattery ? 'yes' : 'no')
+                                            'images/conditions/new_' + (isNew ? 'true' : 'false') + '.png',
+                                            'item',
+                                            'Item condition - ' + (isNew ? 'new' : 'used')
                                         ) +
                                         conditionIcon(
                                             'images/conditions/liquid_' + (containsLiquid ? 'true' : 'false') + '.png',
@@ -500,14 +500,14 @@
                                             'Contains liquid - ' + (containsLiquid ? 'yes' : 'no')
                                         ) +
                                         conditionIcon(
+                                            'images/conditions/battery_' + (containsBattery ? 'true' : 'false') + '.png',
+                                            'battery',
+                                            'Contains battery - ' + (containsBattery ? 'yes' : 'no')
+                                        ) +
+                                        conditionIcon(
                                             'images/conditions/commercial_' + (isCommercialPackaging ? 'true' : 'false') + '.png',
                                             'commercial packaging',
                                             'Commercial packaging - ' + (isCommercialPackaging ? 'yes' : 'no')
-                                        ) +
-                                        conditionIcon(
-                                            'images/conditions/new_' + (isNew ? 'true' : 'false') + '.png',
-                                            'item',
-                                            'Item condition - ' + (isNew ? 'new' : 'used')
                                         ) +
                                     '</div>';
                             }
