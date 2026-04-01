@@ -249,7 +249,7 @@
                 <div class="collapse navbar-collapse" id="myNavbar">
                     <ul class="nav navbar-nav">
                             <li sec:authorize="isAuthenticated()"><a href="/weight"><i class="ti-location-pin"></i> Audited Weight View</a></li>
-                        <li sec:authorize="isAuthenticated()"><a href="/scan-session"><i class="ti-barcode"></i> Scan Session</a></li>
+                        <li sec:authorize="isAuthenticated()"><a href="/scan-session"><i class="ti-camera"></i> Scan Session</a></li>
                             <li sec:authorize="hasAnyAuthority('OFFICE', 'ADMIN')"><a href="/shipments"><i class="ti-location-pin"></i> Office View</a></li>
                             <li sec:authorize="hasAnyAuthority('WAREHOUSE', 'ADMIN')"><a href="/warehouse"><i class="ti-location-pin"></i> Warehouse View</a></li>
                             <li sec:authorize="isAuthenticated()"><a href="#" data-toggle="modal" data-target="#uploadReportFile"><i class="ti-upload"></i> Upload Report</a></li>
