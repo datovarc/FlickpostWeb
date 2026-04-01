@@ -48,7 +48,6 @@ public class SessionPackageDao {
 
         entityManager.persist(pkg);
 
-
         entityTransaction.commit();
         entityManager.close();
 
@@ -155,7 +154,6 @@ public class SessionPackageDao {
         logger.info("Started pagination transaction. Pg. {}", request.getPageNumber());
         transaction.begin();
 
-        //Selecting
         CriteriaBuilder selectCriteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<SessionPackage> selectQuery = selectCriteriaBuilder.createQuery(SessionPackage.class);
         Root<SessionPackage> selectRoot = selectQuery.from(SessionPackage.class);
@@ -163,7 +161,6 @@ public class SessionPackageDao {
         CriteriaQuery<SessionPackage> paged = selectQuery.select(selectRoot);
         paged.orderBy(selectCriteriaBuilder.desc(selectRoot.get("dateTime")));
 
-        //Counting
         CriteriaBuilder countCriteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> countQuery = countCriteriaBuilder.createQuery(Long.class);
         Root<SessionPackage> countRoot = countQuery.from(SessionPackage.class);
@@ -202,36 +199,63 @@ public class SessionPackageDao {
         return paginationResult;
     }
 
+    @Transactional
+    public List<SessionPackage> findAllByFilters(List<PaginationFilter> filters, String userCompany) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction transaction = entityManager.getTransaction();
+
+        logger.info("Started filtered fetch for Scan Session.");
+        transaction.begin();
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<SessionPackage> cq = cb.createQuery(SessionPackage.class);
+        Root<SessionPackage> root = cq.from(SessionPackage.class);
+        cq.select(root).orderBy(cb.desc(root.get(DATE_TIME)));
+
+        List<Predicate> predicates = processPredicates(filters, cb, root, userCompany);
+        if (predicates != null && !predicates.isEmpty()) {
+            cq.where(predicates.toArray(new Predicate[]{}));
+        }
+
+        List<SessionPackage> result = entityManager.createQuery(cq).getResultList();
+
+        transaction.commit();
+        logger.info("Finished filtered fetch for Scan Session. Count: {}", result.size());
+        entityManager.close();
+
+        return result;
+    }
 
     private List<Predicate> processPredicates(List<PaginationFilter> filters, CriteriaBuilder cb, Root<SessionPackage> rootEntry, String userCompany){
         List<Predicate> predicates = new ArrayList<>();
 
         LocalDateValidator dateValidator = new LocalDateValidator(packageDateFormat);
 
-        for(PaginationFilter filter : filters){
-            Predicate newPredicate = null;
-            Object value = filter.getValue();
-            String field = filter.getField();
+        if(filters != null) {
+            for(PaginationFilter filter : filters){
+                Predicate newPredicate = null;
+                Object value = filter.getValue();
+                String field = filter.getField();
 
-            if(DATE_TIME.equalsIgnoreCase(field) && dateValidator.isValid(value.toString())) {
-                if(">=".equalsIgnoreCase(filter.getType())){
-                    newPredicate = cb.greaterThanOrEqualTo(rootEntry.get(filter.getField()), LocalDate.parse(value.toString(), packageDateFormat).atStartOfDay());
+                if(DATE_TIME.equalsIgnoreCase(field) && dateValidator.isValid(value.toString())) {
+                    if(">=".equalsIgnoreCase(filter.getType())){
+                        newPredicate = cb.greaterThanOrEqualTo(rootEntry.get(filter.getField()), LocalDate.parse(value.toString(), packageDateFormat).atStartOfDay());
 
-                } else if("<=".equalsIgnoreCase(filter.getType())){
-                    newPredicate = cb.lessThanOrEqualTo(rootEntry.get(filter.getField()), LocalDate.parse(value.toString(), packageDateFormat).atTime(23,59,59));
+                    } else if("<=".equalsIgnoreCase(filter.getType())){
+                        newPredicate = cb.lessThanOrEqualTo(rootEntry.get(filter.getField()), LocalDate.parse(value.toString(), packageDateFormat).atTime(23,59,59));
+                    }
+                } else if(HUB.equalsIgnoreCase(field) && !ALL.equalsIgnoreCase(value.toString())){
+                    newPredicate = cb.equal(rootEntry.get(HUB), value.toString());
+                } else if(TRACKING_NUMBER.equalsIgnoreCase(field)){
+                    newPredicate = cb.like(rootEntry.<String>get(TRACKING_NUMBER), "%"+value.toString()+"%");
                 }
-            } else if(HUB.equalsIgnoreCase(field) && !ALL.equalsIgnoreCase(value.toString())){
-                newPredicate = cb.equal(rootEntry.get(HUB), value.toString());
-            } else if(TRACKING_NUMBER.equalsIgnoreCase(field)){
-                newPredicate = cb.like(rootEntry.<String>get(TRACKING_NUMBER), "%"+value.toString()+"%");
-            }
 
-            if(newPredicate != null) {
-                predicates.add(newPredicate);
+                if(newPredicate != null) {
+                    predicates.add(newPredicate);
+                }
             }
         }
 
-        //Add User Filter
         if(!HQ.equalsIgnoreCase(userCompany)){
             predicates.add(cb.equal(rootEntry.get(HUB), userCompany));
         }
