@@ -78,6 +78,9 @@
                     return response;
                 },
                 placeholder:"<div class=\"scan-session-empty-placeholder\"></div>",
+                rowClick:function(e, row){
+                    renderLatestSummary(row.getData());
+                },
                 columns:[
                     {title:"Hub", field:"hub", width:90, hozAlign:"center", vertAlign:"middle", frozen:true, formatter:function (cell) {
                         var imgName = cell.getValue();
@@ -357,21 +360,25 @@
             pointer-events: none;
         }
         .scan-session-latest-summary {
-            width: 420px;
+            width: 440px;
             max-width: 100%;
-            margin: 34px auto 18px;
+            margin: 42px auto 24px;
             background: #fff;
             border: 1px solid #e8eef4;
             border-radius: 8px;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-            padding: 18px 20px 16px;
+            padding: 26px 24px 24px;
         }
         .scan-session-summary-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            gap: 12px;
+            margin-bottom: 18px;
+            gap: 14px;
+        }
+        .scan-session-summary-hub img {
+            width: 46px;
+            height: 46px;
         }
         .scan-session-summary-shipment {
             font-size: 14px;
@@ -384,8 +391,8 @@
             font-size: 28px;
             font-weight: 700;
             color: #243240;
-            line-height: 1.2;
-            margin-bottom: 4px;
+            line-height: 1.25;
+            margin-bottom: 8px;
             word-break: break-word;
         }
         .scan-session-summary-mode {
@@ -393,22 +400,22 @@
             font-size: 24px;
             font-weight: 700;
             color: #5a6a7b;
-            line-height: 1.2;
-            margin-bottom: 10px;
+            line-height: 1.25;
+            margin-bottom: 14px;
         }
         .scan-session-status {
             text-align: center;
-            font-size: 32px;
+            font-size: 34px;
             font-weight: 700;
             color: #5f6f82;
-            line-height: 1.2;
-            margin-bottom: 12px;
+            line-height: 1.25;
+            margin-bottom: 16px;
         }
         .scan-session-status-proceed {
-            color: #3d7d57;
+            color: #1f9d55;
         }
         .scan-session-status-hold {
-            color: #9b4f4f;
+            color: #d64545;
         }
         .scan-session-summary-conditions .condition-indicators {
             justify-content: center;
