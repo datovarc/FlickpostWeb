@@ -113,14 +113,15 @@
 
             syncEmptyTableState();
             renderLatestSummary(null);
-            table.on("dataLoaded", function(data){
+            table.on("dataLoaded", function(){
                 syncEmptyTableState();
-                renderLatestSummary(data && data.length > 0 ? data[0] : null);
             });
             table.on("renderComplete", function(){
                 syncEmptyTableState();
                 var currentData = table.getData();
-                renderLatestSummary(currentData && currentData.length > 0 ? currentData[0] : null);
+                if (currentData && currentData.length > 0) {
+                    renderLatestSummary(currentData[0]);
+                }
             });
         });
 
