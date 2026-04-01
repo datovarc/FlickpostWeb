@@ -48,6 +48,19 @@ public class ScanSessionViewController {
         return "scan-session";
     }
 
+    @PostMapping(value = "/latest")
+    @ResponseBody
+    @Transactional
+    public SessionPackage latestScanSessionItem(@RequestBody PaginationRequest request, org.springframework.security.core.Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String uid = userDetails.getUsername();
+
+        logger.info("{} - Started fetching latest item for Scan Session View", uid);
+        List<SessionPackage> packages = sessionPackageDao.findAllByFilters(request.getFilters(), userDetails.getCompany().getCode());
+        applyRounding(packages);
+        return packages != null && !packages.isEmpty() ? packages.get(0) : null;
+    }
+
     @PostMapping(value = "/data")
     @ResponseBody
     @Transactional
