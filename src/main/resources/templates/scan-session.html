@@ -73,6 +73,10 @@
                 },
                 ajaxContentType:"json",
                 ajaxFiltering: true,
+                ajaxResponse:function(url, params, response){
+                    renderLatestSummary(response && response.length > 0 ? response[0] : null);
+                    return response;
+                },
                 placeholder:"<div class=\"scan-session-empty-placeholder\"></div>",
                 columns:[
                     {title:"Hub", field:"hub", width:90, hozAlign:"center", vertAlign:"middle", frozen:true, formatter:function (cell) {
@@ -113,14 +117,11 @@
 
             syncEmptyTableState();
             renderLatestSummary(null);
-            table.on("dataLoaded", function(data){
+            table.on("dataLoaded", function(){
                 syncEmptyTableState();
-                renderLatestSummary(data && data.length > 0 ? data[0] : null);
             });
             table.on("renderComplete", function(){
                 syncEmptyTableState();
-                var currentData = table.getData();
-                renderLatestSummary(currentData && currentData.length > 0 ? currentData[0] : null);
             });
         });
 
