@@ -232,11 +232,12 @@
                     <span class="navbar-brand-sub" >Menu</span>
                 </div>
                 <div class="collapse navbar-collapse" id="myNavbar">
-                    <ul class="nav navbar-nav">
+                                        <ul class="nav navbar-nav">
                         <li sec:authorize="isAuthenticated()"><a href="/weight"><i class="ti-location-pin"></i> Audited Weight View</a></li>
-                        <li sec:authorize="isAuthenticated()" class="menu-item-active"><a href="javascript:void(0)" aria-current="page"><i class="ti-camera"></i> Scan Session</a></li>
-                        <li sec:authorize="hasAnyAuthority('OFFICE', 'ADMIN')"><a href="/shipments"><i class="ti-location-pin"></i> Office View</a></li>
                         <li sec:authorize="hasAnyAuthority('WAREHOUSE', 'ADMIN')"><a href="/warehouse"><i class="ti-location-pin"></i> Warehouse View</a></li>
+                        <li sec:authorize="isAuthenticated()" class="menu-item-active"><a href="javascript:void(0)" aria-current="page"><i class="ti-camera"></i> Scan Session</a></li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right menu-nav-right">
                         <li sec:authorize="isAuthenticated()"><a href="#" data-toggle="modal" data-target="#uploadReportFile"><i class="ti-upload"></i> Upload Report</a></li>
                     </ul>
                 </div>
@@ -244,6 +245,18 @@
         </nav>
     </div>
     <style type="text/css">
+        .menu-item-active > a,
+        .menu-item-active > a:hover,
+        .menu-item-active > a:focus {
+            background: #eef3f8 !important;
+            color: #2c3e50 !important;
+            font-weight: 600;
+            cursor: default;
+            pointer-events: none;
+        }
+        .menu-nav-right {
+            float: right !important;
+        }
         .menu-item-active > a,
         .menu-item-active > a:hover,
         .menu-item-active > a:focus {
@@ -371,9 +384,9 @@
         }
         .scan-session-empty-row {
             height: 44px;
-            border-left: 1px solid #dfe6ee;
-            border-right: 1px solid #dfe6ee;
-            border-bottom: 1px solid #dfe6ee;
+            border-left: 1px solid #e8eef4;
+            border-right: 1px solid #e8eef4;
+            border-bottom: 1px solid #e8eef4;
             background: #fff;
             margin-top: -1px;
         }
@@ -395,15 +408,15 @@
         }
         #packages-table .tabulator-header,
         #packages-table .tabulator-row .tabulator-cell {
-            border-color: #e7edf3 !important;
+            border-color: #eef3f7 !important;
         }
         #packages-table .tabulator-row .tabulator-cell {
-            border-right: 1px solid #e7edf3;
-            border-bottom: 1px solid #e7edf3;
+            border-right: 1px solid #eef3f7;
+            border-bottom: 1px solid #eef3f7;
         }
         #packages-table .tabulator-header .tabulator-col {
-            border-right: 1px solid #e7edf3;
-            border-bottom: 1px solid #dfe6ee;
+            border-right: 1px solid #eef3f7;
+            border-bottom: 1px solid #e8eef4;
         }
         #packages-table .tabulator-row:hover .tabulator-cell,
         #packages-table .tabulator-row:hover .tabulator-cell.tabulator-frozen,
