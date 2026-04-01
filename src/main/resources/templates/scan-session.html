@@ -115,12 +115,18 @@
             renderLatestSummary(null);
             table.on("dataLoaded", function(data){
                 syncEmptyTableState();
-                renderLatestSummary(data && data.length > 0 ? data[0] : null);
+                if (data && data.length > 0) {
+                    renderLatestSummary(data[0]);
+                } else {
+                    renderLatestSummary(null);
+                }
             });
             table.on("renderComplete", function(){
                 syncEmptyTableState();
-                var currentData = table.getData();
-                renderLatestSummary(currentData && currentData.length > 0 ? currentData[0] : null);
+                var rows = table.getRows();
+                if (rows && rows.length > 0) {
+                    renderLatestSummary(rows[0].getData());
+                }
             });
         });
 
