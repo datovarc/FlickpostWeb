@@ -51,7 +51,6 @@
                         table.clearFilter();
                         table.setData();
                         syncEmptyTableState();
-                        fetchLatestSummary();
                     }
                     searching = false;
                 }
@@ -114,7 +113,6 @@
 
             syncEmptyTableState();
             renderLatestSummary(null);
-            fetchLatestSummary();
             fetchLatestSummaryFromTable();
             table.on("dataLoaded", function(){
                 syncEmptyTableState();
@@ -132,10 +130,7 @@
             if (!table) {
                 return;
             }
-            table.setData().then(function(data){
-                syncEmptyTableState();
-                renderLatestSummary(data && data.length > 0 ? data[0] : null);
-            });
+            
         }
 
         function buildScanSessionFilters() {
@@ -163,11 +158,6 @@
 
             return filters;
         }
-
-        function fetchLatestSummary() {
-            if (!table) {
-                return;
-            }
             var latestRequest = {
                 page: 1,
                 size: 1,
@@ -192,11 +182,9 @@
 
         function doPostCall(){            tableFilters = buildScanSessionFilters();
 
-            table.setData().then(function(data){
-                table.setFilter(tableFilters);
-                syncEmptyTableState();
-                renderLatestSummary(data && data.length > 0 ? data[0] : null);
-            });
+            table.setData();
+            table.setFilter(tableFilters);
+            syncEmptyTableState();
             $('.searchloader').hide();
         }
 
