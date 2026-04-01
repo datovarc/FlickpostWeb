@@ -71,9 +71,7 @@
                     }
                 },
                 ajaxContentType:"json",
-                ajaxFiltering: true,
-                height: "4444px",
-                placeholder: " ",
+                ajaxFiltering: true,                placeholder:"<div class="scan-session-empty-placeholder"></div>",
                 columns:[
                     {title:"Hub", field:"hub", width:90, hozAlign:"center", vertAlign:"middle", frozen:true, formatter:function (cell) {
                         var imgName = cell.getValue();
@@ -101,12 +99,6 @@
             });
 
             table.redraw(true);
-            table.on("dataLoaded", function(data){
-                var emptyRow = document.getElementById("scan-session-empty-row");
-                if(emptyRow){
-                    emptyRow.style.display = (data && data.length > 0) ? "none" : "block";
-                }
-            });
         });
 
         function doPostCall(){
@@ -223,7 +215,7 @@
                 <div class="collapse navbar-collapse" id="myNavbar">
                     <ul class="nav navbar-nav">
                         <li sec:authorize="isAuthenticated()"><a href="/weight"><i class="ti-location-pin"></i> Audited Weight View</a></li>
-                        <li sec:authorize="isAuthenticated()"><a href="/scan-session"><i class="ti-control-play"></i> Scan Session</a></li>
+                        <li sec:authorize="isAuthenticated()"><a href="/scan-session"><i class="ti-barcode"></i> Scan Session</a></li>
                         <li sec:authorize="hasAnyAuthority('OFFICE', 'ADMIN')"><a href="/shipments"><i class="ti-location-pin"></i> Office View</a></li>
                         <li sec:authorize="hasAnyAuthority('WAREHOUSE', 'ADMIN')"><a href="/warehouse"><i class="ti-location-pin"></i> Warehouse View</a></li>
                         <li sec:authorize="isAuthenticated()"><a href="#" data-toggle="modal" data-target="#uploadReportFile"><i class="ti-upload"></i> Upload Report</a></li>
@@ -259,11 +251,13 @@
         #packages-table {
             width: 100%;
             margin-top: 12px;
-            max-height: calc(44px * 101);
-            overflow: auto;
         }
         #packages-table .tabulator {
             min-width: 2300px;
+        }
+        #packages-table .tabulator-tableHolder {
+            max-height: calc(44px * 51);
+            overflow-y: auto;
         }
         #packages-table .tabulator-header .tabulator-col,
         #packages-table .tabulator-row .tabulator-cell {
@@ -342,11 +336,9 @@
             opacity: 1;
             visibility: visible;
         }
-        .scan-session-empty-row {
+        .scan-session-empty-placeholder {
             height: 44px;
-            border-left: 1px solid #dfe6ee;
-            border-right: 1px solid #dfe6ee;
-            border-bottom: 1px solid #dfe6ee;
+            width: 100%;
             background: #fff;
         }
         #packages-table .tabulator-row:hover,
@@ -397,7 +389,7 @@
                         </div>
                     </div>
                     <div id="packages-table"></div>
-                    <div id="scan-session-empty-row" class="scan-session-empty-row" aria-hidden="true"></div>
+                    
                 </div>
             </div>
         </div>
