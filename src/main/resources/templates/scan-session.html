@@ -115,23 +115,13 @@
             syncEmptyTableState();
             renderLatestSummary(null);
             fetchLatestSummary();
-            fetchLatestSummaryFromTable();
             table.on("dataLoaded", function(){
                 syncEmptyTableState();
             });
             table.on("renderComplete", function(){
                 syncEmptyTableState();
-                var currentData = table.getData();
-                if (currentData && currentData.length > 0) {
-                    renderLatestSummary(currentData[0]);
-                }
             });
         });
-
-        function fetchLatestSummaryFromTable() {
-            if (!table) {
-                return;
-            }
             table.setData().then(function(data){
                 syncEmptyTableState();
                 renderLatestSummary(data && data.length > 0 ? data[0] : null);
@@ -192,11 +182,10 @@
 
         function doPostCall(){            tableFilters = buildScanSessionFilters();
 
-            table.setData().then(function(data){
-                table.setFilter(tableFilters);
-                syncEmptyTableState();
-                renderLatestSummary(data && data.length > 0 ? data[0] : null);
-            });
+            table.setData();
+            table.setFilter(tableFilters);
+            syncEmptyTableState();
+            fetchLatestSummary();
             $('.searchloader').hide();
         }
 
