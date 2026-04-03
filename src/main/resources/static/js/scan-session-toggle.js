@@ -40,17 +40,21 @@
             });
     }
 
-    var scanSessionToggleRequestInFlight = false;
-    function toggleScanSession(event) {
+    var scanSessionRequestInFlight = false;
+    function handleScanSessionClick(event) {
         if (event) {
             event.preventDefault();
         }
-        if (scanSessionToggleRequestInFlight) {
+        if (scanSessionRequestInFlight) {
             return;
         }
-        scanSessionToggleRequestInFlight = true;
 
-        fetch('/scan-session/session/toggle', {
+        var toggleButton = document.querySelector('#scanSessionToggleButton');
+        var isActive = toggleButton && toggleButton.getAttribute('data-active') === 'true';
+        var endpoint = isActive ? '/scan-session/session/stop' : '/scan-session/session/start';
+        scanSessionRequestInFlight = true;
+
+        fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -59,13 +63,13 @@
         })
             .then(function(response) {
                 if (!response.ok) {
-                    throw new Error('Unable to toggle scan session');
+                    throw new Error('Unable to update scan session');
                 }
                 return response.json();
             })
             .then(function(data) {
                 updateScanSessionMenuItem(data);
-                if (data && data.active && window.location.pathname !== '/scan-session') {
+                if (!isActive && window.location.pathname !== '/scan-session') {
                     window.location.href = '/scan-session';
                 }
             })
@@ -74,7 +78,7 @@
                 alert('Unable to update scan session right now.');
             })
             .finally(function() {
-                scanSessionToggleRequestInFlight = false;
+                scanSessionRequestInFlight = false;
             });
     }
 
@@ -86,7 +90,7 @@
 
         loadScanSessionStatus();
         Array.prototype.forEach.call(menuItems, function(menuItem) {
-            menuItem.addEventListener('click', toggleScanSession);
+            menuItem.addEventListener('click', handleScanSessionClick);
         });
     });
 })();

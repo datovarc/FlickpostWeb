@@ -29,10 +29,17 @@ public class ScanSessionActionController {
         return scanSessionService.getStatus(userDetails);
     }
 
-    @PostMapping("/toggle")
-    public ResponseEntity<Map<String, Object>> toggle(org.springframework.security.core.Authentication authentication) {
+    @PostMapping("/start")
+    public ResponseEntity<Map<String, Object>> start(org.springframework.security.core.Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        logger.info("{} - Received scan session toggle API request", userDetails.getUsername());
-        return ResponseEntity.ok(scanSessionService.toggle(userDetails));
+        logger.info("{} - Received scan session start API request", userDetails.getUsername());
+        return ResponseEntity.ok(scanSessionService.startSession(userDetails));
+    }
+
+    @PostMapping("/stop")
+    public ResponseEntity<Map<String, Object>> stop(org.springframework.security.core.Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        logger.info("{} - Received scan session stop API request", userDetails.getUsername());
+        return ResponseEntity.ok(scanSessionService.stopSession(userDetails));
     }
 }
