@@ -13,7 +13,7 @@ import java.util.List;
 
 public class UserDetailsImpl implements UserDetails {
 
-    private User user;
+    private final User user;
 
     public UserDetailsImpl(User user) {
         this.user = user;
@@ -62,5 +62,9 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     public Company getCompany(){ return user.getCompany();}
+
+    public User getUser() {
+        return user;
+    }
 
 }
