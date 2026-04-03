@@ -74,7 +74,7 @@
     }
 
     function buildBusyHtml(label) {
-        return '<i class="ti ti-reload scan-session-spin"></i> ' + label;
+        return '<span class="scan-session-spinner" aria-hidden="true"></span><span class="scan-session-spinner-label">' + label + '</span>';
     }
 
     function buildNormalHtml(iconClass, label) {
@@ -223,12 +223,24 @@
         var style = document.createElement('style');
         style.id = 'scan-session-toggle-styles';
         style.textContent = '' +
-            '.scan-session-spin {' +
-            '  display: inline-block;' +
-            '  animation: scanSessionSpin 0.85s linear infinite;' +
-            '}' +
             '.scan-session-toggle-disabled {' +
             '  cursor: not-allowed !important;' +
+            '}' +
+            '.scan-session-spinner {' +
+            '  width: 12px;' +
+            '  height: 12px;' +
+            '  display: inline-block;' +
+            '  vertical-align: -1px;' +
+            '  margin-right: 6px;' +
+            '  border: 2px solid currentColor;' +
+            '  border-right-color: transparent;' +
+            '  border-radius: 50%;' +
+            '  box-sizing: border-box;' +
+            '  animation: scanSessionSpin 0.75s linear infinite;' +
+            '  transform-origin: 50% 50%;' +
+            '}' +
+            '.scan-session-spinner-label {' +
+            '  display: inline-block;' +
             '}' +
             '@keyframes scanSessionSpin {' +
             '  from { transform: rotate(0deg); }' +
