@@ -22,4 +22,12 @@ public class PackageReferenceDao {
         List<PackageReference> result = query.getResultList();
         return result != null && !result.isEmpty() ? result.get(0) : null;
     }
+
+    public void save(PackageReference packageReference) {
+        if (packageReference.getId() == null) {
+            entityManager.persist(packageReference);
+        } else {
+            entityManager.merge(packageReference);
+        }
+    }
 }
