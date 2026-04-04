@@ -47,8 +47,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .antMatchers("/api/scan-session/session/evaluate-package").permitAll()
+        http.csrf()
+                .ignoringAntMatchers("/api/scan-session/session/ingest-package", "/api/scan-session/session/evaluate-package")
+                .and()
+                .authorizeRequests()
+                .antMatchers("/api/scan-session/session/ingest-package", "/api/scan-session/session/evaluate-package").permitAll()
                 .antMatchers("/warehouse/**").hasAnyAuthority("WAREHOUSE", "ADMIN")
                 .antMatchers("/office/**").hasAnyAuthority("OFFICE", "ADMIN")
                 .antMatchers("/report/**").hasAnyAuthority("OFFICE", "ADMIN")
