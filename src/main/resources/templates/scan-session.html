@@ -289,22 +289,41 @@
             return keys.length > 0 ? record[keys[0]] : null;
         }
 
-        function normalizeDuplicateValue(value) {
+        function normalizeDuplicateValue(value, definition) {
             if (value === undefined || value === null || value === '') {
                 return null;
             }
+
+            var decimalFieldsToRound = {
+                auditedLength: true,
+                auditedWidth: true,
+                auditedHeight: true
+            };
+
+            if (definition && definition.keys && definition.keys.length) {
+                var primaryKey = definition.keys[0];
+                if (decimalFieldsToRound[primaryKey]) {
+                    var numericValue = Number(value);
+                    if (!Number.isNaN(numericValue)) {
+                        return numericValue.toFixed(2);
+                    }
+                }
+            }
+
             return value;
         }
 
-        function areDuplicateValuesEqual(left, right) {
-            return JSON.stringify(normalizeDuplicateValue(left)) === JSON.stringify(normalizeDuplicateValue(right));
+        function areDuplicateValuesEqual(left, right, definition) {
+            return JSON.stringify(normalizeDuplicateValue(left, definition)) === JSON.stringify(normalizeDuplicateValue(right, definition));
         }
 
         function getDuplicateDifferences(oldRecord, newRecord) {
             return getDuplicateFieldDefinitions().filter(function(definition) {
+                var field = definition[0];
                 return !areDuplicateValuesEqual(
-                    getDuplicateFieldValue(oldRecord, definition[0]),
-                    getDuplicateFieldValue(newRecord, definition[0])
+                    getDuplicateFieldValue(oldRecord, field),
+                    getDuplicateFieldValue(newRecord, field),
+                    field
                 );
             }).map(function(definition) {
                 return definition[0];
@@ -377,7 +396,8 @@
                 updateDuplicateIdentityMessage(fieldsToShow.length > 0);
                 $('#duplicateOldRecord').html(buildDuplicateComparisonHtml(oldRecord, fieldsToShow));
                 $('#duplicateNewRecord').html(buildDuplicateComparisonHtml(newRecord, fieldsToShow));
-                $('input[name="duplicateSelection"]').prop('checked', false);
+                $('input[name="duplicateSelection"][value="new"]').prop('checked', true);
+                $('input[name="duplicateSelection"][value="old"]').prop('checked', false);
                 $('#duplicateSessionPackageModal').modal({backdrop:'static', keyboard:false});
                 $('#duplicateSessionPackageModal').modal('show');
             }).catch(function(error) {
