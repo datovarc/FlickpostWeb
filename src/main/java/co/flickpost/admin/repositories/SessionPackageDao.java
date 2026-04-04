@@ -56,15 +56,6 @@ public class SessionPackageDao {
         return true;
     }
 
-    public Package findByTrackingNumber(String trackingNumber) {
-        logger.info("Started searching for trackingNumber: {}", trackingNumber);
-        List<SessionPackage> result = entityManager.createNativeQuery("SELECT * FROM session_package where tracking_number = ?", SessionPackage.class)
-                .setParameter(1, trackingNumber)
-                .getResultList();
-        logger.info("Finished searching for trackingNumber: {}", trackingNumber);
-        return result != null && !result.isEmpty() ? result.get(0) : null;
-    }
-
     public SessionPackage findSessionPackageByTrackingNumber(String trackingNumber) {
         logger.info("Started searching session_package for trackingNumber: {}", trackingNumber);
         List<SessionPackage> result = entityManager.createNativeQuery("SELECT * FROM session_package where tracking_number = ?", SessionPackage.class)
