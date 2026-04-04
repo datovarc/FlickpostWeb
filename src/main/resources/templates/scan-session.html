@@ -244,43 +244,86 @@
             });
         }
 
-        function buildDuplicateComparisonHtml(record, otherRecord) {
-            if (!record) {
-                return '<p>No data</p>';
-            }
-
-            var fields = [
-                ['trackingNumber', 'Tracking Number'],
-                ['status', 'Status'],
-                ['hub', 'Hub'],
-                ['shipmentId', 'Shipment ID'],
-                ['shippingMode', 'Shipping Mode'],
-                ['destinationCountry', 'Destination Country'],
-                ['declaredWeight', 'Declared Weight'],
-                ['auditedWeight', 'Audited Weight'],
-                ['declaredLength', 'Declared Length'],
-                ['declaredWidth', 'Declared Width'],
-                ['declaredHeight', 'Declared Height'],
-                ['auditedLength', 'Audited Length'],
-                ['auditedWidth', 'Audited Width'],
-                ['auditedHeight', 'Audited Height'],
-                ['containsLiquid', 'Contains Liquid'],
-                ['containsBattery', 'Contains Battery'],
-                ['itemCondition', 'Item Condition'],
-                ['isCommercialPackaging', 'Commercial Packaging'],
-                ['isUnderdeclared', 'Underdeclared'],
-                ['referenceSource', 'Reference Source']
+        function getDuplicateFieldDefinitions() {
+            return [
+                [{ keys: ['trackingNumber', 'code'], label: 'Tracking Number' }],
+                [{ keys: ['status'], label: 'Status' }],
+                [{ keys: ['hub'], label: 'Hub' }],
+                [{ keys: ['shipmentId'], label: 'Shipment ID' }],
+                [{ keys: ['shippingMode'], label: 'Shipping Mode' }],
+                [{ keys: ['destinationCountry'], label: 'Destination Country' }],
+                [{ keys: ['declaredWeight'], label: 'Declared Weight' }],
+                [{ keys: ['auditedWeight', 'weight'], label: 'Audited Weight' }],
+                [{ keys: ['declaredLength'], label: 'Declared Length' }],
+                [{ keys: ['declaredWidth'], label: 'Declared Width' }],
+                [{ keys: ['declaredHeight'], label: 'Declared Height' }],
+                [{ keys: ['auditedLength', 'L'], label: 'Audited Length' }],
+                [{ keys: ['auditedWidth', 'W'], label: 'Audited Width' }],
+                [{ keys: ['auditedHeight', 'H'], label: 'Audited Height' }],
+                [{ keys: ['auditedVolumetricWeight', 'audited_volumetric_weight'], label: 'Audited Volumetric Weight' }],
+                [{ keys: ['chargeableWeight', 'chargeable_weight'], label: 'Chargeable Weight' }],
+                [{ keys: ['clientPaidHeight'], label: 'Client Paid Height' }],
+                [{ keys: ['containsLiquid'], label: 'Contains Liquid' }],
+                [{ keys: ['containsBattery'], label: 'Contains Battery' }],
+                [{ keys: ['itemCondition'], label: 'Item Condition' }],
+                [{ keys: ['isCommercialPackaging'], label: 'Commercial Packaging' }],
+                [{ keys: ['isUnderdeclared'], label: 'Underdeclared' }],
+                [{ keys: ['referenceSource', 'refSource'], label: 'Reference Source' }],
+                [{ keys: ['sessionId'], label: 'Session ID' }],
+                [{ keys: ['hid'], label: 'Remarks' }],
+                [{ keys: ['dateTime', 'time'], label: 'Date and Time' }]
             ];
+        }
+
+        function getDuplicateFieldValue(record, definition) {
+            if (!record) {
+                return null;
+            }
+            var keys = definition.keys || [];
+            for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                if (record[key] !== undefined && record[key] !== null && record[key] !== '') {
+                    return record[key];
+                }
+            }
+            return keys.length > 0 ? record[keys[0]] : null;
+        }
+
+        function normalizeDuplicateValue(value) {
+            if (value === undefined || value === null || value === '') {
+                return null;
+            }
+            return value;
+        }
+
+        function areDuplicateValuesEqual(left, right) {
+            return JSON.stringify(normalizeDuplicateValue(left)) === JSON.stringify(normalizeDuplicateValue(right));
+        }
+
+        function getDuplicateDifferences(oldRecord, newRecord) {
+            return getDuplicateFieldDefinitions().filter(function(definition) {
+                return !areDuplicateValuesEqual(
+                    getDuplicateFieldValue(oldRecord, definition[0]),
+                    getDuplicateFieldValue(newRecord, definition[0])
+                );
+            }).map(function(definition) {
+                return definition[0];
+            });
+        }
+
+        function buildDuplicateComparisonHtml(record, fields) {
+            if (!record) {
+                return '<p class="text-muted text-center">No data</p>';
+            }
+            if (!fields || !fields.length) {
+                return '<p class="text-muted text-center">No different fields</p>';
+            }
 
             var html = '<table class="table table-bordered table-condensed">';
             fields.forEach(function(field) {
-                var key = field[0];
-                var label = field[1];
-                var value = record[key];
-                var otherValue = otherRecord ? otherRecord[key] : null;
-                var different = JSON.stringify(value) !== JSON.stringify(otherValue);
-                html += '<tr' + (different ? ' style="background:#fff3cd;"' : '') + '>' +
-                    '<th style="width:45%;">' + label + '</th>' +
+                var value = getDuplicateFieldValue(record, field);
+                html += '<tr>' +
+                    '<th style="width:45%;">' + field.label + '</th>' +
                     '<td>' + formatDuplicateValue(value) + '</td>' +
                     '</tr>';
             });
@@ -289,13 +332,28 @@
         }
 
         function formatDuplicateValue(value) {
-            if (value === null || value === undefined) {
+            if (value === null || value === undefined || value === '') {
                 return '<em>null</em>';
+            }
+            if (typeof value === 'boolean') {
+                return value ? 'Yes' : 'No';
             }
             if (Array.isArray(value) || typeof value === 'object') {
                 return $('<div/>').text(JSON.stringify(value)).html();
             }
             return $('<div/>').text(String(value)).html();
+        }
+
+        function updateDuplicateModalTitle(trackingNumber) {
+            $('#duplicateSessionPackageModalTitle').text('Duplicate ' + (trackingNumber || 'session package'));
+        }
+
+        function updateDuplicateIdentityMessage(hasDifferences) {
+            if (hasDifferences) {
+                $('#duplicateIdentityMessage').hide().text('');
+            } else {
+                $('#duplicateIdentityMessage').text('Both records are identical, which would you like to keep?').show();
+            }
         }
 
         function openDuplicateResolutionModal(trackingNumber) {
@@ -312,8 +370,13 @@
                 }
                 return response.json();
             }).then(function(payload) {
-                $('#duplicateOldRecord').html(buildDuplicateComparisonHtml(payload.oldRecord, payload.newRecord));
-                $('#duplicateNewRecord').html(buildDuplicateComparisonHtml(payload.newRecord, payload.oldRecord));
+                var oldRecord = payload.oldRecord || null;
+                var newRecord = payload.newRecord || null;
+                var fieldsToShow = getDuplicateDifferences(oldRecord, newRecord);
+                updateDuplicateModalTitle((payload && payload.trackingNumber) || trackingNumber);
+                updateDuplicateIdentityMessage(fieldsToShow.length > 0);
+                $('#duplicateOldRecord').html(buildDuplicateComparisonHtml(oldRecord, fieldsToShow));
+                $('#duplicateNewRecord').html(buildDuplicateComparisonHtml(newRecord, fieldsToShow));
                 $('input[name="duplicateSelection"]').prop('checked', false);
                 $('#duplicateSessionPackageModal').modal({backdrop:'static', keyboard:false});
                 $('#duplicateSessionPackageModal').modal('show');
@@ -905,26 +968,25 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title">Duplicate Session Package Detected</h4>
+                <h4 class="modal-title text-center" id="duplicateSessionPackageModalTitle">Duplicate session package</h4>
             </div>
             <div class="modal-body">
-                <p>This tracking number already exists. Compare both records below, choose which one to keep, and continue.</p>
-                <div class="row">
+                <p id="duplicateIdentityMessage" class="text-center text-muted" style="display:none;"></p>
+                <div class="row text-center">
                     <div class="col-md-6">
-                        <h5>Old record</h5>
+                        <h5 class="text-center">Old record</h5>
                         <div id="duplicateOldRecord"></div>
+                        <div class="radio text-center" style="margin-top:15px;">
+                            <label><input type="radio" name="duplicateSelection" value="old"> Keep old</label>
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <h5>New record</h5>
+                        <h5 class="text-center">New record</h5>
                         <div id="duplicateNewRecord"></div>
+                        <div class="radio text-center" style="margin-top:15px;">
+                            <label><input type="radio" name="duplicateSelection" value="new"> Keep new</label>
+                        </div>
                     </div>
-                </div>
-                <hr>
-                <div class="radio">
-                    <label><input type="radio" name="duplicateSelection" value="old"> Keep old</label>
-                </div>
-                <div class="radio">
-                    <label><input type="radio" name="duplicateSelection" value="new"> Keep new</label>
                 </div>
             </div>
             <div class="modal-footer">
