@@ -21,6 +21,33 @@
     <script th:inline="javascript">
         var token = $("meta[name='_csrf']").attr("content");
         var header = $("meta[name='_csrf_header']").attr("content") || 'X-CSRF-Token';
+
+        (function injectDuplicateResolutionSpinnerStyles() {
+            if (document.getElementById('duplicate-resolution-spinner-styles')) {
+                return;
+            }
+
+            var style = document.createElement('style');
+            style.id = 'duplicate-resolution-spinner-styles';
+            style.textContent = '' +
+                '.duplicate-resolution-spinner {' +
+                '  width: 28px;' +
+                '  height: 28px;' +
+                '  display: inline-block;' +
+                '  margin-bottom: 10px;' +
+                '  border: 3px solid currentColor;' +
+                '  border-right-color: transparent;' +
+                '  border-radius: 50%;' +
+                '  box-sizing: border-box;' +
+                '  animation: duplicateResolutionSpin 0.75s linear infinite;' +
+                '}' +
+                '@keyframes duplicateResolutionSpin {' +
+                '  from { transform: rotate(0deg); }' +
+                '  to { transform: rotate(360deg); }' +
+                '}';
+            document.head.appendChild(style);
+        })();
+
         var searching = false;
         var tableFilters = [];
         var table = null;
@@ -1008,8 +1035,8 @@
         <div class="modal-content" style="position:relative;">
             <div id="duplicateResolutionOverlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.45); z-index:10; align-items:center; justify-content:center; color:#fff; font-size:18px; font-weight:600; text-align:center; padding:20px;">
                 <div>
-                    <i class="ti-reload" style="display:block; font-size:28px; margin-bottom:10px;"></i>
-                    Resolving duplicate...
+                    <span class="duplicate-resolution-spinner" aria-hidden="true"></span>
+                    <div>Resolving duplicate...</div>
                 </div>
             </div>
             <div class="modal-header">
