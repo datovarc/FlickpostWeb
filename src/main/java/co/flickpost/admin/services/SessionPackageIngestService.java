@@ -12,6 +12,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
@@ -98,7 +100,7 @@ public class SessionPackageIngestService {
             sessionPackageDao.singleUpdate(sessionPackage);
         }
 
-        scanSessionSseService.publishPackageIngested(sessionPackage.getTrackingNumber());
+        publishPackageIngestedAfterCommit(sessionPackage.getTrackingNumber());
 
         return new FpSessionPackageIngestResponse(
                 true,
@@ -108,6 +110,20 @@ public class SessionPackageIngestService {
                 isUnderdeclared,
                 "SessionPackage ingested successfully"
         );
+    }
+
+    private void publishPackageIngestedAfterCommit(String trackingNumber) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    scanSessionSseService.publishPackageIngested(trackingNumber);
+                }
+            });
+        } else {
+            logger.warn("Transaction synchronization was not active while publishing package-ingested for {}. Publishing immediately.", trackingNumber);
+            scanSessionSseService.publishPackageIngested(trackingNumber);
+        }
     }
 
     private void validate(FpSessionPackageIngestRequest request) {
