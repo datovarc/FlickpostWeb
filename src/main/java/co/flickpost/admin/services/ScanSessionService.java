@@ -89,6 +89,21 @@ public class ScanSessionService {
         return response;
     }
 
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public void incrementActiveSessionTotalPackages() {
+        Optional<ScanSession> activeSessionOptional = scanSessionDao.findFirstByStatusOrderByStartTimeDesc(ACTIVE);
+        if (!activeSessionOptional.isPresent()) {
+            logger.warn("No active scan session found while trying to increment totalPackages");
+            return;
+        }
+
+        ScanSession activeSession = activeSessionOptional.get();
+        Integer currentTotalPackages = activeSession.getTotalPackages();
+        activeSession.setTotalPackages(currentTotalPackages == null ? 1 : currentTotalPackages + 1);
+        scanSessionDao.save(activeSession);
+        logger.info("Incremented totalPackages for active scan session {} -> {}", activeSession.getId(), activeSession.getTotalPackages());
+    }
+
     private String resolveStaffName(UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         if (user.getNickname() != null) {
