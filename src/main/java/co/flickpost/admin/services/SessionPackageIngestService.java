@@ -23,7 +23,7 @@ public class SessionPackageIngestService {
     private static final String ON_HOLD = "ON_HOLD";
     private static final String PROCEED = "PROCEED";
     private static final String PENDING = "PENDING";
-    private static final String REFERENCE_SOURCE_API = "api";
+    private static final String REFERENCE_SOURCE_API = "API";
     private static final String REFERENCE_SOURCE_DB = "DB";
 
     @Autowired
