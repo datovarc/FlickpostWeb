@@ -21,6 +21,8 @@ public class FlickPostProperties {
     private String imageUploadUrl;
     @Value("#{'${packages.images.possible.statuses}'.split(',')}")
     private List<String> packageImageStatuses;
+    @Value("${scan.session.evaluation.api.key}")
+    private String scanSessionEvaluationApiKey;
 
     @PostConstruct
     public void initializeApplication() {
@@ -62,5 +64,13 @@ public class FlickPostProperties {
 
     public void setPackageImageStatuses(List<String> packageImageStatuses) {
         this.packageImageStatuses = packageImageStatuses;
+    }
+
+    public String getScanSessionEvaluationApiKey() {
+        return scanSessionEvaluationApiKey;
+    }
+
+    public void setScanSessionEvaluationApiKey(String scanSessionEvaluationApiKey) {
+        this.scanSessionEvaluationApiKey = scanSessionEvaluationApiKey;
     }
 }

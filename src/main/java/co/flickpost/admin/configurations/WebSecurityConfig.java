@@ -48,6 +48,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
+                .antMatchers("/scan-session/session/evaluate-package").permitAll()
                 .antMatchers("/warehouse/**").hasAnyAuthority("WAREHOUSE", "ADMIN")
                 .antMatchers("/office/**").hasAnyAuthority("OFFICE", "ADMIN")
                 .antMatchers("/report/**").hasAnyAuthority("OFFICE", "ADMIN")

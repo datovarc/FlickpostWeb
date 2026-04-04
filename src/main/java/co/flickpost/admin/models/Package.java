@@ -141,4 +141,8 @@ public class Package implements Serializable {
     @Column(name = "reference_source")
     @JsonProperty("refSource")
     private String referenceSource;
+
+    @Column(name = "is_underdeclared")
+    @JsonProperty("isUnderdeclared")
+    private Boolean isUnderdeclared;
 }
