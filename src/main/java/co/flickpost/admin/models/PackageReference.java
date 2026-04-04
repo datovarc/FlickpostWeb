@@ -46,6 +46,9 @@ public class PackageReference implements Serializable {
     @Column(name = "client_paid_height", scale = 2)
     private BigDecimal clientPaidHeight;
 
+    @Column(name = "destination_country")
+    private String destinationCountry;
+
     @Column(name = "item_condition")
     private String itemCondition;
 

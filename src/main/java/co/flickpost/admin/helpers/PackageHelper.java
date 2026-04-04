@@ -1,67 +1,69 @@
 package co.flickpost.admin.helpers;
 
-
-import co.flickpost.admin.models.Package;
-
+import co.flickpost.admin.models.SessionPackage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
 
 public class PackageHelper {
 
     private static final Logger logger = LogManager.getLogger(PackageHelper.class);
 
-    public static void updateVolumetricWeight(Package pkg){
-        logger.info("Started calculating Audited Volumetric Weight for: " + pkg.getTrackingNumber());
-        if(pkg.getAuditedHeight() == null || pkg.getAuditedLength() == null || pkg.getAuditedWidth() == null || pkg.getAuditedVolumetricWeight() != null){
+    private PackageHelper() {}
+
+    public static void updateMmToCm(SessionPackage pkg) {
+        logger.info("Started converting MMs to CMs for : {}", pkg.getTrackingNumber());
+
+        if (pkg.getAuditedHeight() == null || pkg.getAuditedLength() == null || pkg.getAuditedWidth() == null) {
+            logger.info("Could not convert MMs to CMs for : {}", pkg.getTrackingNumber());
             return;
         }
 
-        BigDecimal volumetricWeight;
-        BigDecimal auditedLength = pkg.getAuditedLength();
-        BigDecimal auditedWidth = pkg.getAuditedWidth();
-        BigDecimal auditedHeight = pkg.getAuditedHeight();
+        logger.info("Original values : {} L x {} W x {} H", pkg.getAuditedLength(), pkg.getAuditedWidth(), pkg.getAuditedHeight());
+        BigDecimal auditedLength = pkg.getAuditedLength().divide(BigDecimal.valueOf(10));
+        BigDecimal auditedWidth = pkg.getAuditedWidth().divide(BigDecimal.valueOf(10));
+        BigDecimal auditedHeight = pkg.getAuditedHeight().divide(BigDecimal.valueOf(10));
 
-        volumetricWeight = auditedLength
-                .multiply(auditedWidth)
-                .multiply(auditedHeight)
-                .divide(BigDecimal.valueOf(5000)).setScale(2, RoundingMode.UP);
+        pkg.setAuditedLength(auditedLength);
+        pkg.setAuditedWidth(auditedWidth);
+        pkg.setAuditedHeight(auditedHeight);
+        logger.info("Updated values : {} L x {} W x {} H", pkg.getAuditedLength(), pkg.getAuditedWidth(), pkg.getAuditedHeight());
+
+        logger.info("Finished converting MMs to CMs for : {}", pkg.getTrackingNumber());
+    }
+
+    public static void updateVolumetricWeight(SessionPackage pkg) {
+        logger.info("Started calculating Audited Volumetric Weight for: {}", pkg.getTrackingNumber());
+        if (pkg.getAuditedHeight() == null || pkg.getAuditedLength() == null || pkg.getAuditedWidth() == null) {
+            logger.info("Could not calculate Audited Volumetric Weight for: {}", pkg.getTrackingNumber());
+            return;
+        }
+
+        logger.info("With dimensions : {} L x {} W x {} H", pkg.getAuditedLength(), pkg.getAuditedWidth(), pkg.getAuditedHeight());
+
+        BigDecimal volumetricWeight = pkg.getAuditedLength()
+                .multiply(pkg.getAuditedWidth())
+                .multiply(pkg.getAuditedHeight())
+                .divide(BigDecimal.valueOf(5000))
+                .setScale(2, RoundingMode.UP);
 
         pkg.setAuditedVolumetricWeight(volumetricWeight);
-
-        logger.info("Finished calculating Audited Volumetric Weight for: " + pkg.getTrackingNumber() + " -> " + volumetricWeight.toString());
+        logger.info("Finished calculating Audited Volumetric Weight for: {} -> {}", pkg.getTrackingNumber(), volumetricWeight);
     }
 
-    public static void updateChargeableWeight(Package pkg){
-        logger.info("Started determining Chargeable Weight for: " + pkg.getTrackingNumber());
-        if(pkg.getAuditedWeight() == null || pkg.getAuditedVolumetricWeight() == null || pkg.getChargeableWeight() != null){
+    public static void updateChargeableWeight(SessionPackage pkg) {
+        logger.info("Started determining Chargeable Weight for: {}", pkg.getTrackingNumber());
+        if (pkg.getAuditedWeight() == null || pkg.getAuditedVolumetricWeight() == null) {
+            logger.info("Could not determine Chargeable Weight for: {}", pkg.getTrackingNumber());
             return;
         }
 
-        BigDecimal chargeableWeight;
-        BigDecimal auditedWeight = pkg.getAuditedWeight();
-        BigDecimal auditedVolumetricWeight = pkg.getAuditedVolumetricWeight();
-
-        chargeableWeight = auditedWeight.compareTo(auditedVolumetricWeight) == 1
-                ? auditedWeight : auditedVolumetricWeight;
+        BigDecimal chargeableWeight = pkg.getAuditedWeight().compareTo(pkg.getAuditedVolumetricWeight()) > 0
+                ? pkg.getAuditedWeight() : pkg.getAuditedVolumetricWeight();
 
         pkg.setChargeableWeight(chargeableWeight.setScale(1, RoundingMode.UP));
-        logger.info("Finished determining Chargeable Weight for: " + pkg.getTrackingNumber() + " -> " + chargeableWeight.toString());
-
-    }
-
-    public static void applyRounding(List<Package> packages){
-        for(Package pkg : packages){
-            pkg.setAuditedHeight(pkg.getAuditedHeight().setScale(2, RoundingMode.UP));
-            pkg.setAuditedLength(pkg.getAuditedLength().setScale(2, RoundingMode.UP));
-            pkg.setAuditedWeight(pkg.getAuditedWeight().setScale(2, RoundingMode.UP));
-            pkg.setAuditedWidth(pkg.getAuditedWidth().setScale(2, RoundingMode.UP));
-            pkg.setAuditedVolumetricWeight(pkg.getAuditedVolumetricWeight().setScale(2, RoundingMode.UP));
-            pkg.setChargeableWeight(pkg.getChargeableWeight().setScale(1, RoundingMode.UP));
-        }
-
+        logger.info("Finished determining Chargeable Weight for: {} -> {}", pkg.getTrackingNumber(), chargeableWeight);
     }
 }

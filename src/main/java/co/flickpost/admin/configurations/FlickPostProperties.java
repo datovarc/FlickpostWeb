@@ -23,6 +23,10 @@ public class FlickPostProperties {
     private List<String> packageImageStatuses;
     @Value("${scan.session.evaluation.api.key}")
     private String scanSessionEvaluationApiKey;
+    @Value("${thirdparty.parcel.details.url}")
+    private String thirdPartyParcelDetailsUrl;
+    @Value("${thirdparty.api.key}")
+    private String thirdPartyApiKey;
 
     @PostConstruct
     public void initializeApplication() {
@@ -31,6 +35,8 @@ public class FlickPostProperties {
         logger.info("image.upload.path: {}", this.imageUploadPath);
         logger.info("image.upload.url: {}", this.imageUploadUrl);
         logger.info("packages.images.possible.statuses: {}", this.packageImageStatuses);
+        logger.info("thirdparty.parcel.details.url: {}", this.thirdPartyParcelDetailsUrl);
+        logger.info("thirdparty.api.key configured: {}", this.thirdPartyApiKey != null && !this.thirdPartyApiKey.isEmpty());
         logger.info("Properties loaded");
     }
 
@@ -72,5 +78,21 @@ public class FlickPostProperties {
 
     public void setScanSessionEvaluationApiKey(String scanSessionEvaluationApiKey) {
         this.scanSessionEvaluationApiKey = scanSessionEvaluationApiKey;
+    }
+
+    public String getThirdPartyParcelDetailsUrl() {
+        return thirdPartyParcelDetailsUrl;
+    }
+
+    public void setThirdPartyParcelDetailsUrl(String thirdPartyParcelDetailsUrl) {
+        this.thirdPartyParcelDetailsUrl = thirdPartyParcelDetailsUrl;
+    }
+
+    public String getThirdPartyApiKey() {
+        return thirdPartyApiKey;
+    }
+
+    public void setThirdPartyApiKey(String thirdPartyApiKey) {
+        this.thirdPartyApiKey = thirdPartyApiKey;
     }
 }
