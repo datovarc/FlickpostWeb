@@ -129,6 +129,7 @@ public class SessionPackageIngestService {
         packageReference.setDeclaredWidth(referencePayload.getDeclaredWidth());
         packageReference.setDeclaredHeight(referencePayload.getDeclaredHeight());
         packageReference.setClientPaidHeight(referencePayload.getClientPaidHeight());
+        packageReference.setDestinationCountry(referencePayload.getDestinationCountry());
         packageReference.setItemCondition(referencePayload.getItemCondition());
         packageReference.setContainsLiquid(referencePayload.getContainsLiquid());
         packageReference.setContainsBattery(referencePayload.getContainsBattery());
@@ -145,6 +146,7 @@ public class SessionPackageIngestService {
         sessionPackage.setDeclaredWidth(referencePayload.getDeclaredWidth());
         sessionPackage.setDeclaredHeight(referencePayload.getDeclaredHeight());
         sessionPackage.setClientPaidHeight(referencePayload.getClientPaidHeight());
+        sessionPackage.setDestinationCountry(referencePayload.getDestinationCountry());
         sessionPackage.setItemCondition(referencePayload.getItemCondition());
         sessionPackage.setContainsLiquid(referencePayload.getContainsLiquid());
         sessionPackage.setContainsBattery(referencePayload.getContainsBattery());
@@ -159,6 +161,7 @@ public class SessionPackageIngestService {
         sessionPackage.setDeclaredWidth(packageReference.getDeclaredWidth());
         sessionPackage.setDeclaredHeight(packageReference.getDeclaredHeight());
         sessionPackage.setClientPaidHeight(packageReference.getClientPaidHeight());
+        sessionPackage.setDestinationCountry(packageReference.getDestinationCountry());
         sessionPackage.setItemCondition(packageReference.getItemCondition());
         sessionPackage.setContainsLiquid(packageReference.getContainsLiquid());
         sessionPackage.setContainsBattery(packageReference.getContainsBattery());

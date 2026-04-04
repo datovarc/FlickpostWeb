@@ -14,6 +14,7 @@ public class FpReferencePayload {
     private BigDecimal declaredWidth;
     private BigDecimal declaredHeight;
     private BigDecimal clientPaidHeight;
+    private String destinationCountry;
     private String itemCondition;
     private Boolean containsLiquid;
     private Boolean containsBattery;
