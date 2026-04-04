@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Scan Session | Flickpost</title>
@@ -19,6 +20,7 @@
 
     <script th:inline="javascript">
         var token = $("meta[name='_csrf']").attr("content");
+        var header = $("meta[name='_csrf_header']").attr("content") || 'X-CSRF-Token';
         var searching = false;
         var tableFilters = [];
         var table = null;
@@ -143,7 +145,7 @@
                 clearTimeout(scanSessionRefreshDebounce);
             }
             scanSessionRefreshDebounce = setTimeout(function() {
-                console.debug('[scan-session-sse] refreshing table + status');
+                console.log('[scan-session-sse] refreshing table + status');
                 if (table) {
                     table.setData();
                 }
@@ -159,7 +161,7 @@
 
         function closeScanSessionEventStream() {
             if (scanSessionEventSource) {
-                console.debug('[scan-session-sse] closing stream');
+                console.log('[scan-session-sse] closing stream');
                 scanSessionEventSource.close();
                 scanSessionEventSource = null;
             }
@@ -188,11 +190,11 @@
                 return;
             }
 
-            console.debug('[scan-session-sse] opening stream');
+            console.log('[scan-session-sse] opening stream');
             scanSessionEventSource = new EventSource('/scan-session/session/stream');
 
             scanSessionEventSource.addEventListener('connected', function(event) {
-                console.debug('[scan-session-sse] connected', event.data);
+                console.log('[scan-session-sse] connected', event.data);
             });
 
             scanSessionEventSource.addEventListener('package-ingested', function(event) {
@@ -233,7 +235,7 @@
 
         function initializeScanSessionEventStream() {
             refreshScanSessionStatus().then(function(status) {
-                console.debug('[scan-session-sse] initial status', status);
+                console.log('[scan-session-sse] initial status', status);
                 if (status && status.active) {
                     ensureScanSessionEventStream();
                 } else {
