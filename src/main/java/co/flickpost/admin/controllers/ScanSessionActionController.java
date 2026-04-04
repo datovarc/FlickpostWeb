@@ -1,11 +1,14 @@
 package co.flickpost.admin.controllers;
 
 import co.flickpost.admin.configurations.FlickPostProperties;
+import co.flickpost.admin.models.json.FpSessionPackageIngestRequest;
+import co.flickpost.admin.models.json.FpSessionPackageIngestResponse;
 import co.flickpost.admin.models.json.SessionPackageEvaluationRequest;
 import co.flickpost.admin.models.json.SessionPackageEvaluationResponse;
 import co.flickpost.admin.security.UserDetailsImpl;
 import co.flickpost.admin.services.ScanSessionService;
 import co.flickpost.admin.services.SessionPackageEvaluationService;
+import co.flickpost.admin.services.SessionPackageIngestService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +38,9 @@ public class ScanSessionActionController {
     private SessionPackageEvaluationService sessionPackageEvaluationService;
 
     @Autowired
+    private SessionPackageIngestService sessionPackageIngestService;
+
+    @Autowired
     private FlickPostProperties flickPostProperties;
 
     @GetMapping("/status")
@@ -56,6 +62,28 @@ public class ScanSessionActionController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         logger.info("{} - Received scan session stop API request", userDetails.getUsername());
         return ResponseEntity.ok(scanSessionService.stopSession(userDetails));
+    }
+
+    @PostMapping("/ingest-package")
+    public ResponseEntity<?> ingestPackage(@RequestHeader(value = API_KEY_HEADER, required = false) String apiKey,
+                                           @RequestBody FpSessionPackageIngestRequest request) {
+        if (!flickPostProperties.getScanSessionEvaluationApiKey().equals(apiKey)) {
+            Map<String, Object> error = new LinkedHashMap<>();
+            error.put("success", false);
+            error.put("message", "Invalid API key");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
+
+        try {
+            FpSessionPackageIngestResponse response = sessionPackageIngestService.ingest(request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> error = new LinkedHashMap<>();
+            error.put("success", false);
+            error.put("message", e.getMessage());
+            error.put("trackingNumber", request != null ? request.getTrackingNumber() : null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
     }
 
     @PostMapping("/evaluate-package")
