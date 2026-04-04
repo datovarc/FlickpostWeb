@@ -356,11 +356,11 @@
             object-fit: contain;
             display: block;
         }
-        .condition-tooltip {
-            position: absolute;
-            left: 50%;
-            top: calc(100% + 6px);
-            transform: translateX(-50%);
+        .condition-global-tooltip {
+            position: fixed;
+            left: 0;
+            top: 0;
+            transform: translate(-50%, 0);
             background: rgba(20, 20, 20, 0.96);
             color: #fff;
             padding: 6px 10px;
@@ -368,26 +368,20 @@
             font-size: 12px;
             line-height: 1.2;
             white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
             pointer-events: none;
-            transition: opacity 0.15s ease;
-            z-index: 9999;
+            z-index: 2147483647;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            display: none;
         }
-        .condition-tooltip::before {
+        .condition-global-tooltip::before {
             content: "";
             position: absolute;
             left: 50%;
-            bottom: 100%;
+            top: -10px;
             transform: translateX(-50%);
             border-width: 5px;
             border-style: solid;
             border-color: transparent transparent rgba(20, 20, 20, 0.96) transparent;
-        }
-        .condition-indicator:hover .condition-tooltip {
-            opacity: 1;
-            visibility: visible;
         }
         #packages-table .tabulator-row:hover,
         #packages-table .tabulator-row:hover .tabulator-cell {
@@ -423,14 +417,7 @@
         .condition-indicator {
             position: relative;
             z-index: 60;
-        }
-        .condition-indicator:hover {
-            z-index: 70;
-        }
-        .condition-indicator:hover .condition-tooltip {
-            opacity: 1;
-            visibility: visible;
-            z-index: 10000;
+            cursor: default;
         }
         #packages-table .tabulator-header,
         #packages-table .tabulator-row .tabulator-cell {
@@ -555,9 +542,8 @@
 
                                 function conditionIcon(src, altText, tooltipText) {
                                     return '' +
-                                        '<span class="condition-indicator">' +
+                                        '<span class="condition-indicator" data-condition-tooltip="' + tooltipText.replace(/"/g, '&quot;') + '">' +
                                             '<img src="' + src + '" alt="' + altText + '">' +
-                                            '<span class="condition-tooltip">' + tooltipText + '</span>' +
                                         '</span>';
                                 }
 
@@ -636,6 +622,8 @@
 </div>
 
 </div>
+
+<div id="condition-global-tooltip" class="condition-global-tooltip"></div>
 
 <ul class='custom-menu' id='custom-menu'>
     <li id="updateStatusOption" data-action="updateStatus"><i class="ti ti-ticket">&nbsp;</i>Update Status</li>
@@ -941,6 +929,61 @@
 </div>
 
 <div class="modalUploading"></div>
+<script>
+    (function() {
+        var tooltip = document.getElementById('condition-global-tooltip');
+
+        function hideTooltip() {
+            if (!tooltip) return;
+            tooltip.style.display = 'none';
+            tooltip.textContent = '';
+        }
+
+        function showTooltip(target) {
+            if (!tooltip) return;
+            var text = target.getAttribute('data-condition-tooltip');
+            if (!text) return;
+
+            tooltip.textContent = text;
+            tooltip.style.display = 'block';
+
+            var rect = target.getBoundingClientRect();
+            var tooltipRect = tooltip.getBoundingClientRect();
+            var left = rect.left + (rect.width / 2);
+            var top = rect.bottom + 10;
+
+            if (left - (tooltipRect.width / 2) < 8) {
+                left = (tooltipRect.width / 2) + 8;
+            }
+            if (left + (tooltipRect.width / 2) > window.innerWidth - 8) {
+                left = window.innerWidth - (tooltipRect.width / 2) - 8;
+            }
+            if (top + tooltipRect.height > window.innerHeight - 8) {
+                top = rect.top - tooltipRect.height - 10;
+            }
+
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+
+        document.addEventListener('mouseover', function(event) {
+            var target = event.target.closest('.condition-indicator[data-condition-tooltip]');
+            if (target) {
+                showTooltip(target);
+            }
+        });
+
+        document.addEventListener('mouseout', function(event) {
+            var target = event.target.closest('.condition-indicator[data-condition-tooltip]');
+            if (target) {
+                hideTooltip();
+            }
+        });
+
+        document.addEventListener('scroll', hideTooltip, true);
+        window.addEventListener('resize', hideTooltip);
+    })();
+</script>
 <script src="js/app.js?v=3"></script>
 </body>
 </html>
