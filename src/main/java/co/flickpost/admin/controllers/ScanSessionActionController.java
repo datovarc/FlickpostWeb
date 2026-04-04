@@ -1,16 +1,24 @@
 package co.flickpost.admin.controllers;
 
+import co.flickpost.admin.configurations.FlickPostProperties;
+import co.flickpost.admin.models.json.SessionPackageEvaluationRequest;
+import co.flickpost.admin.models.json.SessionPackageEvaluationResponse;
 import co.flickpost.admin.security.UserDetailsImpl;
 import co.flickpost.admin.services.ScanSessionService;
+import co.flickpost.admin.services.SessionPackageEvaluationService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
@@ -18,9 +26,16 @@ import java.util.Map;
 public class ScanSessionActionController {
 
     private static final Logger logger = LogManager.getLogger(ScanSessionActionController.class);
+    private static final String API_KEY_HEADER = "X-API-Key";
 
     @Autowired
     private ScanSessionService scanSessionService;
+
+    @Autowired
+    private SessionPackageEvaluationService sessionPackageEvaluationService;
+
+    @Autowired
+    private FlickPostProperties flickPostProperties;
 
     @GetMapping("/status")
     public Map<String, Object> getStatus(org.springframework.security.core.Authentication authentication) {
@@ -41,5 +56,29 @@ public class ScanSessionActionController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         logger.info("{} - Received scan session stop API request", userDetails.getUsername());
         return ResponseEntity.ok(scanSessionService.stopSession(userDetails));
+    }
+
+    @PostMapping("/evaluate-package")
+    public ResponseEntity<?> evaluatePackage(@RequestHeader(value = API_KEY_HEADER, required = false) String apiKey,
+                                             @RequestBody SessionPackageEvaluationRequest request) {
+        if (!flickPostProperties.getScanSessionEvaluationApiKey().equals(apiKey)) {
+            Map<String, Object> error = new LinkedHashMap<>();
+            error.put("success", false);
+            error.put("message", "Invalid API key");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
+
+        logger.info("Received session package evaluation API request");
+
+        try {
+            SessionPackageEvaluationResponse response = sessionPackageEvaluationService.evaluate(request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> error = new LinkedHashMap<>();
+            error.put("success", false);
+            error.put("message", e.getMessage());
+            error.put("trackingNumber", null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
     }
 }
