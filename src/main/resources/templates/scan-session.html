@@ -81,6 +81,12 @@
                     renderLatestSummary(response && response.length > 0 ? response[0] : null);
                     return response;
                 },
+                dataLoaded:function(){
+                    syncEmptyTableState();
+                },
+                renderComplete:function(){
+                    syncEmptyTableState();
+                },
                 placeholder:"<div class=\"scan-session-empty-placeholder\"></div>",
                 rowClick:function(e, row){
                     renderLatestSummary(row.getData());
@@ -127,13 +133,6 @@
 
             syncEmptyTableState();
             renderLatestSummary(null);
-            table.on("dataLoaded", function(){
-                syncEmptyTableState();
-            });
-            table.on("renderComplete", function(){
-                syncEmptyTableState();
-            });
-
             initializeScanSessionEventStream();
             window.addEventListener('beforeunload', closeScanSessionEventStream);
         });
