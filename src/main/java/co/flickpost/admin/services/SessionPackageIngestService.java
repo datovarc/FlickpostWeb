@@ -41,6 +41,9 @@ public class SessionPackageIngestService {
     @Autowired
     private PendingDuplicateSessionPackageService pendingDuplicateSessionPackageService;
 
+    @Autowired
+    private ScanSessionService scanSessionService;
+
     @Transactional
     public FpSessionPackageIngestResponse ingest(FpSessionPackageIngestRequest request) {
         validate(request);
@@ -116,6 +119,7 @@ public class SessionPackageIngestService {
         }
 
         sessionPackageDao.insert(sessionPackage);
+        scanSessionService.incrementActiveSessionTotalPackages();
         publishPackageIngestedAfterCommit(sessionPackage.getTrackingNumber());
 
         return new FpSessionPackageIngestResponse(
