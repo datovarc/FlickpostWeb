@@ -25,7 +25,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/scan-session/session")
 public class ScanSessionActionController {
 
     private static final Logger logger = LogManager.getLogger(ScanSessionActionController.class);
@@ -43,28 +42,28 @@ public class ScanSessionActionController {
     @Autowired
     private FlickPostProperties flickPostProperties;
 
-    @GetMapping("/status")
+    @GetMapping("/scan-session/session/status")
     public Map<String, Object> getStatus(org.springframework.security.core.Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         logger.info("{} - Received scan session status API request", userDetails.getUsername());
         return scanSessionService.getStatus(userDetails);
     }
 
-    @PostMapping("/start")
+    @PostMapping("/scan-session/session/start")
     public ResponseEntity<Map<String, Object>> start(org.springframework.security.core.Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         logger.info("{} - Received scan session start API request", userDetails.getUsername());
         return ResponseEntity.ok(scanSessionService.startSession(userDetails));
     }
 
-    @PostMapping("/stop")
+    @PostMapping("/scan-session/session/stop")
     public ResponseEntity<Map<String, Object>> stop(org.springframework.security.core.Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         logger.info("{} - Received scan session stop API request", userDetails.getUsername());
         return ResponseEntity.ok(scanSessionService.stopSession(userDetails));
     }
 
-    @PostMapping("/ingest-package")
+    @PostMapping("/api/scan-session/session/ingest-package")
     public ResponseEntity<?> ingestPackage(@RequestHeader(value = API_KEY_HEADER, required = false) String apiKey,
                                            @RequestBody FpSessionPackageIngestRequest request) {
         if (!flickPostProperties.getScanSessionEvaluationApiKey().equals(apiKey)) {
@@ -86,7 +85,7 @@ public class ScanSessionActionController {
         }
     }
 
-    @PostMapping("/evaluate-package")
+    @PostMapping("/api/scan-session/session/evaluate-package")
     public ResponseEntity<?> evaluatePackage(@RequestHeader(value = API_KEY_HEADER, required = false) String apiKey,
                                              @RequestBody SessionPackageEvaluationRequest request) {
         if (!flickPostProperties.getScanSessionEvaluationApiKey().equals(apiKey)) {
