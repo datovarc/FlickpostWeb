@@ -543,6 +543,11 @@
             border-style: solid;
             border-color: transparent transparent rgba(20, 20, 20, 0.96) transparent;
         }
+        .condition-global-tooltip.tooltip-above::before {
+            top: auto;
+            bottom: -10px;
+            border-color: rgba(20, 20, 20, 0.96) transparent transparent transparent;
+        }
         .scan-session-empty-placeholder {
             height: 44px;
             width: 100%;
@@ -700,6 +705,7 @@
             if (!tooltip) return;
             tooltip.style.display = 'none';
             tooltip.textContent = '';
+            tooltip.classList.remove('tooltip-above');
         }
 
         function showTooltip(target) {
@@ -723,6 +729,9 @@
             }
             if (top + tooltipRect.height > window.innerHeight - 8) {
                 top = rect.top - tooltipRect.height - 10;
+                tooltip.classList.add('tooltip-above');
+            } else {
+                tooltip.classList.remove('tooltip-above');
             }
 
             tooltip.style.left = left + 'px';
