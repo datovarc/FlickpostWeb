@@ -22,7 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/scan-session/session")
+@RequestMapping("/api/scan-session/session")
 public class ScanSessionActionController {
 
     private static final Logger logger = LogManager.getLogger(ScanSessionActionController.class);
