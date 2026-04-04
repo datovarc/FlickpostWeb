@@ -27,6 +27,7 @@
         var scanSessionEventSource = null;
         var scanSessionRefreshDebounce = null;
         var pendingDuplicateTrackingNumber = null;
+        var duplicateResolutionInProgress = false;
 
         function executeUploadReport() {
             $("body").addClass("loading");
@@ -398,11 +399,21 @@
                 $('#duplicateNewRecord').html(buildDuplicateComparisonHtml(newRecord, fieldsToShow));
                 $('input[name="duplicateSelection"][value="new"]').prop('checked', true);
                 $('input[name="duplicateSelection"][value="old"]').prop('checked', false);
+                setDuplicateResolutionLoading(false);
                 $('#duplicateSessionPackageModal').modal({backdrop:'static', keyboard:false});
                 $('#duplicateSessionPackageModal').modal('show');
             }).catch(function(error) {
                 console.error('[scan-session-sse] failed to open duplicate modal', error);
             });
+        }
+
+        function setDuplicateResolutionLoading(isLoading) {
+            duplicateResolutionInProgress = isLoading;
+            $('#duplicateContinueButton')
+                .prop('disabled', isLoading)
+                .text(isLoading ? 'Resolving...' : 'Continue');
+            $('input[name="duplicateSelection"]').prop('disabled', isLoading);
+            $('#duplicateResolutionOverlay').css('display', isLoading ? 'flex' : 'none');
         }
 
         function resolveDuplicateSelection() {
@@ -411,6 +422,11 @@
                 alert('Please select which record to keep first.');
                 return;
             }
+            if (duplicateResolutionInProgress) {
+                return;
+            }
+
+            setDuplicateResolutionLoading(true);
 
             fetch('/scan-session/session/duplicate/resolve', {
                 method: 'POST',
@@ -435,6 +451,9 @@
                 debounceScanSessionRefresh();
             }).catch(function(error) {
                 console.error('[scan-session-sse] failed to resolve duplicate', error);
+                alert('Unable to resolve duplicate. Please try again.');
+            }).finally(function() {
+                setDuplicateResolutionLoading(false);
             });
         }
 
@@ -986,7 +1005,13 @@
 
 <div id="duplicateSessionPackageModal" class="modal fade" role="dialog" tabindex="-1">
     <div class="modal-dialog modal-xl" role="document">
-        <div class="modal-content">
+        <div class="modal-content" style="position:relative;">
+            <div id="duplicateResolutionOverlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.45); z-index:10; align-items:center; justify-content:center; color:#fff; font-size:18px; font-weight:600; text-align:center; padding:20px;">
+                <div>
+                    <i class="ti-reload" style="display:block; font-size:28px; margin-bottom:10px;"></i>
+                    Resolving duplicate...
+                </div>
+            </div>
             <div class="modal-header">
                 <h4 class="modal-title text-center" id="duplicateSessionPackageModalTitle">Duplicate session package</h4>
             </div>
