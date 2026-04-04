@@ -517,7 +517,7 @@
             visibility: hidden;
             pointer-events: none;
             transition: opacity 0.15s ease;
-            z-index: 50;
+            z-index: 9999;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
         }
         .condition-tooltip::before {
@@ -556,9 +556,11 @@
         #packages-table .tabulator-frozen.tabulator-frozen-left,
         #packages-table .tabulator-col.tabulator-frozen,
         #packages-table .tabulator-cell.tabulator-frozen {
-            background: #fff;
+            background: #fff !important;
+            color: inherit !important;
             z-index: 20;
             will-change: transform;
+            overflow: visible;
         }
         #packages-table .tabulator-col.tabulator-frozen {
             z-index: 25;
@@ -581,6 +583,8 @@
         #packages-table .tabulator-row.tabulator-selected .tabulator-cell,
         #packages-table .tabulator-row.tabulator-selected .tabulator-cell.tabulator-frozen {
             background: #f3f5f7 !important;
+            color: inherit !important;
+            overflow: visible;
         }
     </style>
     <div class="container">
