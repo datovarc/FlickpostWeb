@@ -10,8 +10,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.*;
-import javax.persistence.criteria.*;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -26,8 +32,8 @@ public class SessionPackageDao {
 
     private static final Logger logger = LogManager.getLogger(SessionPackageDao.class);
 
-    @PersistenceUnit
-    private EntityManagerFactory entityManagerFactory;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     final static DateTimeFormatter packageDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -38,140 +44,58 @@ public class SessionPackageDao {
     private final static String HUB = "hub";
     private final static String TRACKING_NUMBER = "trackingNumber";
 
-    @Transactional
     public String insert(SessionPackage pkg) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction entityTransaction = entityManager.getTransaction();
-
-        entityTransaction.begin();
-        entityManager.clear();
-
         entityManager.persist(pkg);
-
-        entityTransaction.commit();
-        entityManager.close();
-
         return pkg.getTrackingNumber();
     }
 
-    @Transactional
     public boolean batchDelete(List<Long> ids) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction entityTransaction = entityManager.getTransaction();
-
-        entityTransaction.begin();
-        entityManager.clear();
-
-        for(Long id : ids) {
+        for (Long id : ids) {
             entityManager.remove(entityManager.getReference(SessionPackage.class, id));
         }
-
-        entityTransaction.commit();
-        entityManager.close();
-
         return true;
     }
 
-    @Transactional
-    public Package findByTrackingNumber(String trackingNumber){
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction transaction = entityManager.getTransaction();
-
+    public Package findByTrackingNumber(String trackingNumber) {
         logger.info("Started searching for trackingNumber: {}", trackingNumber);
-        transaction.begin();
-
-        Query query = entityManager.createNativeQuery("SELECT * FROM session_package where tracking_number = ?", SessionPackage.class);
-        query.setParameter(1, trackingNumber);
-        List<Package> result = query.getResultList();
-
-        transaction.commit();
+        List<SessionPackage> result = entityManager.createNativeQuery("SELECT * FROM session_package where tracking_number = ?", SessionPackage.class)
+                .setParameter(1, trackingNumber)
+                .getResultList();
         logger.info("Finished searching for trackingNumber: {}", trackingNumber);
-
-        entityManager.close();
-        return result != null && !result.isEmpty()? result.get(0) : null;
+        return result != null && !result.isEmpty() ? result.get(0) : null;
     }
 
-    @Transactional
-    public SessionPackage findSessionPackageByTrackingNumber(String trackingNumber){
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction transaction = entityManager.getTransaction();
-
+    public SessionPackage findSessionPackageByTrackingNumber(String trackingNumber) {
         logger.info("Started searching session_package for trackingNumber: {}", trackingNumber);
-        transaction.begin();
-
-        Query query = entityManager.createNativeQuery("SELECT * FROM session_package where tracking_number = ?", SessionPackage.class);
-        query.setParameter(1, trackingNumber);
-        List<SessionPackage> result = query.getResultList();
-
-        transaction.commit();
+        List<SessionPackage> result = entityManager.createNativeQuery("SELECT * FROM session_package where tracking_number = ?", SessionPackage.class)
+                .setParameter(1, trackingNumber)
+                .getResultList();
         logger.info("Finished searching session_package for trackingNumber: {}", trackingNumber);
-
-        entityManager.close();
-        return result != null && !result.isEmpty()? result.get(0) : null;
+        return result != null && !result.isEmpty() ? result.get(0) : null;
     }
 
-    @Transactional
-    public void batchUpdate(List<SessionPackage> packages, int batchSize){
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction entityTransaction = entityManager.getTransaction();
-
+    public void batchUpdate(List<SessionPackage> packages, int batchSize) {
         int packagesCount = packages.size();
 
-        try {
-            entityTransaction.begin();
-
-            for (int i = 0; i < packagesCount; i++) {
-                if (i > 0 && i % batchSize == 0) {
-                    entityTransaction.commit();
-                    entityTransaction.begin();
-
-                    entityManager.clear();
-                }
-
-                entityManager.persist(packages.get(i));
+        for (int i = 0; i < packagesCount; i++) {
+            if (i > 0 && i % batchSize == 0) {
+                entityManager.flush();
+                entityManager.clear();
             }
-
-            entityTransaction.commit();
-        } catch (RuntimeException e) {
-            if (entityTransaction.isActive()) {
-                entityTransaction.rollback();
-            }
-            throw e;
+            entityManager.merge(packages.get(i));
         }
-        entityManager.close();
-
     }
 
-    @Transactional
-    public void singleUpdate(SessionPackage packages){
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction entityTransaction = entityManager.getTransaction();
-
-        try {
-            entityTransaction.begin();
-            entityManager.merge(packages);
-            entityTransaction.commit();
-        } catch (RuntimeException e) {
-            if (entityTransaction.isActive()) {
-                entityTransaction.rollback();
-            }
-            throw e;
-        }
-        entityManager.close();
-
+    public void singleUpdate(SessionPackage packages) {
+        entityManager.merge(packages);
     }
 
-    @Transactional
     public Map<String, Object> pagination(PaginationRequest request, String userCompany) {
         int pageSize = request.getPageSize();
         int pageNumber = request.getPageNumber();
         List<PaginationFilter> filters = request.getFilters();
 
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction transaction = entityManager.getTransaction();
-
         logger.info("Started pagination transaction. Pg. {}", request.getPageNumber());
-        transaction.begin();
 
         CriteriaBuilder selectCriteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<SessionPackage> selectQuery = selectCriteriaBuilder.createQuery(SessionPackage.class);
@@ -187,20 +111,17 @@ public class SessionPackageDao {
         countQuery.select(countCriteriaBuilder.count(countRoot));
         List<Predicate> predicates = processPredicates(filters, countCriteriaBuilder, countRoot, userCompany);
 
-        if(predicates != null && !predicates.isEmpty()){
+        if (predicates != null && !predicates.isEmpty()) {
             countQuery.where(predicates.toArray(new Predicate[]{}));
             paged.where(predicates.toArray(new Predicate[]{}));
         }
 
         Long count = entityManager.createQuery(countQuery).getSingleResult();
-
         TypedQuery<SessionPackage> pagedQuery = entityManager.createQuery(paged);
 
         int currentFirstValue = (pageNumber - 1) * pageSize;
-        if(currentFirstValue >= count.intValue()) {
-            transaction.commit();
+        if (currentFirstValue >= count.intValue()) {
             logger.info("Committed pagination transaction. Pg. {}", request.getPageNumber());
-            entityManager.close();
             return null;
         }
 
@@ -210,21 +131,12 @@ public class SessionPackageDao {
         paginationResult.put("packages", pagedQuery.getResultList());
         paginationResult.put("count", count);
 
-        transaction.commit();
         logger.info("Committed pagination transaction. Pg. {}", request.getPageNumber());
-
-        entityManager.close();
-
         return paginationResult;
     }
 
-    @Transactional
     public List<SessionPackage> findAllByFilters(List<PaginationFilter> filters, String userCompany) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        EntityTransaction transaction = entityManager.getTransaction();
-
         logger.info("Started filtered fetch for Scan Session.");
-        transaction.begin();
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<SessionPackage> cq = cb.createQuery(SessionPackage.class);
@@ -237,113 +149,80 @@ public class SessionPackageDao {
         }
 
         List<SessionPackage> result = entityManager.createQuery(cq).getResultList();
-
-        transaction.commit();
         logger.info("Finished filtered fetch for Scan Session. Count: {}", result.size());
-        entityManager.close();
-
         return result;
     }
 
-    private List<Predicate> processPredicates(List<PaginationFilter> filters, CriteriaBuilder cb, Root<SessionPackage> rootEntry, String userCompany){
+    private List<Predicate> processPredicates(List<PaginationFilter> filters, CriteriaBuilder cb, Root<SessionPackage> rootEntry, String userCompany) {
         List<Predicate> predicates = new ArrayList<>();
 
         LocalDateValidator dateValidator = new LocalDateValidator(packageDateFormat);
 
-        if(filters != null) {
-            for(PaginationFilter filter : filters){
+        if (filters != null) {
+            for (PaginationFilter filter : filters) {
                 Predicate newPredicate = null;
                 Object value = filter.getValue();
                 String field = filter.getField();
 
-                if(DATE_TIME.equalsIgnoreCase(field) && dateValidator.isValid(value.toString())) {
-                    if(">=".equalsIgnoreCase(filter.getType())){
+                if (DATE_TIME.equalsIgnoreCase(field) && dateValidator.isValid(value.toString())) {
+                    if (">=".equalsIgnoreCase(filter.getType())) {
                         newPredicate = cb.greaterThanOrEqualTo(rootEntry.get(filter.getField()), LocalDate.parse(value.toString(), packageDateFormat).atStartOfDay());
-
-                    } else if("<=".equalsIgnoreCase(filter.getType())){
-                        newPredicate = cb.lessThanOrEqualTo(rootEntry.get(filter.getField()), LocalDate.parse(value.toString(), packageDateFormat).atTime(23,59,59));
+                    } else if ("<=".equalsIgnoreCase(filter.getType())) {
+                        newPredicate = cb.lessThanOrEqualTo(rootEntry.get(filter.getField()), LocalDate.parse(value.toString(), packageDateFormat).atTime(23, 59, 59));
                     }
-                } else if(HUB.equalsIgnoreCase(field) && !ALL.equalsIgnoreCase(value.toString())){
+                } else if (HUB.equalsIgnoreCase(field) && !ALL.equalsIgnoreCase(value.toString())) {
                     newPredicate = cb.equal(rootEntry.get(HUB), value.toString());
-                } else if(TRACKING_NUMBER.equalsIgnoreCase(field)){
-                    newPredicate = cb.like(rootEntry.<String>get(TRACKING_NUMBER), "%"+value.toString()+"%");
+                } else if (TRACKING_NUMBER.equalsIgnoreCase(field)) {
+                    newPredicate = cb.like(rootEntry.get(TRACKING_NUMBER), "%" + value.toString() + "%");
                 }
 
-                if(newPredicate != null) {
+                if (newPredicate != null) {
                     predicates.add(newPredicate);
                 }
             }
         }
 
-        if(!HQ.equalsIgnoreCase(userCompany)){
+        if (!HQ.equalsIgnoreCase(userCompany)) {
             predicates.add(cb.equal(rootEntry.get(HUB), userCompany));
         }
 
         return predicates;
-
     }
 
-    @Transactional
-    public List<SessionPackage> getMostRecent(int max){
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        entityManager.getTransaction().begin();
-
+    public List<SessionPackage> getMostRecent(int max) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<SessionPackage> cq = cb.createQuery(SessionPackage.class);
         Root<SessionPackage> root = cq.from(SessionPackage.class);
         cq.orderBy(cb.desc(root.get(DATE_TIME)));
-
-        List<SessionPackage> packages = entityManager.createQuery(cq).setMaxResults(max).getResultList();
-
-        entityManager.getTransaction().commit();
-        entityManager.close();
-
-        return packages;
+        return entityManager.createQuery(cq).setMaxResults(max).getResultList();
     }
 
-    @Transactional
     public List<SessionPackage> search(DownloadRequest request, String userCompany) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        entityManager.getTransaction().begin();
-
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<SessionPackage> cq = cb.createQuery(SessionPackage.class);
         Root<SessionPackage> rootEntry = cq.from(SessionPackage.class);
 
-
         List<Predicate> predicates = new ArrayList<>();
-        if(request.getFromDate() != null){
+        if (request.getFromDate() != null) {
             predicates.add(cb.greaterThanOrEqualTo(rootEntry.get(DATE_TIME), request.getFromDate().atStartOfDay()));
         }
-        if(request.getToDate() != null){
-            predicates.add(cb.lessThanOrEqualTo(rootEntry.get(DATE_TIME), request.getToDate().atTime(23,59,59)));
+        if (request.getToDate() != null) {
+            predicates.add(cb.lessThanOrEqualTo(rootEntry.get(DATE_TIME), request.getToDate().atTime(23, 59, 59)));
         }
-        if(HQ.equalsIgnoreCase(userCompany) && !ALL.equalsIgnoreCase(request.getHub())){
+        if (HQ.equalsIgnoreCase(userCompany) && !ALL.equalsIgnoreCase(request.getHub())) {
             predicates.add(cb.equal(rootEntry.get(HUB), request.getHub()));
-        } else if(!HQ.equalsIgnoreCase(userCompany)){
+        } else if (!HQ.equalsIgnoreCase(userCompany)) {
             predicates.add(cb.equal(rootEntry.get(HUB), userCompany));
         }
 
         CriteriaQuery<SessionPackage> filtered = cq.select(rootEntry).where(predicates.toArray(new Predicate[]{}));
-
-        TypedQuery<SessionPackage> filteredQuery = entityManager.createQuery(filtered);
-        List<SessionPackage> queryResult = filteredQuery.getResultList();
-
-        entityManager.getTransaction().commit();
-        entityManager.close();
-
-        return queryResult;
+        return entityManager.createQuery(filtered).getResultList();
     }
 
-    @Transactional
     public List<SessionPackage> searchByCode(List<String> codes) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        entityManager.getTransaction().begin();
-
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<SessionPackage> cq = cb.createQuery(SessionPackage.class);
         Root<SessionPackage> rootEntry = cq.from(SessionPackage.class);
-
 
         List<Predicate> predicates = new ArrayList<>();
         Expression<String> trackingNumberExpression = rootEntry.get(TRACKING_NUMBER);
@@ -351,14 +230,6 @@ public class SessionPackageDao {
         predicates.add(codePredicate);
 
         CriteriaQuery<SessionPackage> filtered = cq.select(rootEntry).where(predicates.toArray(new Predicate[]{}));
-
-        TypedQuery<SessionPackage> filteredQuery = entityManager.createQuery(filtered);
-        List<SessionPackage> queryResult = filteredQuery.getResultList();
-
-        entityManager.getTransaction().commit();
-        entityManager.close();
-
-        return queryResult;
+        return entityManager.createQuery(filtered).getResultList();
     }
-
 }
