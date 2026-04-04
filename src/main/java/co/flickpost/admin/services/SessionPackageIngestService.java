@@ -52,6 +52,7 @@ public class SessionPackageIngestService {
         sessionPackage.setHid(request.getHid());
         sessionPackage.setDateTime(request.getDateTime());
         sessionPackage.setSessionId(request.getSessionId());
+        sessionPackage.setImageInfos(request.getImageInfos());
 
         String dataSource = null;
 
