@@ -167,11 +167,12 @@
         }
 
         function getConditionIcons(rowData) {
-            var isUnderdeclared = rowData.isUnderdeclared === true;
-            var containsBattery = rowData.containsBattery === true;
-            var containsLiquid = rowData.containsLiquid === true;
-            var isCommercialPackaging = rowData.isCommercialPackaging === true;
-            var isNew = (rowData.itemCondition || '').toString().toLowerCase() === 'new';
+            var isUnderdeclared = rowData.isUnderdeclared;
+            var containsBattery = rowData.containsBattery;
+            var containsLiquid = rowData.containsLiquid;
+            var isCommercialPackaging = rowData.isCommercialPackaging;
+            var itemConditionValue = rowData.itemCondition;
+            var isNew = itemConditionValue != null ? itemConditionValue.toString().toLowerCase() === 'new' : null;
 
             function conditionIcon(src, altText, tooltipText) {
                 return '' +
@@ -248,11 +249,12 @@
 
         function conditionsFormatter(cell){
             var rowData = cell.getRow().getData();
-            var isUnderdeclared = rowData.isUnderdeclared === true;
-            var containsBattery = rowData.containsBattery === true;
-            var containsLiquid = rowData.containsLiquid === true;
-            var isCommercialPackaging = rowData.isCommercialPackaging === true;
-            var isNew = (rowData.itemCondition || '').toString().toLowerCase() === 'new';
+            var isUnderdeclared = rowData.isUnderdeclared;
+            var containsBattery = rowData.containsBattery;
+            var containsLiquid = rowData.containsLiquid;
+            var isCommercialPackaging = rowData.isCommercialPackaging;
+            var itemConditionValue = rowData.itemCondition;
+            var isNew = itemConditionValue != null ? itemConditionValue.toString().toLowerCase() === 'new' : null;
 
             function conditionIcon(src, altText, tooltipText) {
                 return '' +
@@ -264,29 +266,29 @@
             return '' +
                 '<div class="condition-indicators">' +
                     conditionIcon(
-                        'images/conditions/scale_' + (isUnderdeclared ? 'false' : 'true') + '.png',
+                        'images/conditions/scale_' + (isUnderdeclared == null ? 'false' : (isUnderdeclared ? 'false' : 'true')) + '.png',
                         'declared weight',
-                        'Declared weight - ' + (isUnderdeclared ? 'under' : 'ok')
+                        'Declared weight - ' + (isUnderdeclared == null ? 'pending' : (isUnderdeclared ? 'under' : 'ok'))
                     ) +
                     conditionIcon(
-                        'images/conditions/new_' + (isNew ? 'true' : 'false') + '.png',
+                        'images/conditions/new_' + (isNew == null ? 'false' : (isNew ? 'true' : 'false')) + '.png',
                         'item',
-                        'Item condition - ' + (isNew ? 'new' : 'used')
+                        'Item condition - ' + (isNew == null ? 'pending' : (isNew ? 'new' : 'used'))
                     ) +
                     conditionIcon(
-                        'images/conditions/liquid_' + (containsLiquid ? 'true' : 'false') + '.png',
+                        'images/conditions/liquid_' + (containsLiquid == null ? 'true' : (containsLiquid ? 'true' : 'false')) + '.png',
                         'liquid',
-                        'Contains liquid - ' + (containsLiquid ? 'yes' : 'no')
+                        'Contains liquid - ' + (containsLiquid == null ? 'pending' : (containsLiquid ? 'yes' : 'no'))
                     ) +
                     conditionIcon(
-                        'images/conditions/battery_' + (containsBattery ? 'true' : 'false') + '.png',
+                        'images/conditions/battery_' + (containsBattery == null ? 'true' : (containsBattery ? 'true' : 'false')) + '.png',
                         'battery',
-                        'Contains battery - ' + (containsBattery ? 'yes' : 'no')
+                        'Contains battery - ' + (containsBattery == null ? 'pending' : (containsBattery ? 'yes' : 'no'))
                     ) +
                     conditionIcon(
-                        'images/conditions/commercial_' + (isCommercialPackaging ? 'true' : 'false') + '.png',
+                        'images/conditions/commercial_' + (isCommercialPackaging == null ? 'false' : (isCommercialPackaging ? 'true' : 'false')) + '.png',
                         'commercial packaging',
-                        'Commercial packaging - ' + (isCommercialPackaging ? 'yes' : 'no')
+                        'Commercial packaging - ' + (isCommercialPackaging == null ? 'pending' : (isCommercialPackaging ? 'yes' : 'no'))
                     ) +
                 '</div>';
         }
