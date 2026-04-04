@@ -143,21 +143,29 @@
                 clearTimeout(scanSessionRefreshDebounce);
             }
             scanSessionRefreshDebounce = setTimeout(function() {
+                console.debug('[scan-session-sse] refreshing table + status');
                 if (table) {
                     table.setData();
                 }
-                refreshScanSessionStatusAndStream();
+                refreshScanSessionStatus().then(function(status) {
+                    if (status && status.active) {
+                        ensureScanSessionEventStream();
+                    } else {
+                        closeScanSessionEventStream();
+                    }
+                });
             }, 300);
         }
 
         function closeScanSessionEventStream() {
             if (scanSessionEventSource) {
+                console.debug('[scan-session-sse] closing stream');
                 scanSessionEventSource.close();
                 scanSessionEventSource = null;
             }
         }
 
-        function refreshScanSessionStatusAndStream() {
+        function refreshScanSessionStatus() {
             return fetch('/scan-session/session/status', {
                 method: 'GET',
                 credentials: 'same-origin',
@@ -169,40 +177,57 @@
                     throw new Error('Unable to refresh scan session status');
                 }
                 return response.json();
-            }).then(function(status) {
-                if (!status.active) {
-                    closeScanSessionEventStream();
-                } else if (!scanSessionEventSource) {
-                    initializeScanSessionEventStream();
-                }
             }).catch(function(error) {
-                console.error(error);
+                console.error('[scan-session-sse] status refresh failed', error);
+                return null;
             });
         }
 
-        function initializeScanSessionEventStream() {
-            refreshScanSessionStatusAndStream();
+        function ensureScanSessionEventStream() {
             if (scanSessionEventSource) {
                 return;
             }
 
+            console.debug('[scan-session-sse] opening stream');
             scanSessionEventSource = new EventSource('/scan-session/session/stream');
 
-            scanSessionEventSource.addEventListener('package-ingested', function() {
+            scanSessionEventSource.addEventListener('connected', function(event) {
+                console.debug('[scan-session-sse] connected', event.data);
+            });
+
+            scanSessionEventSource.addEventListener('package-ingested', function(event) {
+                console.debug('[scan-session-sse] package-ingested', event.data);
                 debounceScanSessionRefresh();
             });
 
-            scanSessionEventSource.addEventListener('session-stopped', function() {
+            scanSessionEventSource.addEventListener('session-stopped', function(event) {
+                console.debug('[scan-session-sse] session-stopped', event.data);
                 closeScanSessionEventStream();
                 debounceScanSessionRefresh();
             });
 
-            scanSessionEventSource.onerror = function() {
+            scanSessionEventSource.onerror = function(event) {
+                console.warn('[scan-session-sse] stream error', event);
                 closeScanSessionEventStream();
                 setTimeout(function() {
-                    refreshScanSessionStatusAndStream();
+                    refreshScanSessionStatus().then(function(status) {
+                        if (status && status.active) {
+                            ensureScanSessionEventStream();
+                        }
+                    });
                 }, 1000);
             };
+        }
+
+        function initializeScanSessionEventStream() {
+            refreshScanSessionStatus().then(function(status) {
+                console.debug('[scan-session-sse] initial status', status);
+                if (status && status.active) {
+                    ensureScanSessionEventStream();
+                } else {
+                    closeScanSessionEventStream();
+                }
+            });
         }
 
         function doPostCall(){
