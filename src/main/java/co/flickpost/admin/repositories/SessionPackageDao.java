@@ -92,6 +92,25 @@ public class SessionPackageDao {
     }
 
     @Transactional
+    public SessionPackage findSessionPackageByTrackingNumber(String trackingNumber){
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction transaction = entityManager.getTransaction();
+
+        logger.info("Started searching session_package for trackingNumber: {}", trackingNumber);
+        transaction.begin();
+
+        Query query = entityManager.createNativeQuery("SELECT * FROM session_package where tracking_number = ?", SessionPackage.class);
+        query.setParameter(1, trackingNumber);
+        List<SessionPackage> result = query.getResultList();
+
+        transaction.commit();
+        logger.info("Finished searching session_package for trackingNumber: {}", trackingNumber);
+
+        entityManager.close();
+        return result != null && !result.isEmpty()? result.get(0) : null;
+    }
+
+    @Transactional
     public void batchUpdate(List<SessionPackage> packages, int batchSize){
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction entityTransaction = entityManager.getTransaction();
