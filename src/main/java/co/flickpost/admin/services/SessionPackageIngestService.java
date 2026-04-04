@@ -32,6 +32,9 @@ public class SessionPackageIngestService {
     @Autowired
     private PackageReferenceDao packageReferenceDao;
 
+    @Autowired
+    private ScanSessionSseService scanSessionSseService;
+
     @Transactional
     public FpSessionPackageIngestResponse ingest(FpSessionPackageIngestRequest request) {
         validate(request);
@@ -94,6 +97,8 @@ public class SessionPackageIngestService {
         } else {
             sessionPackageDao.singleUpdate(sessionPackage);
         }
+
+        scanSessionSseService.publishPackageIngested(sessionPackage.getTrackingNumber());
 
         return new FpSessionPackageIngestResponse(
                 true,
