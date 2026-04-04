@@ -535,6 +535,7 @@
 
                             function conditionsFormatter(cell){
                                 var rowData = cell.getRow().getData();
+                                var isUnderdeclared = rowData.isUnderdeclared === true;
                                 var containsBattery = rowData.containsBattery === true;
                                 var containsLiquid = rowData.containsLiquid === true;
                                 var isCommercialPackaging = rowData.isCommercialPackaging === true;
@@ -549,6 +550,11 @@
 
                                 return '' +
                                     '<div class="condition-indicators">' +
+                                        conditionIcon(
+                                            'images/conditions/scale_' + (isUnderdeclared ? 'false' : 'true') + '.png',
+                                            'declared weight',
+                                            'Declared weight - ' + (isUnderdeclared ? 'under' : 'ok')
+                                        ) +
                                         conditionIcon(
                                             'images/conditions/new_' + (isNew ? 'true' : 'false') + '.png',
                                             'item',
