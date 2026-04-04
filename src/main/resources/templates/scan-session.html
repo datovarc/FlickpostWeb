@@ -24,6 +24,7 @@
         var table = null;
         var scanSessionEventSource = null;
         var scanSessionRefreshDebounce = null;
+        var pendingDuplicateTrackingNumber = null;
 
         function executeUploadReport() {
             $("body").addClass("loading");
@@ -195,12 +196,24 @@
             });
 
             scanSessionEventSource.addEventListener('package-ingested', function(event) {
-                console.debug('[scan-session-sse] package-ingested', event.data);
+                console.log('[scan-session-sse] package-ingested', event.data);
                 debounceScanSessionRefresh();
             });
 
+            scanSessionEventSource.addEventListener('duplicate-detected', function(event) {
+                console.log('[scan-session-sse] duplicate-detected', event.data);
+                try {
+                    var payload = JSON.parse(event.data);
+                    if (payload && payload.trackingNumber) {
+                        openDuplicateResolutionModal(payload.trackingNumber);
+                    }
+                } catch (error) {
+                    console.error('[scan-session-sse] failed to parse duplicate event', error);
+                }
+            });
+
             scanSessionEventSource.addEventListener('session-stopped', function(event) {
-                console.debug('[scan-session-sse] session-stopped', event.data);
+                console.log('[scan-session-sse] session-stopped', event.data);
                 closeScanSessionEventStream();
                 debounceScanSessionRefresh();
             });
@@ -228,6 +241,121 @@
                 }
             });
         }
+
+        function buildDuplicateComparisonHtml(record, otherRecord) {
+            if (!record) {
+                return '<p>No data</p>';
+            }
+
+            var fields = [
+                ['trackingNumber', 'Tracking Number'],
+                ['status', 'Status'],
+                ['hub', 'Hub'],
+                ['shipmentId', 'Shipment ID'],
+                ['shippingMode', 'Shipping Mode'],
+                ['destinationCountry', 'Destination Country'],
+                ['declaredWeight', 'Declared Weight'],
+                ['auditedWeight', 'Audited Weight'],
+                ['declaredLength', 'Declared Length'],
+                ['declaredWidth', 'Declared Width'],
+                ['declaredHeight', 'Declared Height'],
+                ['auditedLength', 'Audited Length'],
+                ['auditedWidth', 'Audited Width'],
+                ['auditedHeight', 'Audited Height'],
+                ['containsLiquid', 'Contains Liquid'],
+                ['containsBattery', 'Contains Battery'],
+                ['itemCondition', 'Item Condition'],
+                ['isCommercialPackaging', 'Commercial Packaging'],
+                ['isUnderdeclared', 'Underdeclared'],
+                ['referenceSource', 'Reference Source']
+            ];
+
+            var html = '<table class="table table-bordered table-condensed">';
+            fields.forEach(function(field) {
+                var key = field[0];
+                var label = field[1];
+                var value = record[key];
+                var otherValue = otherRecord ? otherRecord[key] : null;
+                var different = JSON.stringify(value) !== JSON.stringify(otherValue);
+                html += '<tr' + (different ? ' style="background:#fff3cd;"' : '') + '>' +
+                    '<th style="width:45%;">' + label + '</th>' +
+                    '<td>' + formatDuplicateValue(value) + '</td>' +
+                    '</tr>';
+            });
+            html += '</table>';
+            return html;
+        }
+
+        function formatDuplicateValue(value) {
+            if (value === null || value === undefined) {
+                return '<em>null</em>';
+            }
+            if (Array.isArray(value) || typeof value === 'object') {
+                return $('<div/>').text(JSON.stringify(value)).html();
+            }
+            return $('<div/>').text(String(value)).html();
+        }
+
+        function openDuplicateResolutionModal(trackingNumber) {
+            pendingDuplicateTrackingNumber = trackingNumber;
+            fetch('/scan-session/session/duplicate/' + encodeURIComponent(trackingNumber), {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Unable to load duplicate comparison');
+                }
+                return response.json();
+            }).then(function(payload) {
+                $('#duplicateOldRecord').html(buildDuplicateComparisonHtml(payload.oldRecord, payload.newRecord));
+                $('#duplicateNewRecord').html(buildDuplicateComparisonHtml(payload.newRecord, payload.oldRecord));
+                $('input[name="duplicateSelection"]').prop('checked', false);
+                $('#duplicateSessionPackageModal').modal({backdrop:'static', keyboard:false});
+                $('#duplicateSessionPackageModal').modal('show');
+            }).catch(function(error) {
+                console.error('[scan-session-sse] failed to open duplicate modal', error);
+            });
+        }
+
+        function resolveDuplicateSelection() {
+            var selected = $('input[name="duplicateSelection"]:checked').val();
+            if (!selected || !pendingDuplicateTrackingNumber) {
+                alert('Please select which record to keep first.');
+                return;
+            }
+
+            fetch('/scan-session/session/duplicate/resolve', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    [header]: token
+                },
+                body: JSON.stringify({
+                    trackingNumber: pendingDuplicateTrackingNumber,
+                    selectedRecord: selected
+                })
+            }).then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Unable to resolve duplicate');
+                }
+                return response.json();
+            }).then(function() {
+                $('#duplicateSessionPackageModal').modal('hide');
+                pendingDuplicateTrackingNumber = null;
+                debounceScanSessionRefresh();
+            }).catch(function(error) {
+                console.error('[scan-session-sse] failed to resolve duplicate', error);
+            });
+        }
+
+        $(document).on('click', '#duplicateContinueButton', function() {
+            resolveDuplicateSelection();
+        });
 
         function doPostCall(){
             tableFilters.length = 0;
@@ -770,6 +898,39 @@
 </div>
 
 <div id="condition-global-tooltip" class="condition-global-tooltip"></div>
+
+<div id="duplicateSessionPackageModal" class="modal fade" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Duplicate Session Package Detected</h4>
+            </div>
+            <div class="modal-body">
+                <p>This tracking number already exists. Compare both records below, choose which one to keep, and continue.</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Old record</h5>
+                        <div id="duplicateOldRecord"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>New record</h5>
+                        <div id="duplicateNewRecord"></div>
+                    </div>
+                </div>
+                <hr>
+                <div class="radio">
+                    <label><input type="radio" name="duplicateSelection" value="old"> Keep old</label>
+                </div>
+                <div class="radio">
+                    <label><input type="radio" name="duplicateSelection" value="new"> Keep new</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="duplicateContinueButton">Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div id="uploadReportFile" class="modal fade" role="dialog">
     <div class="modal-dialog">

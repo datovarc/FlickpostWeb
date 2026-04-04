@@ -54,6 +54,22 @@ public class ScanSessionSseService {
         }
     }
 
+    public void publishDuplicateDetected(String trackingNumber) {
+        Iterator<SseEmitter> iterator = emitters.iterator();
+        while (iterator.hasNext()) {
+            SseEmitter emitter = iterator.next();
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("duplicate-detected")
+                        .data(Map.of("trackingNumber", trackingNumber)));
+            } catch (Exception e) {
+                logger.debug("Removing failed SSE emitter after duplicate-detected publish", e);
+                emitters.remove(emitter);
+                emitter.complete();
+            }
+        }
+    }
+
     public void publishSessionStopped() {
         Iterator<SseEmitter> iterator = emitters.iterator();
         while (iterator.hasNext()) {

@@ -5,6 +5,7 @@ import co.flickpost.admin.models.SessionPackage;
 import co.flickpost.admin.models.json.FpReferencePayload;
 import co.flickpost.admin.models.json.FpSessionPackageIngestRequest;
 import co.flickpost.admin.models.json.FpSessionPackageIngestResponse;
+import co.flickpost.admin.models.json.PendingDuplicateSessionPackage;
 import co.flickpost.admin.repositories.PackageReferenceDao;
 import co.flickpost.admin.repositories.SessionPackageDao;
 import org.apache.commons.lang3.StringUtils;
@@ -37,15 +38,19 @@ public class SessionPackageIngestService {
     @Autowired
     private ScanSessionSseService scanSessionSseService;
 
+    @Autowired
+    private PendingDuplicateSessionPackageService pendingDuplicateSessionPackageService;
+
     @Transactional
     public FpSessionPackageIngestResponse ingest(FpSessionPackageIngestRequest request) {
         validate(request);
 
-        SessionPackage sessionPackage = sessionPackageDao.findSessionPackageByTrackingNumber(request.getTrackingNumber());
-        if (sessionPackage == null) {
-            sessionPackage = new SessionPackage();
-            sessionPackage.setTrackingNumber(request.getTrackingNumber());
+        SessionPackage existingSessionPackage = sessionPackageDao.findSessionPackageByTrackingNumber(request.getTrackingNumber());
+        SessionPackage sessionPackage = new SessionPackage();
+        if (existingSessionPackage != null) {
+            sessionPackage.setId(existingSessionPackage.getId());
         }
+        sessionPackage.setTrackingNumber(request.getTrackingNumber());
 
         sessionPackage.setHub(request.getHub());
         sessionPackage.setAuditedLength(request.getAuditedLength());
@@ -94,12 +99,23 @@ public class SessionPackageIngestService {
         sessionPackage.setIsUnderdeclared(isUnderdeclared);
         sessionPackage.setStatus(finalStatus);
 
-        if (sessionPackage.getId() == null) {
-            sessionPackageDao.insert(sessionPackage);
-        } else {
-            sessionPackageDao.singleUpdate(sessionPackage);
+        if (existingSessionPackage != null) {
+            SessionPackage oldRecord = cloneForDuplicate(existingSessionPackage);
+            SessionPackage newRecord = cloneForDuplicate(sessionPackage);
+            newRecord.setId(null);
+            pendingDuplicateSessionPackageService.put(new PendingDuplicateSessionPackage(sessionPackage.getTrackingNumber(), oldRecord, newRecord));
+            publishDuplicateDetectedAfterCommit(sessionPackage.getTrackingNumber());
+            return new FpSessionPackageIngestResponse(
+                    true,
+                    sessionPackage.getTrackingNumber(),
+                    finalStatus,
+                    dataSource,
+                    isUnderdeclared,
+                    "Duplicate record detected. Awaiting user resolution"
+            );
         }
 
+        sessionPackageDao.insert(sessionPackage);
         publishPackageIngestedAfterCommit(sessionPackage.getTrackingNumber());
 
         return new FpSessionPackageIngestResponse(
@@ -124,6 +140,53 @@ public class SessionPackageIngestService {
             logger.warn("Transaction synchronization was not active while publishing package-ingested for {}. Publishing immediately.", trackingNumber);
             scanSessionSseService.publishPackageIngested(trackingNumber);
         }
+    }
+
+    private void publishDuplicateDetectedAfterCommit(String trackingNumber) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    scanSessionSseService.publishDuplicateDetected(trackingNumber);
+                }
+            });
+        } else {
+            logger.warn("Transaction synchronization was not active while publishing duplicate-detected for {}. Publishing immediately.", trackingNumber);
+            scanSessionSseService.publishDuplicateDetected(trackingNumber);
+        }
+    }
+
+    private SessionPackage cloneForDuplicate(SessionPackage source) {
+        SessionPackage copy = new SessionPackage();
+        copy.setId(source.getId());
+        copy.setTrackingNumber(source.getTrackingNumber());
+        copy.setHub(source.getHub());
+        copy.setShipmentId(source.getShipmentId());
+        copy.setStatus(source.getStatus());
+        copy.setAuditedLength(source.getAuditedLength());
+        copy.setAuditedWidth(source.getAuditedWidth());
+        copy.setAuditedHeight(source.getAuditedHeight());
+        copy.setAuditedWeight(source.getAuditedWeight());
+        copy.setDeclaredLength(source.getDeclaredLength());
+        copy.setDeclaredWidth(source.getDeclaredWidth());
+        copy.setDeclaredHeight(source.getDeclaredHeight());
+        copy.setDeclaredWeight(source.getDeclaredWeight());
+        copy.setClientPaidHeight(source.getClientPaidHeight());
+        copy.setDestinationCountry(source.getDestinationCountry());
+        copy.setContainsLiquid(source.getContainsLiquid());
+        copy.setContainsBattery(source.getContainsBattery());
+        copy.setItemCondition(source.getItemCondition());
+        copy.setIsCommercialPackaging(source.getIsCommercialPackaging());
+        copy.setShippingMode(source.getShippingMode());
+        copy.setAuditedVolumetricWeight(source.getAuditedVolumetricWeight());
+        copy.setChargeableWeight(source.getChargeableWeight());
+        copy.setHid(source.getHid());
+        copy.setDateTime(source.getDateTime());
+        copy.setSessionId(source.getSessionId());
+        copy.setImageInfos(source.getImageInfos());
+        copy.setReferenceSource(source.getReferenceSource());
+        copy.setIsUnderdeclared(source.getIsUnderdeclared());
+        return copy;
     }
 
     private void validate(FpSessionPackageIngestRequest request) {

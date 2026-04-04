@@ -81,6 +81,10 @@ public class SessionPackageDao {
         entityManager.merge(packages);
     }
 
+    public void delete(SessionPackage sessionPackage) {
+        entityManager.remove(entityManager.contains(sessionPackage) ? sessionPackage : entityManager.merge(sessionPackage));
+    }
+
     public Map<String, Object> pagination(PaginationRequest request, String userCompany) {
         int pageSize = request.getPageSize();
         int pageNumber = request.getPageNumber();
