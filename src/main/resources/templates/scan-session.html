@@ -22,6 +22,8 @@
         var searching = false;
         var tableFilters = [];
         var table = null;
+        var scanSessionEventSource = null;
+        var scanSessionRefreshDebounce = null;
 
         function executeUploadReport() {
             $("body").addClass("loading");
@@ -131,7 +133,77 @@
             table.on("renderComplete", function(){
                 syncEmptyTableState();
             });
+
+            initializeScanSessionEventStream();
+            window.addEventListener('beforeunload', closeScanSessionEventStream);
         });
+
+        function debounceScanSessionRefresh() {
+            if (scanSessionRefreshDebounce) {
+                clearTimeout(scanSessionRefreshDebounce);
+            }
+            scanSessionRefreshDebounce = setTimeout(function() {
+                if (table) {
+                    table.setData();
+                }
+                refreshScanSessionStatusAndStream();
+            }, 300);
+        }
+
+        function closeScanSessionEventStream() {
+            if (scanSessionEventSource) {
+                scanSessionEventSource.close();
+                scanSessionEventSource = null;
+            }
+        }
+
+        function refreshScanSessionStatusAndStream() {
+            return fetch('/scan-session/session/status', {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Unable to refresh scan session status');
+                }
+                return response.json();
+            }).then(function(status) {
+                if (!status.active) {
+                    closeScanSessionEventStream();
+                } else if (!scanSessionEventSource) {
+                    initializeScanSessionEventStream();
+                }
+            }).catch(function(error) {
+                console.error(error);
+            });
+        }
+
+        function initializeScanSessionEventStream() {
+            refreshScanSessionStatusAndStream();
+            if (scanSessionEventSource) {
+                return;
+            }
+
+            scanSessionEventSource = new EventSource('/scan-session/session/stream');
+
+            scanSessionEventSource.addEventListener('package-ingested', function() {
+                debounceScanSessionRefresh();
+            });
+
+            scanSessionEventSource.addEventListener('session-stopped', function() {
+                closeScanSessionEventStream();
+                debounceScanSessionRefresh();
+            });
+
+            scanSessionEventSource.onerror = function() {
+                closeScanSessionEventStream();
+                setTimeout(function() {
+                    refreshScanSessionStatusAndStream();
+                }, 1000);
+            };
+        }
 
         function doPostCall(){
             tableFilters.length = 0;

@@ -25,6 +25,9 @@ public class ScanSessionService {
     @Autowired
     private ScanSessionDao scanSessionDao;
 
+    @Autowired
+    private ScanSessionSseService scanSessionSseService;
+
     @Transactional
     public Map<String, Object> getStatus(UserDetailsImpl userDetails) {
         return buildStatusResponse(userDetails.getUsername());
@@ -65,6 +68,7 @@ public class ScanSessionService {
         activeSession.setEndTime(LocalDateTime.now());
         activeSession.setStatus(FINISHED);
         scanSessionDao.save(activeSession);
+        scanSessionSseService.publishSessionStopped();
         logger.info("{} - Finished scan session {}", username, activeSession.getId());
         return buildStatusResponse(username);
     }

@@ -57,6 +57,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/report/**").hasAnyAuthority("OFFICE", "ADMIN")
                 .antMatchers("/report/upload").hasAnyAuthority("OFFICE", "ADMIN")
                 .antMatchers("/weight/**").authenticated()
+                .antMatchers("/scan-session/session/stream").authenticated()
                 .antMatchers("/js/*.js", "/css/*.css", "/icons/*.woff", "/icons/*.ttf", "/icons/*.jpg", "/images/*.png", "/images/*.gif").permitAll()
                 .anyRequest().authenticated()
                 .and()

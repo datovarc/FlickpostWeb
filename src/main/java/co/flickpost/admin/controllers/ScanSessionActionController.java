@@ -5,17 +5,20 @@ import co.flickpost.admin.models.json.FpSessionPackageIngestRequest;
 import co.flickpost.admin.models.json.FpSessionPackageIngestResponse;
 import co.flickpost.admin.security.UserDetailsImpl;
 import co.flickpost.admin.services.ScanSessionService;
+import co.flickpost.admin.services.ScanSessionSseService;
 import co.flickpost.admin.services.SessionPackageIngestService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -33,6 +36,9 @@ public class ScanSessionActionController {
     private SessionPackageIngestService sessionPackageIngestService;
 
     @Autowired
+    private ScanSessionSseService scanSessionSseService;
+
+    @Autowired
     private FlickPostProperties flickPostProperties;
 
     @GetMapping("/scan-session/session/status")
@@ -40,6 +46,13 @@ public class ScanSessionActionController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         logger.info("{} - Received scan session status API request", userDetails.getUsername());
         return scanSessionService.getStatus(userDetails);
+    }
+
+    @GetMapping(path = "/scan-session/session/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter stream(org.springframework.security.core.Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        logger.info("{} - Subscribed to scan session SSE stream", userDetails.getUsername());
+        return scanSessionSseService.subscribe();
     }
 
     @PostMapping("/scan-session/session/start")
