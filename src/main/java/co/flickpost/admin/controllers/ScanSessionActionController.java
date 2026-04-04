@@ -1,9 +1,12 @@
 package co.flickpost.admin.controllers;
 
 import co.flickpost.admin.configurations.FlickPostProperties;
+import co.flickpost.admin.models.json.DuplicateResolutionRequest;
 import co.flickpost.admin.models.json.FpSessionPackageIngestRequest;
 import co.flickpost.admin.models.json.FpSessionPackageIngestResponse;
 import co.flickpost.admin.security.UserDetailsImpl;
+import co.flickpost.admin.services.DuplicateSessionPackageResolutionService;
+import co.flickpost.admin.services.PendingDuplicateSessionPackageService;
 import co.flickpost.admin.services.ScanSessionService;
 import co.flickpost.admin.services.ScanSessionSseService;
 import co.flickpost.admin.services.SessionPackageIngestService;
@@ -36,6 +39,12 @@ public class ScanSessionActionController {
     private SessionPackageIngestService sessionPackageIngestService;
 
     @Autowired
+    private DuplicateSessionPackageResolutionService duplicateSessionPackageResolutionService;
+
+    @Autowired
+    private PendingDuplicateSessionPackageService pendingDuplicateSessionPackageService;
+
+    @Autowired
     private ScanSessionSseService scanSessionSseService;
 
     @Autowired
@@ -53,6 +62,36 @@ public class ScanSessionActionController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         logger.info("{} - Subscribed to scan session SSE stream", userDetails.getUsername());
         return scanSessionSseService.subscribe();
+    }
+
+    @GetMapping("/scan-session/session/duplicate/{trackingNumber}")
+    public ResponseEntity<?> getPendingDuplicate(@org.springframework.web.bind.annotation.PathVariable String trackingNumber,
+                                                 org.springframework.security.core.Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        logger.info("{} - Requested pending duplicate for trackingNumber={}", userDetails.getUsername(), trackingNumber);
+        Object pending = pendingDuplicateSessionPackageService.get(trackingNumber);
+        if (pending == null) {
+            Map<String, Object> error = new LinkedHashMap<>();
+            error.put("success", false);
+            error.put("message", "No pending duplicate found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+        return ResponseEntity.ok(pending);
+    }
+
+    @PostMapping("/scan-session/session/duplicate/resolve")
+    public ResponseEntity<?> resolveDuplicate(@RequestBody DuplicateResolutionRequest request,
+                                              org.springframework.security.core.Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        logger.info("{} - Resolving duplicate for trackingNumber={} selection={}", userDetails.getUsername(), request != null ? request.getTrackingNumber() : null, request != null ? request.getSelectedRecord() : null);
+        try {
+            return ResponseEntity.ok(duplicateSessionPackageResolutionService.resolve(request));
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> error = new LinkedHashMap<>();
+            error.put("success", false);
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
     }
 
     @PostMapping("/scan-session/session/start")
