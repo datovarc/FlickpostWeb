@@ -552,18 +552,43 @@
             z-index: 30;
             position: relative;
         }
+        #packages-table .tabulator-tableholder,
+        #packages-table .tabulator-tableholder .tabulator-table,
+        #packages-table .tabulator-row,
+        #packages-table .tabulator-cell,
+        #packages-table .tabulator-frozen,
+        #packages-table .tabulator-frozen.tabulator-frozen-left,
+        #packages-table .tabulator-col.tabulator-frozen,
+        #packages-table .tabulator-cell.tabulator-frozen {
+            overflow: visible !important;
+        }
         #packages-table .tabulator-frozen,
         #packages-table .tabulator-frozen.tabulator-frozen-left,
         #packages-table .tabulator-col.tabulator-frozen,
         #packages-table .tabulator-cell.tabulator-frozen {
             background: #fff !important;
             color: inherit !important;
-            z-index: 20;
+            z-index: 40 !important;
             will-change: transform;
-            overflow: visible;
         }
-        #packages-table .tabulator-col.tabulator-frozen {
-            z-index: 25;
+        #packages-table .tabulator-col.tabulator-frozen,
+        #packages-table .tabulator-header .tabulator-frozen {
+            z-index: 45 !important;
+        }
+        #packages-table .tabulator-frozen-left {
+            box-shadow: 1px 0 0 #eef3f7;
+        }
+        .condition-indicator {
+            position: relative;
+            z-index: 60;
+        }
+        .condition-indicator:hover {
+            z-index: 70;
+        }
+        .condition-indicator:hover .condition-tooltip {
+            opacity: 1;
+            visibility: visible;
+            z-index: 10000;
         }
         #packages-table .tabulator-header,
         #packages-table .tabulator-row .tabulator-cell {
