@@ -340,7 +340,7 @@
             '  margin-right: 8px;' +
             '  border-radius: 50%;' +
             '  background: #e53935;' +
-            '  vertical-align: -1px;' +
+            '  vertical-align: 2px;' +
             '  animation: scanSessionLiveFade 1.8s ease-in-out infinite;' +
             '}' +
             '.scan-session-confirmation-dialog {' +
@@ -366,7 +366,7 @@
             '  font-size: 20px;' +
             '}' +
             'body.scan-session-active {' +
-            '  background: #c2ceda;' +
+            '  background: #3A3D41;' +
             '}' +
             '@keyframes scanSessionSpin {' +
             '  from { transform: rotate(0deg); }' +
