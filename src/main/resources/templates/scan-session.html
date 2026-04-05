@@ -133,7 +133,7 @@
                     }},
                     {title:"Tracking Number", field:"code", width:180, hozAlign:"center", vertAlign:"middle", frozen:true},
                     {title:"Shipment ID", field:"shipmentId", width:180, hozAlign:"center", vertAlign:"middle"},
-                    {title:"Status", field:"status", width:140, hozAlign:"center", vertAlign:"middle"},
+                    {title:"Status", field:"status", width:140, hozAlign:"center", vertAlign:"middle", formatter:statusTextFormatter},
                     {title:"Audited Length (cm)", field:"L", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
                     {title:"Audited Width (cm)", field:"W", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
                     {title:"Audited Height (cm)", field:"H", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
@@ -581,7 +581,30 @@
             if (normalizedStatus === 'ON HOLD') {
                 return 'scan-session-status scan-session-status-hold';
             }
+            if (normalizedStatus === 'UNKNOWN') {
+                return 'scan-session-status scan-session-status-unknown';
+            }
             return 'scan-session-status';
+        }
+
+        function getStatusTextClass(status) {
+            var normalizedStatus = (status || '').toString().toUpperCase();
+            if (normalizedStatus === 'PROCEED') {
+                return 'status-text status-text-proceed';
+            }
+            if (normalizedStatus === 'ON HOLD') {
+                return 'status-text status-text-hold';
+            }
+            if (normalizedStatus === 'UNKNOWN') {
+                return 'status-text status-text-unknown';
+            }
+            return 'status-text';
+        }
+
+        function statusTextFormatter(cell) {
+            var value = cell.getValue();
+            var safeValue = value == null || value === '' ? '-' : value;
+            return '<span class="' + getStatusTextClass(value) + '">' + safeValue + '</span>';
         }
 
         function renderLatestSummary(rowData) {
@@ -796,7 +819,23 @@
             color: #1f9d55;
         }
         .scan-session-status-hold {
-            color: #d64545;
+            color: #c34f4f;
+        }
+        .scan-session-status-unknown {
+            color: #c27a2c;
+        }
+        .status-text {
+            font-weight: 700;
+            color: #5f6f82;
+        }
+        .status-text-proceed {
+            color: #1f9d55;
+        }
+        .status-text-hold {
+            color: #c34f4f;
+        }
+        .status-text-unknown {
+            color: #c27a2c;
         }
         .scan-session-summary-conditions .condition-indicators {
             justify-content: center;
