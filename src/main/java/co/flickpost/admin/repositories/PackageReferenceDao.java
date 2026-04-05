@@ -7,6 +7,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -29,5 +30,11 @@ public class PackageReferenceDao {
         } else {
             entityManager.merge(packageReference);
         }
+    }
+
+    public int deleteOlderThanOrNullTtl(LocalDateTime cutoff) {
+        Query query = entityManager.createNativeQuery("DELETE FROM package_reference WHERE ttl_timestamp IS NULL OR ttl_timestamp <= ?");
+        query.setParameter(1, cutoff);
+        return query.executeUpdate();
     }
 }
