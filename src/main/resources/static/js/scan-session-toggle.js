@@ -181,7 +181,7 @@
         modal.setAttribute('tabindex', '-1');
         modal.setAttribute('role', 'dialog');
         modal.innerHTML = '' +
-            '<div class="modal-dialog" role="document">' +
+            '<div class="modal-dialog scan-session-confirmation-dialog" role="document">' +
             '  <div class="modal-content">' +
             '    <div class="modal-header">' +
             '      <h4 class="modal-title text-center" id="scan-session-confirmation-title">Confirm scan session action</h4>' +
@@ -334,36 +334,49 @@
             '  display: inline-block;' +
             '}' +
             '.scan-session-live-dot {' +
-            '  width: 9px;' +
-            '  height: 9px;' +
+            '  width: 8px;' +
+            '  height: 8px;' +
             '  display: inline-block;' +
             '  margin-right: 8px;' +
             '  border-radius: 50%;' +
-            '  background: #ff4d4f;' +
-            '  box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.55);' +
-            '  animation: scanSessionLivePulse 1.6s ease-in-out infinite;' +
+            '  background: #e53935;' +
             '  vertical-align: middle;' +
+            '  position: relative;' +
+            '  top: -1px;' +
+            '  animation: scanSessionLiveBlink 1.4s step-end infinite;' +
+            '}' +
+            '.scan-session-confirmation-dialog {' +
+            '  width: 420px;' +
+            '  max-width: calc(100% - 30px);' +
+            '  margin: 90px auto;' +
+            '}' +
+            '.scan-session-confirmation-dialog .modal-content {' +
+            '  border-radius: 8px;' +
+            '}' +
+            '.scan-session-confirmation-dialog .modal-body {' +
+            '  padding: 28px 26px 30px;' +
+            '}' +
+            '.scan-session-confirmation-dialog .modal-footer {' +
+            '  border-top: 0;' +
+            '  padding: 0 26px 24px;' +
+            '}' +
+            '.scan-session-confirmation-dialog .modal-header {' +
+            '  padding: 20px 26px 10px;' +
+            '  border-bottom: 0;' +
+            '}' +
+            '.scan-session-confirmation-dialog .modal-title {' +
+            '  font-size: 20px;' +
             '}' +
             'body.scan-session-active {' +
-            '  background: #f3f6fb;' +
-            '}' +
-            'body.scan-session-active .navbar-default {' +
-            '  background-color: #e8eef8;' +
-            '  border-color: #d5dfef;' +
-            '}' +
-            'body.scan-session-active .insidepage {' +
-            '  background: #eef3fb;' +
-            '}' +
-            'body.scan-session-active .well, body.scan-session-active .panel, body.scan-session-active .modal-content {' +
-            '  box-shadow: 0 0 0 1px rgba(199, 213, 235, 0.7);' +
+            '  background: #dbe3eb;' +
             '}' +
             '@keyframes scanSessionSpin {' +
             '  from { transform: rotate(0deg); }' +
             '  to { transform: rotate(360deg); }' +
             '}' +
-            '@keyframes scanSessionLivePulse {' +
-            '  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.55); }' +
-            '  50% { opacity: 0.35; box-shadow: 0 0 0 6px rgba(255, 77, 79, 0); }' +
+            '@keyframes scanSessionLiveBlink {' +
+            '  0%, 55% { opacity: 1; }' +
+            '  56%, 100% { opacity: 0.22; }' +
             '}';
         document.head.appendChild(style);
     }
