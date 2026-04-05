@@ -17,7 +17,7 @@ public class FpSessionPackageIngestRequest {
     private BigDecimal auditedLength;
     private BigDecimal auditedWidth;
     private BigDecimal auditedHeight;
-    private BigDecimal auditedWeight;
+    private BigDecimal auditedActualWeight;
     private BigDecimal auditedVolumetricWeight;
     private BigDecimal chargeableWeight;
     private String hid;

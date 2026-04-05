@@ -59,7 +59,7 @@ public class SessionPackageIngestService {
         sessionPackage.setAuditedLength(request.getAuditedLength());
         sessionPackage.setAuditedWidth(request.getAuditedWidth());
         sessionPackage.setAuditedHeight(request.getAuditedHeight());
-        sessionPackage.setAuditedWeight(request.getAuditedWeight());
+        sessionPackage.setAuditedActualWeight(request.getAuditedActualWeight());
         sessionPackage.setAuditedVolumetricWeight(request.getAuditedVolumetricWeight());
         sessionPackage.setAuditedChargeableWeight(request.getChargeableWeight());
         sessionPackage.setHid(request.getHid());
@@ -87,7 +87,7 @@ public class SessionPackageIngestService {
                 request.getTrackingNumber(),
                 sessionPackage.getShippingMode(),
                 sessionPackage.getDeclaredActualWeight(),
-                sessionPackage.getAuditedWeight(),
+                sessionPackage.getAuditedActualWeight(),
                 sessionPackage.getAuditedVolumetricWeight()
         );
         String finalStatus = evaluateFinalStatus(
@@ -170,7 +170,7 @@ public class SessionPackageIngestService {
         copy.setAuditedLength(source.getAuditedLength());
         copy.setAuditedWidth(source.getAuditedWidth());
         copy.setAuditedHeight(source.getAuditedHeight());
-        copy.setAuditedWeight(source.getAuditedWeight());
+        copy.setAuditedActualWeight(source.getAuditedActualWeight());
         copy.setDeclaredLength(source.getDeclaredLength());
         copy.setDeclaredWidth(source.getDeclaredWidth());
         copy.setDeclaredHeight(source.getDeclaredHeight());
@@ -273,14 +273,14 @@ public class SessionPackageIngestService {
     private Boolean evaluateIsUnderdeclared(String trackingNumber,
                                             String shippingMode,
                                             BigDecimal declaredWeight,
-                                            BigDecimal auditedWeight,
+                                            BigDecimal auditedActualWeight,
                                             BigDecimal auditedVolumetricWeight) {
         if (declaredWeight == null) {
             logger.info("{} - isUnderdeclared could not be evaluated because declaredWeight is null", trackingNumber);
             return null;
         }
-        if (auditedWeight == null) {
-            logger.info("{} - isUnderdeclared could not be evaluated because auditedWeight is null", trackingNumber);
+        if (auditedActualWeight == null) {
+            logger.info("{} - isUnderdeclared could not be evaluated because auditedActualWeight is null", trackingNumber);
             return null;
         }
         if (StringUtils.isBlank(shippingMode)) {
@@ -289,7 +289,7 @@ public class SessionPackageIngestService {
         }
 
         double declared = declaredWeight.doubleValue();
-        double audited = auditedWeight.doubleValue();
+        double audited = auditedActualWeight.doubleValue();
         double volumetric = auditedVolumetricWeight != null ? auditedVolumetricWeight.doubleValue() : 0D;
         double evaluationWeight;
 

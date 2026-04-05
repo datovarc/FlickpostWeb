@@ -67,7 +67,7 @@ public class ScanSessionViewController {
             if (pkg.getAuditedLength() != null) pkg.setAuditedLength(pkg.getAuditedLength().setScale(2, RoundingMode.UP));
             if (pkg.getAuditedWidth() != null) pkg.setAuditedWidth(pkg.getAuditedWidth().setScale(2, RoundingMode.UP));
             if (pkg.getAuditedHeight() != null) pkg.setAuditedHeight(pkg.getAuditedHeight().setScale(2, RoundingMode.UP));
-            if (pkg.getAuditedWeight() != null) pkg.setAuditedWeight(pkg.getAuditedWeight().setScale(2, RoundingMode.UP));
+            if (pkg.getAuditedActualWeight() != null) pkg.setAuditedActualWeight(pkg.getAuditedActualWeight().setScale(2, RoundingMode.UP));
             if (pkg.getAuditedVolumetricWeight() != null) pkg.setAuditedVolumetricWeight(pkg.getAuditedVolumetricWeight().setScale(2, RoundingMode.UP));
             if (pkg.getAuditedChargeableWeight() != null) pkg.setAuditedChargeableWeight(pkg.getAuditedChargeableWeight().setScale(1, RoundingMode.UP));
             if (pkg.getDeclaredLength() != null) pkg.setDeclaredLength(pkg.getDeclaredLength().setScale(2, RoundingMode.UP));

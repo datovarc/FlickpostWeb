@@ -234,7 +234,7 @@ public class WeightViewController {
                             @RequestParam("audited_length") String auditedLength,
                             @RequestParam("audited_width") String auditedWidth,
                             @RequestParam("audited_height") String auditedHeight,
-                            @RequestParam("audited_weight") String auditedWeight,
+                            @RequestParam("auditedActualWeight") String auditedActualWeight,
                             @RequestParam("date_add") String date,
                             Principal principal) {
 
@@ -245,7 +245,7 @@ public class WeightViewController {
         newPackage.setTrackingNumber(trackingNumber);
 
         newPackage.setAuditedWidth(new BigDecimal(auditedWidth).setScale(2, RoundingMode.UP));
-        newPackage.setAuditedWeight(new BigDecimal(auditedWeight).setScale(2, RoundingMode.UP));
+        newPackage.setAuditedActualWeight(new BigDecimal(auditedActualWeight).setScale(2, RoundingMode.UP));
         newPackage.setAuditedLength(new BigDecimal(auditedLength).setScale(2, RoundingMode.UP));
         newPackage.setAuditedHeight(new BigDecimal(auditedHeight).setScale(2, RoundingMode.UP));
 
@@ -280,7 +280,7 @@ public class WeightViewController {
                             @RequestParam("audited_length") String auditedLength,
                             @RequestParam("audited_width") String auditedWidth,
                             @RequestParam("audited_height") String auditedHeight,
-                            @RequestParam("audited_weight") String auditedWeight,
+                            @RequestParam("auditedActualWeight") String auditedActualWeight,
                             @RequestParam("date_edit") String date,
                             Principal principal) {
 
@@ -308,7 +308,7 @@ public class WeightViewController {
         newPackage.setTrackingNumber(trackingNumber);
 
         newPackage.setAuditedWidth(new BigDecimal(auditedWidth).setScale(2, RoundingMode.UP));
-        newPackage.setAuditedWeight(new BigDecimal(auditedWeight).setScale(2, RoundingMode.UP));
+        newPackage.setAuditedActualWeight(new BigDecimal(auditedActualWeight).setScale(2, RoundingMode.UP));
         newPackage.setAuditedLength(new BigDecimal(auditedLength).setScale(2, RoundingMode.UP));
         newPackage.setAuditedHeight(new BigDecimal(auditedHeight).setScale(2, RoundingMode.UP));
 

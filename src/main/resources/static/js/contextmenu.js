@@ -68,7 +68,7 @@ $(document).ready(function(){
                 document.getElementById('auditedLengthEdit').value = selectedData[0].L;
                 document.getElementById('auditedWidthEdit').value = selectedData[0].W;
                 document.getElementById('auditedHeightEdit').value = selectedData[0].H;
-                document.getElementById('auditedWeightEdit').value = selectedData[0].weight;
+                document.getElementById('auditedActualWeightEdit').value = selectedData[0].weight;
                 document.getElementById('dateEdit').value = selectedData[0].time.substring(0, 10);
                 $("#editLine").modal('toggle');
 

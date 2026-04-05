@@ -49,9 +49,9 @@ public class Package implements Serializable {
     @JsonProperty("H")
     private BigDecimal auditedHeight;
 
-    @Column(name = "audited_weight", scale = 4)
+    @Column(name = "audited_actual_weight", scale = 4)
     @JsonProperty("weight")
-    private BigDecimal auditedWeight;
+    private BigDecimal auditedActualWeight;
 
     @Column(name = "audited_volumetric_weight", scale = 4)
     @JsonProperty("audited_volumetric_weight")
