@@ -61,7 +61,7 @@ public class SessionPackageIngestService {
         sessionPackage.setAuditedHeight(request.getAuditedHeight());
         sessionPackage.setAuditedActualWeight(request.getAuditedActualWeight());
         sessionPackage.setAuditedVolumetricWeight(request.getAuditedVolumetricWeight());
-        sessionPackage.setAuditedChargeableWeight(request.getChargeableWeight());
+        sessionPackage.setAuditedChargeableWeight(request.getAuditedChargeableWeight());
         sessionPackage.setHid(request.getHid());
         sessionPackage.setDateTime(request.getDateTime());
         sessionPackage.setSessionId(request.getSessionId());
