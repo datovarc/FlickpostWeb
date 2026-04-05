@@ -99,6 +99,8 @@
             table = new Tabulator("#packages-table", {
                 index:"Tracking Number",
                 resizableColumns:"header",
+                pagination:"remote",
+                paginationAddRow:"table",
                 layout: "fitDataStretch",
                 ajaxURL: "/scan-session/data",
                 ajaxConfig: {
@@ -109,8 +111,11 @@
                 },
                 ajaxContentType:"json",
                 ajaxFiltering: true,
+                paginationSize: 10,
+                paginationSizeSelector:[10, 25, 50, 100],
                 ajaxResponse:function(url, params, response){
-                    renderLatestSummary(response && response.length > 0 ? response[0] : null);
+                    var responseData = response && response.data ? response.data : [];
+                    renderLatestSummary(responseData.length > 0 ? responseData[0] : null);
                     return response;
                 },
                 dataLoaded:function(){
@@ -122,37 +127,42 @@
                 placeholder:"<div class=\"scan-session-empty-placeholder\"></div>",
                 rowClick:function(e, row){
                     renderLatestSummary(row.getData());
+                    if (e.target && (e.target.closest("button") || e.target.closest("a") || e.target.closest("input") || e.target.closest("textarea") || e.target.closest("select") || e.target.closest("label"))) {
+                        return;
+                    }
+                    row.toggleSelect();
                 },
                 columns:[
-                    {formatter:"rowSelection", titleFormatter:"rowSelection", width:60, hozAlign:"center", vertAlign:"middle", headerSort:false, frozen:true, cellClick:function(e, cell){
+                    {formatter:"rowSelection", titleFormatter:"rowSelection", width:60, hozAlign:"center", vertAlign:"middle", headerSort:false, frozen:true, headerTooltip:true, cellClick:function(e, cell){
                             cell.getRow().toggleSelect();
+                            e.stopPropagation();
                         }},
-                    {title:"Hub", field:"hub", width:90, hozAlign:"center", vertAlign:"middle", frozen:true, formatter:function (cell) {
+                    {title:"Hub", field:"hub", width:90, hozAlign:"center", vertAlign:"middle", frozen:true, headerTooltip:true, formatter:function (cell) {
                         var imgName = cell.getValue();
                         return getHubImageHtml(imgName);
                     }},
-                    {title:"Tracking Number", field:"code", width:180, hozAlign:"center", vertAlign:"middle", frozen:true},
-                    {title:"Shipment ID", field:"shipmentId", width:180, hozAlign:"center", vertAlign:"middle"},
-                    {title:"Status", field:"status", width:140, hozAlign:"center", vertAlign:"middle", formatter:statusTextFormatter},
-                    {title:"Audited Length (cm)", field:"L", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
-                    {title:"Audited Width (cm)", field:"W", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
-                    {title:"Audited Height (cm)", field:"H", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
-                    {title:"Audited Actual Weight (kg)", field:"weight", width:170, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
-                    {title:"Declared Length (cm)", field:"declaredLength", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
-                    {title:"Declared Width (cm)", field:"declaredWidth", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
-                    {title:"Declared Height (cm)", field:"declaredHeight", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
-                    {title:"Declared Actual Weight (kg)", field:"declaredActualWeight", width:180, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
-                    {title:"Declared Chargeable Weight (kg)", field:"declaredChargeableWeight", width:210, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{precision:1, thousand:""}},
-                    {title:"Declared Volumetric Weight (kg)", field:"declaredVolumetricWeight", width:210, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
-                    {title:"Client Paid Weight (kg)", field:"clientPaidWeight", width:180, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
-                    {title:"Destination Country", field:"destinationCountry", width:180, hozAlign:"center", vertAlign:"middle"},
-                    {title:"Service Provider", field:"serviceProviderName", width:170, hozAlign:"center", vertAlign:"middle"},
-                    {title:"Conditions", field:"itemCondition", width:170, hozAlign:"center", vertAlign:"middle", formatter:conditionsFormatter},
-                    {title:"Shipping Mode", field:"shippingMode", width:150, hozAlign:"center", vertAlign:"middle"},
-                    {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight", width:190, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}},
-                    {title:"Audited Chargeable Weight (kg)", field:"audited_chargeable_weight", width:200, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{precision:1, thousand:""}},
-                    {title:"Date and Time", field:"time", width:180, hozAlign:"center", vertAlign:"middle"},
-                    {title:"Remarks", field:"hid", width:180, hozAlign:"center", vertAlign:"middle"}
+                    {title:"Tracking Number", field:"code", width:180, hozAlign:"center", vertAlign:"middle", frozen:true, headerTooltip:true},
+                    {title:"Shipment ID", field:"shipmentId", width:180, hozAlign:"center", vertAlign:"middle", headerTooltip:true},
+                    {title:"Status", field:"status", width:140, hozAlign:"center", vertAlign:"middle", headerTooltip:true, formatter:statusTextFormatter},
+                    {title:"Audited Length (cm)", field:"L", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}, headerTooltip:true},
+                    {title:"Audited Width (cm)", field:"W", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}, headerTooltip:true},
+                    {title:"Audited Height (cm)", field:"H", width:150, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}, headerTooltip:true},
+                    {title:"Audited Actual Weight (kg)", field:"weight", width:170, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}, headerTooltip:true},
+                    {title:"Declared Length (cm)", field:"declaredLength", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}, headerTooltip:true},
+                    {title:"Declared Width (cm)", field:"declaredWidth", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}, headerTooltip:true},
+                    {title:"Declared Height (cm)", field:"declaredHeight", width:160, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}, headerTooltip:true},
+                    {title:"Declared Actual Weight (kg)", field:"declaredActualWeight", width:180, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}, headerTooltip:true},
+                    {title:"Declared Chargeable Weight (kg)", field:"declaredChargeableWeight", width:210, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{precision:1, thousand:""}, headerTooltip:true},
+                    {title:"Declared Volumetric Weight (kg)", field:"declaredVolumetricWeight", width:210, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}, headerTooltip:true},
+                    {title:"Client Paid Weight (kg)", field:"clientPaidWeight", width:180, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}, headerTooltip:true},
+                    {title:"Destination Country", field:"destinationCountry", width:180, hozAlign:"center", vertAlign:"middle", headerTooltip:true},
+                    {title:"Service Provider", field:"serviceProviderName", width:170, hozAlign:"center", vertAlign:"middle", headerTooltip:true},
+                    {title:"Conditions", field:"itemCondition", width:170, hozAlign:"center", vertAlign:"middle", formatter:conditionsFormatter, headerTooltip:true},
+                    {title:"Shipping Mode", field:"shippingMode", width:150, hozAlign:"center", vertAlign:"middle", headerTooltip:true},
+                    {title:"Audited Volumetric Weight (kg)", field:"audited_volumetric_weight", width:190, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{thousand:""}, headerTooltip:true},
+                    {title:"Audited Chargeable Weight (kg)", field:"audited_chargeable_weight", width:200, hozAlign:"center", vertAlign:"middle", formatter:"money", formatterParams:{precision:1, thousand:""}, headerTooltip:true},
+                    {title:"Date and Time", field:"time", width:180, hozAlign:"center", vertAlign:"middle", headerTooltip:true},
+                    {title:"Remarks", field:"hid", width:180, hozAlign:"center", vertAlign:"middle", headerTooltip:true}
                 ]
             });
 
@@ -163,7 +173,7 @@
                 if (!emptyRow || !table) {
                     return;
                 }
-                emptyRow.style.display = table.getDataCount() === 0 ? "block" : "none";
+                emptyRow.style.display = table.getDataCount("active") === 0 ? "block" : "none";
             }
 
             syncEmptyTableState();

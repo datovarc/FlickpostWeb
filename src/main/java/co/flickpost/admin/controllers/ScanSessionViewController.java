@@ -3,6 +3,7 @@ package co.flickpost.admin.controllers;
 import co.flickpost.admin.models.Company;
 import co.flickpost.admin.models.SessionPackage;
 import co.flickpost.admin.models.json.PaginationRequest;
+import co.flickpost.admin.models.json.PaginationResponse;
 import co.flickpost.admin.repositories.CompanyDao;
 import co.flickpost.admin.repositories.SessionPackageDao;
 import co.flickpost.admin.security.UserDetailsImpl;
@@ -19,7 +20,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.transaction.Transactional;
 import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -51,15 +54,28 @@ public class ScanSessionViewController {
     @PostMapping(value = "/data")
     @ResponseBody
     @Transactional
-    public List<SessionPackage> scanSessionData(@RequestBody PaginationRequest request, org.springframework.security.core.Authentication authentication) {
+    public PaginationResponse<SessionPackage> scanSessionData(@RequestBody PaginationRequest request, org.springframework.security.core.Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String uid = userDetails.getUsername();
 
         logger.info("{} - Started fetching data for Scan Session View", uid);
-        List<SessionPackage> packages = sessionPackageDao.findAllByFilters(request.getFilters(), userDetails.getCompany().getCode());
+        Map<String, Object> packagesPagination = sessionPackageDao.pagination(request, userDetails.getCompany().getCode());
+        if (packagesPagination == null) {
+            logger.info("{} - There was no data for Scan Session View", uid);
+            return new PaginationResponse<>(0, Collections.emptyList());
+        }
+
+        Long count = (Long) packagesPagination.get("count");
+        List<SessionPackage> packages = (List<SessionPackage>) packagesPagination.get("packages");
         applyRounding(packages);
-        logger.info("{} - Returning {} session packages for Scan Session View", uid, packages.size());
-        return packages;
+
+        logger.info("{} - There was a total of {} session packages for Scan Session View", uid, count);
+        logger.info("{} - Currently displaying Page {} for Scan Session View", uid, request.getPageNumber());
+
+        int numPages = count.intValue() / request.getPageSize() + ((count.intValue() % request.getPageSize() == 0) ? 0 : 1);
+        logger.info("{} - Total of {} pages available for Scan Session View", uid, numPages);
+
+        return new PaginationResponse<>(numPages, packages);
     }
 
     private void applyRounding(List<SessionPackage> packages) {
