@@ -1,5 +1,6 @@
 (function() {
     var CACHE_KEY = 'scanSessionMenuState';
+    var ACTIVE_BODY_CLASS = 'scan-session-active';
     var scanSessionRequestInFlight = false;
 
     function getCsrfToken() {
@@ -77,27 +78,42 @@
         return '<span class="scan-session-spinner" aria-hidden="true"></span><span class="scan-session-spinner-label">' + label + '</span>';
     }
 
-    function buildNormalHtml(iconClass, label) {
-        return '<i class="ti ' + iconClass + '"></i> ' + label;
+    function buildLiveDotHtml() {
+        return '<span class="scan-session-live-dot" aria-hidden="true"></span>';
+    }
+
+    function buildNormalHtml(iconClass, label, isActive) {
+        var liveDot = isActive ? buildLiveDotHtml() : '';
+        return liveDot + '<i class="ti ' + iconClass + '"></i> ' + label;
+    }
+
+    function updateBodySessionState(isActive) {
+        if (!document.body) {
+            return;
+        }
+        document.body.classList.toggle(ACTIVE_BODY_CLASS, !!isActive);
     }
 
     function updateScanSessionMenuItem(sessionState) {
         var menuItems = getMenuItems();
-        if (!menuItems.length) {
-            return;
-        }
-
         var baseState = sessionState || getDefaultState();
         var buttonLabel = baseState.buttonLabel || 'Start';
         var iconClass = baseState.iconClass || 'ti-control-play';
         var isBusy = baseState.busy === true;
+        var isActive = baseState.active === true;
         var html = isBusy
             ? buildBusyHtml(baseState.busyLabel || 'Working...')
-            : buildNormalHtml(iconClass, buttonLabel);
+            : buildNormalHtml(iconClass, buttonLabel, isActive);
+
+        updateBodySessionState(isActive);
+
+        if (!menuItems.length) {
+            return;
+        }
 
         Array.prototype.forEach.call(menuItems, function(menuItem) {
             menuItem.innerHTML = html;
-            menuItem.setAttribute('data-active', baseState.active ? 'true' : 'false');
+            menuItem.setAttribute('data-active', isActive ? 'true' : 'false');
         });
 
         setMenuItemsDisabled(isBusy);
@@ -154,6 +170,75 @@
             });
     }
 
+    function ensureConfirmationModal() {
+        if (document.getElementById('scan-session-confirmation-modal')) {
+            return;
+        }
+
+        var modal = document.createElement('div');
+        modal.id = 'scan-session-confirmation-modal';
+        modal.className = 'modal fade';
+        modal.setAttribute('tabindex', '-1');
+        modal.setAttribute('role', 'dialog');
+        modal.innerHTML = '' +
+            '<div class="modal-dialog" role="document">' +
+            '  <div class="modal-content">' +
+            '    <div class="modal-header">' +
+            '      <h4 class="modal-title text-center" id="scan-session-confirmation-title">Confirm scan session action</h4>' +
+            '    </div>' +
+            '    <div class="modal-body">' +
+            '      <p id="scan-session-confirmation-message" class="text-center" style="margin-bottom:0;">Are you sure?</p>' +
+            '    </div>' +
+            '    <div class="modal-footer">' +
+            '      <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>' +
+            '      <button type="button" class="btn btn-primary" id="scan-session-confirmation-continue">Continue</button>' +
+            '    </div>' +
+            '  </div>' +
+            '</div>';
+        document.body.appendChild(modal);
+    }
+
+    function confirmScanSessionAction(isActive) {
+        ensureConfirmationModal();
+
+        return new Promise(function(resolve) {
+            var modal = $('#scan-session-confirmation-modal');
+            var continueButton = document.getElementById('scan-session-confirmation-continue');
+            var title = document.getElementById('scan-session-confirmation-title');
+            var message = document.getElementById('scan-session-confirmation-message');
+            var resolved = false;
+
+            title.textContent = isActive ? 'Stop scanning session?' : 'Start scanning session?';
+            message.textContent = isActive
+                ? 'You are about to stop the current scanning session.'
+                : 'You are about to start a new scanning session.';
+
+            function cleanup(result) {
+                if (resolved) {
+                    return;
+                }
+                resolved = true;
+                continueButton.removeEventListener('click', onContinue);
+                modal.off('hidden.bs.modal', onHidden);
+                resolve(result);
+            }
+
+            function onContinue() {
+                cleanup(true);
+                modal.modal('hide');
+            }
+
+            function onHidden() {
+                cleanup(false);
+            }
+
+            continueButton.addEventListener('click', onContinue);
+            modal.on('hidden.bs.modal', onHidden);
+            modal.modal({backdrop: 'static', keyboard: true});
+            modal.modal('show');
+        });
+    }
+
     function handleScanSessionClick(event) {
         if (event) {
             event.preventDefault();
@@ -168,51 +253,57 @@
         var busyLabel = isActive ? 'Stopping...' : 'Starting...';
         var optimisticState = buildOptimisticState(!isActive);
 
-        scanSessionRequestInFlight = true;
-        updateScanSessionMenuItem({
-            active: isActive,
-            buttonLabel: isActive ? 'Stop' : 'Start',
-            iconClass: isActive ? 'ti-control-stop' : 'ti-control-play',
-            busy: true,
-            busyLabel: busyLabel
-        });
-
-        if (!isActive) {
-            setCachedState(optimisticState);
-        }
-
-        fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': getCsrfToken()
+        confirmScanSessionAction(isActive).then(function(confirmed) {
+            if (!confirmed) {
+                return;
             }
-        })
-            .then(function(response) {
-                if (!response.ok) {
-                    throw new Error('Unable to update scan session');
-                }
-                return response.json();
-            })
-            .then(function(data) {
-                if (data && data.active) {
-                    setCachedState(data);
-                } else {
-                    clearCachedState();
-                }
-                updateScanSessionMenuItem(data || getDefaultState());
-                if (!isActive && window.location.pathname !== '/scan-session') {
-                    window.location.href = '/scan-session';
-                }
-            })
-            .catch(function(error) {
-                console.error(error);
-                loadScanSessionStatus();
-                alert('Unable to update scan session right now.');
-            })
-            .finally(function() {
-                scanSessionRequestInFlight = false;
+
+            scanSessionRequestInFlight = true;
+            updateScanSessionMenuItem({
+                active: isActive,
+                buttonLabel: isActive ? 'Stop' : 'Start',
+                iconClass: isActive ? 'ti-control-stop' : 'ti-control-play',
+                busy: true,
+                busyLabel: busyLabel
             });
+
+            if (!isActive) {
+                setCachedState(optimisticState);
+            }
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': getCsrfToken()
+                }
+            })
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Unable to update scan session');
+                    }
+                    return response.json();
+                })
+                .then(function(data) {
+                    if (data && data.active) {
+                        setCachedState(data);
+                    } else {
+                        clearCachedState();
+                    }
+                    updateScanSessionMenuItem(data || getDefaultState());
+                    if (!isActive && window.location.pathname !== '/scan-session') {
+                        window.location.href = '/scan-session';
+                    }
+                })
+                .catch(function(error) {
+                    console.error(error);
+                    loadScanSessionStatus();
+                    alert('Unable to update scan session right now.');
+                })
+                .finally(function() {
+                    scanSessionRequestInFlight = false;
+                });
+        });
     }
 
     function injectMenuFeedbackStyles() {
@@ -242,9 +333,37 @@
             '.scan-session-spinner-label {' +
             '  display: inline-block;' +
             '}' +
+            '.scan-session-live-dot {' +
+            '  width: 9px;' +
+            '  height: 9px;' +
+            '  display: inline-block;' +
+            '  margin-right: 8px;' +
+            '  border-radius: 50%;' +
+            '  background: #ff4d4f;' +
+            '  box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.55);' +
+            '  animation: scanSessionLivePulse 1.6s ease-in-out infinite;' +
+            '  vertical-align: middle;' +
+            '}' +
+            'body.scan-session-active {' +
+            '  background: #f3f6fb;' +
+            '}' +
+            'body.scan-session-active .navbar-default {' +
+            '  background-color: #e8eef8;' +
+            '  border-color: #d5dfef;' +
+            '}' +
+            'body.scan-session-active .insidepage {' +
+            '  background: #eef3fb;' +
+            '}' +
+            'body.scan-session-active .well, body.scan-session-active .panel, body.scan-session-active .modal-content {' +
+            '  box-shadow: 0 0 0 1px rgba(199, 213, 235, 0.7);' +
+            '}' +
             '@keyframes scanSessionSpin {' +
             '  from { transform: rotate(0deg); }' +
             '  to { transform: rotate(360deg); }' +
+            '}' +
+            '@keyframes scanSessionLivePulse {' +
+            '  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.55); }' +
+            '  50% { opacity: 0.35; box-shadow: 0 0 0 6px rgba(255, 77, 79, 0); }' +
             '}';
         document.head.appendChild(style);
     }
