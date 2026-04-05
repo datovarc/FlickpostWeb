@@ -251,7 +251,7 @@
                                         <ul class="nav navbar-nav">
                         <li sec:authorize="isAuthenticated()" class="menu-item-active"><a href="javascript:void(0)" aria-current="page"><i class="ti-location-pin"></i> Audited Weight View</a></li>
                         <li sec:authorize="hasAnyAuthority('WAREHOUSE', 'ADMIN')"><a href="/warehouse"><i class="ti-location-pin"></i> Warehouse View</a></li>
-                        <li sec:authorize="isAuthenticated()"><a href="/scan-session"><i class="ti-camera"></i> Scan Session</a></li>
+                        <li sec:authorize="isAuthenticated()"><a href="/scan-session"><i class="ti-camera"></i> Scan Session View</a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right menu-nav-right">
                         <li sec:authorize="isAuthenticated()"><a href="#" id="scanSessionToggleButton"><i class="ti ti-control-play"></i> Start</a></li>
@@ -447,10 +447,6 @@
         }
     </style>
     <div class="container">
-        <ol class="breadcrumb">
-            <li><a href="/weight">Home</a></li>
-            <li class="active">Audited Weight View</li>
-        </ol>
         <div class="row">
             <div class="col-md-12">
                 <div class="pull-right" style="margin:20px;">
