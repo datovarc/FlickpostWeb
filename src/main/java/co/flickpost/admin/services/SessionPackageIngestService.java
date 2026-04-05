@@ -18,6 +18,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Service
 public class SessionPackageIngestService {
@@ -230,6 +231,7 @@ public class SessionPackageIngestService {
         packageReference.setIsCommercialPackaging(referencePayload.getIsCommercialPackaging());
         packageReference.setShippingMode(referencePayload.getShippingMode());
         packageReference.setServiceProviderName(referencePayload.getServiceProviderName());
+        packageReference.setTtlTimestamp(LocalDateTime.now());
 
         packageReferenceDao.save(packageReference);
     }

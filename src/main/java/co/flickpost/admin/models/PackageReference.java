@@ -8,6 +8,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "package_reference")
@@ -69,4 +70,7 @@ public class PackageReference implements Serializable {
 
     @Column(name = "service_provider_name")
     private String serviceProviderName;
+
+    @Column(name = "ttl_timestamp")
+    private LocalDateTime ttlTimestamp;
 }
