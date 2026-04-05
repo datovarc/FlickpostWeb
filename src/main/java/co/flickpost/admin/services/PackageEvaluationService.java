@@ -27,9 +27,9 @@ import java.util.Set;
 public class PackageEvaluationService {
 
     private static final Logger logger = LogManager.getLogger(PackageEvaluationService.class);
-    private static final String ON_HOLD = "ON_HOLD";
+    private static final String ON_HOLD = "ON HOLD";
     private static final String PROCEED = "PROCEED";
-    private static final String PENDING = "PENDING";
+    private static final String PENDING = "UNKNOWN";
     private static final String REFERENCE_SOURCE_API = "API";
     private static final String REFERENCE_SOURCE_DB = "DB";
     private static final String CONTEXT_WEIGHT = "weight";

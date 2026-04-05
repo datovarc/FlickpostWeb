@@ -97,7 +97,7 @@
         }
         return window.table.getSelectedData()
             .filter(function(row) {
-                return row && row.status === 'PENDING' && row.code;
+                return row && row.status === 'UNKNOWN' && row.code;
             })
             .map(function(row) {
                 return row.code;
@@ -189,9 +189,9 @@
             .then(function(response) {
                 if (!response.ok) {
                     return response.json().then(function(data) {
-                        throw new Error(data && data.message ? data.message : 'Unable to re-check pending packages');
+                        throw new Error(data && data.message ? data.message : 'Unable to re-check unknown packages');
                     }).catch(function() {
-                        throw new Error('Unable to re-check pending packages');
+                        throw new Error('Unable to re-check unknown packages');
                     });
                 }
                 return response.json();
@@ -202,7 +202,7 @@
             })
             .catch(function(error) {
                 console.error(error);
-                showToast(error && error.message ? error.message : 'Unable to re-check pending packages');
+                showToast(error && error.message ? error.message : 'Unable to re-check unknown packages');
             })
             .finally(function() {
                 requestInFlight = false;
