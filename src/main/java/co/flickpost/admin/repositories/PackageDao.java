@@ -324,7 +324,7 @@ public class PackageDao {
 
         List<Package> result = entityManager.createQuery(
                 "SELECT p FROM Package p WHERE p.status = :status ORDER BY p.dateTime DESC", Package.class)
-                .setParameter("status", "PENDING")
+                .setParameter("status", "UNKNOWN")
                 .getResultList();
 
         transaction.commit();
@@ -344,7 +344,7 @@ public class PackageDao {
 
         List<Package> result = entityManager.createQuery(
                 "SELECT p FROM Package p WHERE p.status = :status AND p.trackingNumber IN :trackingNumbers ORDER BY p.dateTime DESC", Package.class)
-                .setParameter("status", "PENDING")
+                .setParameter("status", "UNKNOWN")
                 .setParameter("trackingNumbers", trackingNumbers)
                 .getResultList();
 

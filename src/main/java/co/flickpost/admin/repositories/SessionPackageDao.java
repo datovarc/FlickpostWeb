@@ -232,7 +232,7 @@ public class SessionPackageDao {
     public List<SessionPackage> findAllPending() {
         return entityManager.createQuery(
                         "SELECT p FROM SessionPackage p WHERE p.status = :status ORDER BY p.dateTime DESC", SessionPackage.class)
-                .setParameter("status", "PENDING")
+                .setParameter("status", "UNKNOWN")
                 .getResultList();
     }
 
@@ -243,7 +243,7 @@ public class SessionPackageDao {
 
         return entityManager.createQuery(
                         "SELECT p FROM SessionPackage p WHERE p.status = :status AND p.trackingNumber IN :trackingNumbers ORDER BY p.dateTime DESC", SessionPackage.class)
-                .setParameter("status", "PENDING")
+                .setParameter("status", "UNKNOWN")
                 .setParameter("trackingNumbers", trackingNumbers)
                 .getResultList();
     }

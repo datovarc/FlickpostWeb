@@ -24,9 +24,9 @@ import java.time.LocalDateTime;
 public class SessionPackageIngestService {
 
     private static final Logger logger = LogManager.getLogger(SessionPackageIngestService.class);
-    private static final String ON_HOLD = "ON_HOLD";
+    private static final String ON_HOLD = "ON HOLD";
     private static final String PROCEED = "PROCEED";
-    private static final String PENDING = "PENDING";
+    private static final String PENDING = "UNKNOWN";
     private static final String REFERENCE_SOURCE_API = "API";
     private static final String REFERENCE_SOURCE_DB = "DB";
 
