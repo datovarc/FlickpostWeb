@@ -69,12 +69,12 @@ public class ScanSessionViewController {
             if (pkg.getAuditedHeight() != null) pkg.setAuditedHeight(pkg.getAuditedHeight().setScale(2, RoundingMode.UP));
             if (pkg.getAuditedWeight() != null) pkg.setAuditedWeight(pkg.getAuditedWeight().setScale(2, RoundingMode.UP));
             if (pkg.getAuditedVolumetricWeight() != null) pkg.setAuditedVolumetricWeight(pkg.getAuditedVolumetricWeight().setScale(2, RoundingMode.UP));
-            if (pkg.getChargeableWeight() != null) pkg.setChargeableWeight(pkg.getChargeableWeight().setScale(1, RoundingMode.UP));
+            if (pkg.getAuditedChargeableWeight() != null) pkg.setAuditedChargeableWeight(pkg.getAuditedChargeableWeight().setScale(1, RoundingMode.UP));
             if (pkg.getDeclaredLength() != null) pkg.setDeclaredLength(pkg.getDeclaredLength().setScale(2, RoundingMode.UP));
             if (pkg.getDeclaredWidth() != null) pkg.setDeclaredWidth(pkg.getDeclaredWidth().setScale(2, RoundingMode.UP));
             if (pkg.getDeclaredHeight() != null) pkg.setDeclaredHeight(pkg.getDeclaredHeight().setScale(2, RoundingMode.UP));
-            if (pkg.getDeclaredWeight() != null) pkg.setDeclaredWeight(pkg.getDeclaredWeight().setScale(2, RoundingMode.UP));
-            if (pkg.getClientPaidHeight() != null) pkg.setClientPaidHeight(pkg.getClientPaidHeight().setScale(2, RoundingMode.UP));
+            if (pkg.getDeclaredActualWeight() != null) pkg.setDeclaredActualWeight(pkg.getDeclaredActualWeight().setScale(2, RoundingMode.UP));
+            if (pkg.getClientPaidWeight() != null) pkg.setClientPaidWeight(pkg.getClientPaidWeight().setScale(2, RoundingMode.UP));
         }
     }
 }

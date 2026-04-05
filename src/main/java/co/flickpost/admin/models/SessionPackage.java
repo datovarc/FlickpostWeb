@@ -37,29 +37,29 @@ public class SessionPackage implements Serializable {
     @JsonProperty("code")
     private String trackingNumber;
 
-    @Column(name = "audited_length", scale = 4)
+    @Column(name = "audited_length", scale = 2)
     @JsonProperty("L")
     private BigDecimal auditedLength;
 
-    @Column(name = "audited_width", scale = 4)
+    @Column(name = "audited_width", scale = 2)
     @JsonProperty("W")
     private BigDecimal auditedWidth;
 
-    @Column(name = "audited_height", scale = 4)
+    @Column(name = "audited_height", scale = 2)
     @JsonProperty("H")
     private BigDecimal auditedHeight;
 
-    @Column(name = "audited_weight", scale = 4)
+    @Column(name = "audited_weight", scale = 2)
     @JsonProperty("weight")
     private BigDecimal auditedWeight;
 
-    @Column(name = "audited_volumetric_weight", scale = 4)
+    @Column(name = "audited_volumetric_weight", scale = 2)
     @JsonProperty("audited_volumetric_weight")
     private BigDecimal auditedVolumetricWeight;
 
-    @Column(name = "chargeable_weight", scale = 4)
-    @JsonProperty("chargeable_weight")
-    private BigDecimal chargeableWeight;
+    @Column(name = "audited_chargeable_weight", scale = 1)
+    @JsonProperty("audited_chargeable_weight")
+    private BigDecimal auditedChargeableWeight;
 
     @Column
     @JsonProperty("hid")
@@ -85,9 +85,17 @@ public class SessionPackage implements Serializable {
     @Convert(converter = ImageInfoConverter.class)
     private List<ImageInfo> imageInfos;
 
-    @Column(name = "declared_weight", scale = 2)
-    @JsonProperty("declaredWeight")
-    private BigDecimal declaredWeight;
+    @Column(name = "declared_actual_weight", scale = 2)
+    @JsonProperty("declaredActualWeight")
+    private BigDecimal declaredActualWeight;
+
+    @Column(name = "declared_chargeable_weight", scale = 1)
+    @JsonProperty("declaredChargeableWeight")
+    private BigDecimal declaredChargeableWeight;
+
+    @Column(name = "declared_volumetric_weight", scale = 2)
+    @JsonProperty("declaredVolumetricWeight")
+    private BigDecimal declaredVolumetricWeight;
 
     @Column(name = "declared_length", scale = 2)
     @JsonProperty("declaredLength")
@@ -101,9 +109,9 @@ public class SessionPackage implements Serializable {
     @JsonProperty("declaredHeight")
     private BigDecimal declaredHeight;
 
-    @Column(name = "client_paid_height", scale = 2)
-    @JsonProperty("clientPaidHeight")
-    private BigDecimal clientPaidHeight;
+    @Column(name = "client_paid_weight", scale = 2)
+    @JsonProperty("clientPaidWeight")
+    private BigDecimal clientPaidWeight;
 
     @Column(name = "destination_country")
     @JsonProperty("destinationCountry")
@@ -128,6 +136,10 @@ public class SessionPackage implements Serializable {
     @Column(name = "shipping_mode")
     @JsonProperty("shippingMode")
     private String shippingMode;
+
+    @Column(name = "service_provider_name")
+    @JsonProperty("serviceProviderName")
+    private String serviceProviderName;
 
     @Column(name = "shipment_id")
     @JsonProperty("shipmentId")

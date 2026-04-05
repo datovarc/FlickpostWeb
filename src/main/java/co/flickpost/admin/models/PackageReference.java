@@ -28,10 +28,13 @@ public class PackageReference implements Serializable {
     @Column(name = "shipment_id")
     private String shipmentId;
 
-    @Column(name = "declared_weight", scale = 2)
-    private BigDecimal declaredWeight;
+    @Column(name = "declared_actual_weight", scale = 2)
+    private BigDecimal declaredActualWeight;
 
-    @Column(name = "chargeable_weight", scale = 2)
+    @Column(name = "declared_volumetric_weight", scale = 2)
+    private BigDecimal declaredVolumetricWeight;
+
+    @Column(name = "declared_chargeable_weight", scale = 1)
     private BigDecimal declaredChargeableWeight;
 
     @Column(name = "declared_length", scale = 2)
@@ -43,8 +46,8 @@ public class PackageReference implements Serializable {
     @Column(name = "declared_width", scale = 2)
     private BigDecimal declaredWidth;
 
-    @Column(name = "client_paid_height", scale = 2)
-    private BigDecimal clientPaidHeight;
+    @Column(name = "client_paid_weight", scale = 2)
+    private BigDecimal clientPaidWeight;
 
     @Column(name = "destination_country")
     private String destinationCountry;
@@ -63,4 +66,7 @@ public class PackageReference implements Serializable {
 
     @Column(name = "shipping_mode")
     private String shippingMode;
+
+    @Column(name = "service_provider_name")
+    private String serviceProviderName;
 }

@@ -37,7 +37,7 @@ public class PackageHelper {
 
     public static void updateChargeableWeight(Package pkg){
         logger.info("Started determining Chargeable Weight for: " + pkg.getTrackingNumber());
-        if(pkg.getAuditedWeight() == null || pkg.getAuditedVolumetricWeight() == null || pkg.getChargeableWeight() != null){
+        if(pkg.getAuditedWeight() == null || pkg.getAuditedVolumetricWeight() == null || pkg.getAuditedChargeableWeight() != null){
             return;
         }
 
@@ -48,7 +48,7 @@ public class PackageHelper {
         chargeableWeight = auditedWeight.compareTo(auditedVolumetricWeight) == 1
                 ? auditedWeight : auditedVolumetricWeight;
 
-        pkg.setChargeableWeight(chargeableWeight.setScale(1, RoundingMode.UP));
+        pkg.setAuditedChargeableWeight(chargeableWeight.setScale(1, RoundingMode.UP));
         logger.info("Finished determining Chargeable Weight for: " + pkg.getTrackingNumber() + " -> " + chargeableWeight.toString());
 
     }
@@ -60,7 +60,7 @@ public class PackageHelper {
             pkg.setAuditedWeight(pkg.getAuditedWeight().setScale(2, RoundingMode.UP));
             pkg.setAuditedWidth(pkg.getAuditedWidth().setScale(2, RoundingMode.UP));
             pkg.setAuditedVolumetricWeight(pkg.getAuditedVolumetricWeight().setScale(2, RoundingMode.UP));
-            pkg.setChargeableWeight(pkg.getChargeableWeight().setScale(1, RoundingMode.UP));
+            pkg.setAuditedChargeableWeight(pkg.getAuditedChargeableWeight().setScale(1, RoundingMode.UP));
         }
 
     }

@@ -61,7 +61,7 @@ public class SessionPackageIngestService {
         sessionPackage.setAuditedHeight(request.getAuditedHeight());
         sessionPackage.setAuditedWeight(request.getAuditedWeight());
         sessionPackage.setAuditedVolumetricWeight(request.getAuditedVolumetricWeight());
-        sessionPackage.setChargeableWeight(request.getChargeableWeight());
+        sessionPackage.setAuditedChargeableWeight(request.getChargeableWeight());
         sessionPackage.setHid(request.getHid());
         sessionPackage.setDateTime(request.getDateTime());
         sessionPackage.setSessionId(request.getSessionId());
@@ -86,7 +86,7 @@ public class SessionPackageIngestService {
         Boolean isUnderdeclared = evaluateIsUnderdeclared(
                 request.getTrackingNumber(),
                 sessionPackage.getShippingMode(),
-                sessionPackage.getDeclaredWeight(),
+                sessionPackage.getDeclaredActualWeight(),
                 sessionPackage.getAuditedWeight(),
                 sessionPackage.getAuditedVolumetricWeight()
         );
@@ -174,8 +174,8 @@ public class SessionPackageIngestService {
         copy.setDeclaredLength(source.getDeclaredLength());
         copy.setDeclaredWidth(source.getDeclaredWidth());
         copy.setDeclaredHeight(source.getDeclaredHeight());
-        copy.setDeclaredWeight(source.getDeclaredWeight());
-        copy.setClientPaidHeight(source.getClientPaidHeight());
+        copy.setDeclaredActualWeight(source.getDeclaredActualWeight());
+        copy.setClientPaidWeight(source.getClientPaidWeight());
         copy.setDestinationCountry(source.getDestinationCountry());
         copy.setContainsLiquid(source.getContainsLiquid());
         copy.setContainsBattery(source.getContainsBattery());
@@ -183,7 +183,7 @@ public class SessionPackageIngestService {
         copy.setIsCommercialPackaging(source.getIsCommercialPackaging());
         copy.setShippingMode(source.getShippingMode());
         copy.setAuditedVolumetricWeight(source.getAuditedVolumetricWeight());
-        copy.setChargeableWeight(source.getChargeableWeight());
+        copy.setAuditedChargeableWeight(source.getAuditedChargeableWeight());
         copy.setHid(source.getHid());
         copy.setDateTime(source.getDateTime());
         copy.setSessionId(source.getSessionId());
@@ -213,11 +213,11 @@ public class SessionPackageIngestService {
         }
 
         packageReference.setShipmentId(referencePayload.getShipmentId());
-        packageReference.setDeclaredWeight(referencePayload.getDeclaredWeight());
+        packageReference.setDeclaredActualWeight(referencePayload.getDeclaredWeight());
         packageReference.setDeclaredLength(referencePayload.getDeclaredLength());
         packageReference.setDeclaredWidth(referencePayload.getDeclaredWidth());
         packageReference.setDeclaredHeight(referencePayload.getDeclaredHeight());
-        packageReference.setClientPaidHeight(referencePayload.getClientPaidHeight());
+        packageReference.setClientPaidWeight(referencePayload.getClientPaidHeight());
         packageReference.setDestinationCountry(referencePayload.getDestinationCountry());
         packageReference.setItemCondition(referencePayload.getItemCondition());
         packageReference.setContainsLiquid(referencePayload.getContainsLiquid());
@@ -230,11 +230,11 @@ public class SessionPackageIngestService {
 
     private void applyReferencePayload(SessionPackage sessionPackage, FpReferencePayload referencePayload) {
         sessionPackage.setShipmentId(referencePayload.getShipmentId());
-        sessionPackage.setDeclaredWeight(referencePayload.getDeclaredWeight());
+        sessionPackage.setDeclaredActualWeight(referencePayload.getDeclaredWeight());
         sessionPackage.setDeclaredLength(referencePayload.getDeclaredLength());
         sessionPackage.setDeclaredWidth(referencePayload.getDeclaredWidth());
         sessionPackage.setDeclaredHeight(referencePayload.getDeclaredHeight());
-        sessionPackage.setClientPaidHeight(referencePayload.getClientPaidHeight());
+        sessionPackage.setClientPaidWeight(referencePayload.getClientPaidHeight());
         sessionPackage.setDestinationCountry(referencePayload.getDestinationCountry());
         sessionPackage.setItemCondition(referencePayload.getItemCondition());
         sessionPackage.setContainsLiquid(referencePayload.getContainsLiquid());
@@ -245,11 +245,11 @@ public class SessionPackageIngestService {
 
     private void applyPackageReference(SessionPackage sessionPackage, PackageReference packageReference) {
         sessionPackage.setShipmentId(packageReference.getShipmentId());
-        sessionPackage.setDeclaredWeight(packageReference.getDeclaredWeight());
+        sessionPackage.setDeclaredActualWeight(packageReference.getDeclaredActualWeight());
         sessionPackage.setDeclaredLength(packageReference.getDeclaredLength());
         sessionPackage.setDeclaredWidth(packageReference.getDeclaredWidth());
         sessionPackage.setDeclaredHeight(packageReference.getDeclaredHeight());
-        sessionPackage.setClientPaidHeight(packageReference.getClientPaidHeight());
+        sessionPackage.setClientPaidWeight(packageReference.getClientPaidWeight());
         sessionPackage.setDestinationCountry(packageReference.getDestinationCountry());
         sessionPackage.setItemCondition(packageReference.getItemCondition());
         sessionPackage.setContainsLiquid(packageReference.getContainsLiquid());

@@ -14,7 +14,6 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Table(name = "package")
@@ -58,9 +57,9 @@ public class Package implements Serializable {
     @JsonProperty("audited_volumetric_weight")
     private BigDecimal auditedVolumetricWeight;
 
-    @Column(name = "chargeable_weight", scale = 4)
-    @JsonProperty("chargeable_weight")
-    private BigDecimal chargeableWeight;
+    @Column(name = "audited_chargeable_weight", scale = 4)
+    @JsonProperty("audited_chargeable_weight")
+    private BigDecimal auditedChargeableWeight;
 
     @Column
     @JsonProperty("hid")
@@ -86,9 +85,9 @@ public class Package implements Serializable {
     @Convert(converter = ImageInfoConverter.class)
     private List<ImageInfo> imageInfos;
 
-    @Column(name = "declared_weight", scale = 2)
-    @JsonProperty("declaredWeight")
-    private BigDecimal declaredWeight;
+    @Column(name = "declared_actual_weight", scale = 2)
+    @JsonProperty("declaredActualWeight")
+    private BigDecimal declaredActualWeight;
 
     @Column(name = "declared_length", scale = 2)
     @JsonProperty("declaredLength")
@@ -102,9 +101,17 @@ public class Package implements Serializable {
     @JsonProperty("declaredHeight")
     private BigDecimal declaredHeight;
 
-    @Column(name = "client_paid_height", scale = 2)
-    @JsonProperty("clientPaidHeight")
-    private BigDecimal clientPaidHeight;
+    @Column(name = "client_paid_weight", scale = 2)
+    @JsonProperty("clientPaidWeight")
+    private BigDecimal clientPaidWeight;
+
+    @Column(name = "declared_chargeable_weight", scale = 1)
+    @JsonProperty("declaredChargeableWeight")
+    private BigDecimal declaredChargeableWeight;
+
+    @Column(name = "declared_volumetric_weight", scale = 2)
+    @JsonProperty("declaredVolumetricWeight")
+    private BigDecimal declaredVolumetricWeight;
 
     @Column(name = "destination_country")
     @JsonProperty("destinationCountry")
@@ -129,6 +136,10 @@ public class Package implements Serializable {
     @Column(name = "shipping_mode")
     @JsonProperty("shippingMode")
     private String shippingMode;
+
+    @Column(name = "service_provider_name")
+    @JsonProperty("serviceProviderName")
+    private String serviceProviderName;
 
     @Column(name = "shipment_id")
     @JsonProperty("shipmentId")

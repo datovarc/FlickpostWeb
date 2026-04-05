@@ -154,7 +154,7 @@ public class ExcelHelper {
                 row.createCell(8).setCellValue("Success");
                 row.createCell(9).setCellValue(pkg.getHid());
                 row.createCell(10).setCellValue(getDoubleValue(pkg.getAuditedVolumetricWeight(), 2));
-                row.createCell(11).setCellValue(getDoubleValue(pkg.getChargeableWeight(), 1));
+                row.createCell(11).setCellValue(getDoubleValue(pkg.getAuditedChargeableWeight(), 1));
             }
 
             workbook.write(out);
@@ -239,7 +239,7 @@ public class ExcelHelper {
                 break;
             case 11:
                 if(value != null) {
-                    pkg.setChargeableWeight(value.setScale(1, RoundingMode.UP));
+                    pkg.setAuditedChargeableWeight(value.setScale(1, RoundingMode.UP));
                 }
                 break;
         }
