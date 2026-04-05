@@ -513,6 +513,12 @@
                                 ajaxContentType:"json",
                                 ajaxFiltering: true,
                                 // filters: tableFilters,
+                                rowClick:function(e, row){
+                                    if (e.target && (e.target.closest("button") || e.target.closest("a") || e.target.closest("input") || e.target.closest("textarea") || e.target.closest("select") || e.target.closest("label"))) {
+                                        return;
+                                    }
+                                    row.toggleSelect();
+                                },
                                 paginationSize: 10,
                                 paginationSizeSelector:[10, 25, 50, 100],
                                 columns:[
@@ -551,13 +557,6 @@
                             });
 
                             table.redraw(true);
-
-                            table.on("rowClick", function(e, row){
-                                if (e.target && (e.target.closest("button") || e.target.closest("a") || e.target.closest("input") || e.target.closest("textarea") || e.target.closest("select") || e.target.closest("label"))) {
-                                    return;
-                                }
-                                row.toggleSelect();
-                            });
 
 
                             function getStatusTextClass(status){
