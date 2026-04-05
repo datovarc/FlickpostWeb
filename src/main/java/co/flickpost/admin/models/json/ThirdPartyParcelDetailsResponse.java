@@ -19,7 +19,7 @@ public class ThirdPartyParcelDetailsResponse {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ResponseData {
         private Boolean success;
-        private ParcelData data;
+        private List<ParcelData> data;
     }
 
     @Getter
