@@ -340,10 +340,8 @@
             '  margin-right: 8px;' +
             '  border-radius: 50%;' +
             '  background: #e53935;' +
-            '  vertical-align: middle;' +
-            '  position: relative;' +
-            '  top: -1px;' +
-            '  animation: scanSessionLiveBlink 1.4s step-end infinite;' +
+            '  vertical-align: -1px;' +
+            '  animation: scanSessionLiveFade 1.8s ease-in-out infinite;' +
             '}' +
             '.scan-session-confirmation-dialog {' +
             '  width: 420px;' +
@@ -368,15 +366,16 @@
             '  font-size: 20px;' +
             '}' +
             'body.scan-session-active {' +
-            '  background: #dbe3eb;' +
+            '  background: #c2ceda;' +
             '}' +
             '@keyframes scanSessionSpin {' +
             '  from { transform: rotate(0deg); }' +
             '  to { transform: rotate(360deg); }' +
             '}' +
-            '@keyframes scanSessionLiveBlink {' +
-            '  0%, 55% { opacity: 1; }' +
-            '  56%, 100% { opacity: 0.22; }' +
+            '@keyframes scanSessionLiveFade {' +
+            '  0% { opacity: 0; }' +
+            '  50% { opacity: 1; }' +
+            '  100% { opacity: 0; }' +
             '}';
         document.head.appendChild(style);
     }
