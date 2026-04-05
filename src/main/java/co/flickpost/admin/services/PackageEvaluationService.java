@@ -17,9 +17,10 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -56,18 +57,31 @@ public class PackageEvaluationService {
             throw new IllegalArgumentException("Unsupported context: " + context);
         }
 
-        Set<String> trackingNumbers = new LinkedHashSet<>();
+        Set<String> requestedTrackingSet = new LinkedHashSet<>();
         if (requestedTrackingNumbers != null && !requestedTrackingNumbers.isEmpty()) {
             for (String trackingNumber : requestedTrackingNumbers) {
                 if (StringUtils.isNotBlank(trackingNumber)) {
-                    trackingNumbers.add(trackingNumber.trim());
+                    requestedTrackingSet.add(trackingNumber.trim());
                 }
             }
         }
 
-        List<?> pendingRecords = trackingNumbers.isEmpty()
+        List<?> pendingRecords = requestedTrackingSet.isEmpty()
                 ? loadAllPending(normalizedContext)
-                : loadPendingByTrackingNumbers(normalizedContext, new ArrayList<>(trackingNumbers));
+                : loadPendingByTrackingNumbers(normalizedContext, new ArrayList<>(requestedTrackingSet));
+
+        List<String> pendingTrackingNumbers = new ArrayList<>();
+        for (Object record : pendingRecords) {
+            if (record instanceof Package) {
+                pendingTrackingNumbers.add(((Package) record).getTrackingNumber());
+            } else if (record instanceof SessionPackage) {
+                pendingTrackingNumbers.add(((SessionPackage) record).getTrackingNumber());
+            }
+        }
+
+        Map<String, PackageReference> apiReferences = pendingTrackingNumbers.isEmpty()
+                ? new LinkedHashMap<>()
+                : thirdPartyParcelDetailsService.fetchAndUpsert(pendingTrackingNumbers);
 
         int recheckedCount = 0;
         int foundFromApiCount = 0;
@@ -80,8 +94,8 @@ public class PackageEvaluationService {
             }
             recheckedCount++;
             RecheckOutcome outcome = CONTEXT_WEIGHT.equals(normalizedContext)
-                    ? recheckPackage((Package) record)
-                    : recheckSessionPackage((SessionPackage) record);
+                    ? recheckPackage((Package) record, apiReferences)
+                    : recheckSessionPackage((SessionPackage) record, apiReferences);
 
             if (outcome == RecheckOutcome.API) {
                 foundFromApiCount++;
@@ -113,11 +127,11 @@ public class PackageEvaluationService {
                 : sessionPackageDao.findPendingByTrackingNumbers(trackingNumbers);
     }
 
-    private RecheckOutcome recheckPackage(Package pkg) {
+    private RecheckOutcome recheckPackage(Package pkg, Map<String, PackageReference> apiReferences) {
         String trackingNumber = pkg.getTrackingNumber();
-        Optional<PackageReference> apiReference = thirdPartyParcelDetailsService.fetchAndUpsert(trackingNumber);
-        if (apiReference.isPresent()) {
-            applyPackageReference(pkg, apiReference.get());
+        PackageReference apiReference = apiReferences.get(trackingNumber);
+        if (apiReference != null) {
+            applyPackageReference(pkg, apiReference);
             pkg.setReferenceSource(REFERENCE_SOURCE_API);
             finalizePackage(pkg);
             packageDao.singleUpdate(pkg);
@@ -140,11 +154,11 @@ public class PackageEvaluationService {
         return RecheckOutcome.MISSING;
     }
 
-    private RecheckOutcome recheckSessionPackage(SessionPackage sessionPackage) {
+    private RecheckOutcome recheckSessionPackage(SessionPackage sessionPackage, Map<String, PackageReference> apiReferences) {
         String trackingNumber = sessionPackage.getTrackingNumber();
-        Optional<PackageReference> apiReference = thirdPartyParcelDetailsService.fetchAndUpsert(trackingNumber);
-        if (apiReference.isPresent()) {
-            applySessionPackageReference(sessionPackage, apiReference.get());
+        PackageReference apiReference = apiReferences.get(trackingNumber);
+        if (apiReference != null) {
+            applySessionPackageReference(sessionPackage, apiReference);
             sessionPackage.setReferenceSource(REFERENCE_SOURCE_API);
             finalizeSessionPackage(sessionPackage);
             sessionPackageDao.singleUpdate(sessionPackage);

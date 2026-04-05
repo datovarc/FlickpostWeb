@@ -12,13 +12,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @Service
 public class ThirdPartyParcelDetailsService {
@@ -33,38 +37,55 @@ public class ThirdPartyParcelDetailsService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public Optional<PackageReference> fetchAndUpsert(String trackingNumber) {
-        try {
-            String requestUrl = properties.getThirdPartyParcelDetailsUrl();
-            if (StringUtils.isBlank(requestUrl)) {
-                logger.warn("Third-party parcel details URL is not configured. Skipping reference enrichment for {}", trackingNumber);
-                return Optional.empty();
-            }
+    public Map<String, PackageReference> fetchAndUpsert(List<String> trackingNumbers) {
+        if (trackingNumbers == null || trackingNumbers.isEmpty()) {
+            return Collections.emptyMap();
+        }
 
+        String requestUrl = properties.getThirdPartyParcelDetailsUrl();
+        if (StringUtils.isBlank(requestUrl)) {
+            logger.warn("Third-party parcel details URL is not configured. Skipping reference enrichment for {} tracking numbers", trackingNumbers.size());
+            return Collections.emptyMap();
+        }
+
+        try {
             HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("x-api-key", properties.getThirdPartyApiKey());
-            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("trackingNumbers", new ArrayList<>(trackingNumbers));
+
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
 
             ResponseEntity<ThirdPartyParcelDetailsResponse> response = restTemplate.exchange(
-                    requestUrl + "/" + trackingNumber,
-                    HttpMethod.GET,
+                    requestUrl,
+                    HttpMethod.POST,
                     requestEntity,
                     ThirdPartyParcelDetailsResponse.class
             );
 
             ThirdPartyParcelDetailsResponse body = response.getBody();
             if (body == null || body.getData() == null || body.getData().getData() == null || !Boolean.TRUE.equals(body.getData().getSuccess())) {
-                logger.warn("Third-party parcel details response was incomplete or unsuccessful for {}", trackingNumber);
-                return Optional.empty();
+                logger.warn("Third-party parcel details batch response was incomplete or unsuccessful for {} tracking numbers", trackingNumbers.size());
+                return Collections.emptyMap();
             }
 
-            PackageReference packageReference = mapToPackageReference(body.getData().getData());
-            packageReferenceDao.save(packageReference);
-            logger.info("Stored package reference for {}", trackingNumber);
-            return Optional.of(packageReference);
+            Map<String, PackageReference> referencesByTrackingNumber = new LinkedHashMap<>();
+            for (ThirdPartyParcelDetailsResponse.ParcelData parcelData : body.getData().getData()) {
+                if (parcelData == null || StringUtils.isBlank(parcelData.getTrackingNumber())) {
+                    continue;
+                }
+                PackageReference packageReference = mapToPackageReference(parcelData);
+                packageReferenceDao.save(packageReference);
+                referencesByTrackingNumber.put(packageReference.getTrackingNumber(), packageReference);
+            }
+
+            logger.info("Stored {} package references from batch lookup", referencesByTrackingNumber.size());
+            return referencesByTrackingNumber;
         } catch (Exception exception) {
-            logger.warn("Failed to fetch/store package reference for {}. Proceeding without enrichment.", trackingNumber, exception);
-            return Optional.empty();
+            logger.warn("Failed to fetch/store package references in batch. Proceeding without API enrichment.", exception);
+            return Collections.emptyMap();
         }
     }
 
