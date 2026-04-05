@@ -9,15 +9,18 @@ import java.math.BigDecimal;
 @Setter
 public class FpReferencePayload {
     private String shipmentId;
-    private BigDecimal declaredWeight;
+    private BigDecimal declaredActualWeight;
+    private BigDecimal declaredChargeableWeight;
+    private BigDecimal declaredVolumetricWeight;
     private BigDecimal declaredLength;
     private BigDecimal declaredWidth;
     private BigDecimal declaredHeight;
-    private BigDecimal clientPaidHeight;
+    private BigDecimal clientPaidWeight;
     private String destinationCountry;
     private String itemCondition;
     private Boolean containsLiquid;
     private Boolean containsBattery;
     private Boolean isCommercialPackaging;
     private String shippingMode;
+    private String serviceProviderName;
 }

@@ -175,8 +175,11 @@ public class SessionPackageIngestService {
         copy.setDeclaredWidth(source.getDeclaredWidth());
         copy.setDeclaredHeight(source.getDeclaredHeight());
         copy.setDeclaredActualWeight(source.getDeclaredActualWeight());
+        copy.setDeclaredChargeableWeight(source.getDeclaredChargeableWeight());
+        copy.setDeclaredVolumetricWeight(source.getDeclaredVolumetricWeight());
         copy.setClientPaidWeight(source.getClientPaidWeight());
         copy.setDestinationCountry(source.getDestinationCountry());
+        copy.setServiceProviderName(source.getServiceProviderName());
         copy.setContainsLiquid(source.getContainsLiquid());
         copy.setContainsBattery(source.getContainsBattery());
         copy.setItemCondition(source.getItemCondition());
@@ -213,39 +216,47 @@ public class SessionPackageIngestService {
         }
 
         packageReference.setShipmentId(referencePayload.getShipmentId());
-        packageReference.setDeclaredActualWeight(referencePayload.getDeclaredWeight());
+        packageReference.setDeclaredActualWeight(referencePayload.getDeclaredActualWeight());
+        packageReference.setDeclaredChargeableWeight(referencePayload.getDeclaredChargeableWeight());
+        packageReference.setDeclaredVolumetricWeight(referencePayload.getDeclaredVolumetricWeight());
         packageReference.setDeclaredLength(referencePayload.getDeclaredLength());
         packageReference.setDeclaredWidth(referencePayload.getDeclaredWidth());
         packageReference.setDeclaredHeight(referencePayload.getDeclaredHeight());
-        packageReference.setClientPaidWeight(referencePayload.getClientPaidHeight());
+        packageReference.setClientPaidWeight(referencePayload.getClientPaidWeight());
         packageReference.setDestinationCountry(referencePayload.getDestinationCountry());
         packageReference.setItemCondition(referencePayload.getItemCondition());
         packageReference.setContainsLiquid(referencePayload.getContainsLiquid());
         packageReference.setContainsBattery(referencePayload.getContainsBattery());
         packageReference.setIsCommercialPackaging(referencePayload.getIsCommercialPackaging());
         packageReference.setShippingMode(referencePayload.getShippingMode());
+        packageReference.setServiceProviderName(referencePayload.getServiceProviderName());
 
         packageReferenceDao.save(packageReference);
     }
 
     private void applyReferencePayload(SessionPackage sessionPackage, FpReferencePayload referencePayload) {
         sessionPackage.setShipmentId(referencePayload.getShipmentId());
-        sessionPackage.setDeclaredActualWeight(referencePayload.getDeclaredWeight());
+        sessionPackage.setDeclaredActualWeight(referencePayload.getDeclaredActualWeight());
+        sessionPackage.setDeclaredChargeableWeight(referencePayload.getDeclaredChargeableWeight());
+        sessionPackage.setDeclaredVolumetricWeight(referencePayload.getDeclaredVolumetricWeight());
         sessionPackage.setDeclaredLength(referencePayload.getDeclaredLength());
         sessionPackage.setDeclaredWidth(referencePayload.getDeclaredWidth());
         sessionPackage.setDeclaredHeight(referencePayload.getDeclaredHeight());
-        sessionPackage.setClientPaidWeight(referencePayload.getClientPaidHeight());
+        sessionPackage.setClientPaidWeight(referencePayload.getClientPaidWeight());
         sessionPackage.setDestinationCountry(referencePayload.getDestinationCountry());
         sessionPackage.setItemCondition(referencePayload.getItemCondition());
         sessionPackage.setContainsLiquid(referencePayload.getContainsLiquid());
         sessionPackage.setContainsBattery(referencePayload.getContainsBattery());
         sessionPackage.setIsCommercialPackaging(referencePayload.getIsCommercialPackaging());
         sessionPackage.setShippingMode(referencePayload.getShippingMode());
+        sessionPackage.setServiceProviderName(referencePayload.getServiceProviderName());
     }
 
     private void applyPackageReference(SessionPackage sessionPackage, PackageReference packageReference) {
         sessionPackage.setShipmentId(packageReference.getShipmentId());
         sessionPackage.setDeclaredActualWeight(packageReference.getDeclaredActualWeight());
+        sessionPackage.setDeclaredChargeableWeight(packageReference.getDeclaredChargeableWeight());
+        sessionPackage.setDeclaredVolumetricWeight(packageReference.getDeclaredVolumetricWeight());
         sessionPackage.setDeclaredLength(packageReference.getDeclaredLength());
         sessionPackage.setDeclaredWidth(packageReference.getDeclaredWidth());
         sessionPackage.setDeclaredHeight(packageReference.getDeclaredHeight());
@@ -256,6 +267,7 @@ public class SessionPackageIngestService {
         sessionPackage.setContainsBattery(packageReference.getContainsBattery());
         sessionPackage.setIsCommercialPackaging(packageReference.getIsCommercialPackaging());
         sessionPackage.setShippingMode(packageReference.getShippingMode());
+        sessionPackage.setServiceProviderName(packageReference.getServiceProviderName());
     }
 
     private Boolean evaluateIsUnderdeclared(String trackingNumber,
