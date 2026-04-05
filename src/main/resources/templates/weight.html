@@ -25,6 +25,7 @@
     <script src="js/lightbox.js"></script>
     <script src="js/contextmenu.js"></script>
     <script src="js/scan-session-toggle.js"></script>
+    <script src="js/recheck-pending.js"></script>
     <script type="text/javascript" src="js/countries.js?v=16"></script>
     <meta property="og:title" content="flickpost | Your e-commerce logistics solutions provider ">
     <meta property="og:description" content="Get RM 10 off your first shipment! ">
@@ -255,6 +256,7 @@
                     </ul>
                     <ul class="nav navbar-nav navbar-right menu-nav-right">
                         <li sec:authorize="isAuthenticated()"><a href="#" id="scanSessionToggleButton"><i class="ti ti-control-play"></i> Start</a></li>
+                        <li sec:authorize="isAuthenticated()"><a href="#" id="recheckPendingButton" data-recheck-context="weight"><i class="ti-reload"></i> Re-check</a></li>
                         <li sec:authorize="isAuthenticated()"><a href="#" data-toggle="modal" data-target="#uploadReportFile"><i class="ti-upload"></i> Upload Report</a></li>
                     </ul>
                 </div>

@@ -4,8 +4,10 @@ import co.flickpost.admin.configurations.FlickPostProperties;
 import co.flickpost.admin.models.json.DuplicateResolutionRequest;
 import co.flickpost.admin.models.json.FpSessionPackageIngestRequest;
 import co.flickpost.admin.models.json.FpSessionPackageIngestResponse;
+import co.flickpost.admin.models.json.RecheckPendingRequest;
 import co.flickpost.admin.security.UserDetailsImpl;
 import co.flickpost.admin.services.DuplicateSessionPackageResolutionService;
+import co.flickpost.admin.services.PackageEvaluationService;
 import co.flickpost.admin.services.PendingDuplicateSessionPackageService;
 import co.flickpost.admin.services.ScanSessionService;
 import co.flickpost.admin.services.ScanSessionSseService;
@@ -46,6 +48,9 @@ public class ScanSessionActionController {
 
     @Autowired
     private ScanSessionSseService scanSessionSseService;
+
+    @Autowired
+    private PackageEvaluationService packageEvaluationService;
 
     @Autowired
     private FlickPostProperties flickPostProperties;
@@ -106,6 +111,27 @@ public class ScanSessionActionController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         logger.info("{} - Received scan session stop API request", userDetails.getUsername());
         return ResponseEntity.ok(scanSessionService.stopSession(userDetails));
+    }
+
+    @PostMapping("/recheck-pending")
+    public ResponseEntity<?> recheckPending(@RequestBody RecheckPendingRequest request,
+                                            org.springframework.security.core.Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        logger.info("{} - Received recheck pending API request for context={} count={}",
+                userDetails.getUsername(),
+                request != null ? request.getContext() : null,
+                request != null && request.getTrackingNumbers() != null ? request.getTrackingNumbers().size() : 0);
+        try {
+            return ResponseEntity.ok(packageEvaluationService.recheckPending(
+                    request != null ? request.getContext() : null,
+                    request != null ? request.getTrackingNumbers() : null
+            ));
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> error = new LinkedHashMap<>();
+            error.put("success", false);
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
     }
 
     @PostMapping("/api/scan-session/session/ingest-package")
