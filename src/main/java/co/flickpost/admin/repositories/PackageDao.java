@@ -16,6 +16,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -155,7 +156,6 @@ public class PackageDao {
         logger.info("Started pagination transaction. Pg. {}", request.getPageNumber());
         transaction.begin();
 
-        //Selecting
         CriteriaBuilder selectCriteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Package> selectQuery = selectCriteriaBuilder.createQuery(Package.class);
         Root<Package> selectRoot = selectQuery.from(Package.class);
@@ -163,7 +163,6 @@ public class PackageDao {
         CriteriaQuery<Package> paged = selectQuery.select(selectRoot);
         paged.orderBy(selectCriteriaBuilder.desc(selectRoot.get("dateTime")));
 
-        //Counting
         CriteriaBuilder countCriteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> countQuery = countCriteriaBuilder.createQuery(Long.class);
         Root<Package> countRoot = countQuery.from(Package.class);
@@ -231,7 +230,6 @@ public class PackageDao {
             }
         }
 
-        //Add User Filter
         if(!HQ.equalsIgnoreCase(userCompany)){
             predicates.add(cb.equal(rootEntry.get(HUB), userCompany));
         }
@@ -316,6 +314,43 @@ public class PackageDao {
         entityManager.close();
 
         return queryResult;
+    }
+
+    @Transactional
+    public List<Package> findAllPending() {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+
+        List<Package> result = entityManager.createQuery(
+                "SELECT p FROM Package p WHERE p.status = :status ORDER BY p.dateTime DESC", Package.class)
+                .setParameter("status", "PENDING")
+                .getResultList();
+
+        transaction.commit();
+        entityManager.close();
+        return result;
+    }
+
+    @Transactional
+    public List<Package> findPendingByTrackingNumbers(List<String> trackingNumbers) {
+        if (trackingNumbers == null || trackingNumbers.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+
+        List<Package> result = entityManager.createQuery(
+                "SELECT p FROM Package p WHERE p.status = :status AND p.trackingNumber IN :trackingNumbers ORDER BY p.dateTime DESC", Package.class)
+                .setParameter("status", "PENDING")
+                .setParameter("trackingNumbers", trackingNumbers)
+                .getResultList();
+
+        transaction.commit();
+        entityManager.close();
+        return result;
     }
 
 }

@@ -19,6 +19,7 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
+import java.util.Collections;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -226,5 +227,24 @@ public class SessionPackageDao {
 
         CriteriaQuery<SessionPackage> filtered = cq.select(rootEntry).where(predicates.toArray(new Predicate[]{}));
         return entityManager.createQuery(filtered).getResultList();
+    }
+
+    public List<SessionPackage> findAllPending() {
+        return entityManager.createQuery(
+                        "SELECT p FROM SessionPackage p WHERE p.status = :status ORDER BY p.dateTime DESC", SessionPackage.class)
+                .setParameter("status", "PENDING")
+                .getResultList();
+    }
+
+    public List<SessionPackage> findPendingByTrackingNumbers(List<String> trackingNumbers) {
+        if (trackingNumbers == null || trackingNumbers.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return entityManager.createQuery(
+                        "SELECT p FROM SessionPackage p WHERE p.status = :status AND p.trackingNumber IN :trackingNumbers ORDER BY p.dateTime DESC", SessionPackage.class)
+                .setParameter("status", "PENDING")
+                .setParameter("trackingNumbers", trackingNumbers)
+                .getResultList();
     }
 }
