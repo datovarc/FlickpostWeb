@@ -6632,10 +6632,10 @@ color: #555;
 
 .navbar-brand {
   float: left;
-  padding: 2px 0;
-  font-size: 17px;
-  line-height: 20px;
-  height: 46px;
+  padding: 5px 0;
+  font-size: 18px;
+  line-height: 22px;
+  height: 58px;
 }
 
 .navbar-brand:focus,
@@ -6646,7 +6646,7 @@ color: #555;
 .navbar-brand img {
   display: block;
   width: 100%;
-	max-height: 40px;
+	max-height: 50px;
   height: 100%;
 }
 
