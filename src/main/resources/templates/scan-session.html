@@ -741,8 +741,8 @@
             </div>
         </div>
     </nav>
-    <div class="container">
-        <nav class="navbar navbar-default">
+    <div class="container-fluid fp-page-shell">
+        <nav class="navbar navbar-default fp-subnav">
             <div class="container-fluid">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
@@ -1059,12 +1059,24 @@
             color: inherit !important;
             overflow: visible;
         }
-    </style>
-    <div class="container">
+            .fp-page-shell {
+            max-width: 1680px;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        .fp-subnav {
+            margin-bottom: 8px;
+            min-height: 36px;
+        }
+        .fp-page-content {
+            margin-top: 0;
+        }
+</style>
+    <div class="container-fluid fp-page-shell fp-page-content">
         <div class="row">
             <div class="col-md-12">
                 <div class="panel panel-default">
-                    <div class="panel-heading" style="padding:11px 17px;">Scan Session</div>
+                    <div class="panel-heading" style="padding:7px 12px;">Scan Session</div>
                     <div id="scan-session-latest-summary" class="scan-session-latest-summary"></div>
                     <div class="searchform" style="display:none">
                         <div class="row">

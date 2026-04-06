@@ -239,8 +239,8 @@
 
         </div>
     </nav>
-    <div class="container">
-        <nav class="navbar navbar-default">
+    <div class="container-fluid fp-page-shell">
+        <nav class="navbar navbar-default fp-subnav">
             <div class="container-fluid">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
@@ -465,11 +465,23 @@
         .status-text-unknown {
             color: #c27a2c;
         }
+        .fp-page-shell {
+            max-width: 1680px;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        .fp-subnav {
+            margin-bottom: 8px;
+            min-height: 36px;
+        }
+        .fp-page-content {
+            margin-top: 0;
+        }
 </style>
-    <div class="container">
+    <div class="container-fluid fp-page-shell fp-page-content">
         <div class="row">
             <div class="col-md-12">
-                <div class="pull-right" style="margin:10px 20px;">
+                <div class="pull-right" style="margin:6px 12px;">
                     <a class="label label-light" onclick="doCheckboxOptions()" id="checkboxOptionsButton"><i class="ti ti-check-box"></i> Checkbox Options </a> &nbsp;
                     <a class="label label-light" href="#" data-toggle="modal" data-target="#addLine"><i class="ti ti-plus"></i> Add </a> &nbsp;
                     <a class="label label-light" href="#" data-toggle="modal" data-target="#uploadWeightFile"><i class="ti ti-upload"></i> Upload </a> &nbsp;
@@ -477,7 +489,7 @@
                     <a href="#" id="searchButton" class="label label-light"> <i class="ti ti-search"></i> Search </a>
                 </div>
                 <div class="panel panel-default" >
-                    <div class="panel-heading" style="padding:11px 17px;">Manage Audited Weight</div>
+                    <div class="panel-heading" style="padding:7px 12px;">Manage Audited Weight</div>
                     <div class="searchform" style="display:none">
                         <div class="row">
                             <div class="col-md-12">
