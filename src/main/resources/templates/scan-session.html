@@ -292,6 +292,27 @@
                 } else {
                     closeScanSessionEventStream();
                 }
+
+                var pendingRedirectEvent = typeof window.consumePendingScanSessionRedirectEvent === 'function'
+                    ? window.consumePendingScanSessionRedirectEvent()
+                    : null;
+
+                if (pendingRedirectEvent && status && status.active) {
+                    console.log('[scan-session-sse] resumed from cross-page event', pendingRedirectEvent);
+                    if (pendingRedirectEvent.type === 'duplicate-detected' && pendingRedirectEvent.data) {
+                        try {
+                            var payload = JSON.parse(pendingRedirectEvent.data);
+                            if (payload && payload.trackingNumber) {
+                                openDuplicateResolutionModal(payload.trackingNumber);
+                                return;
+                            }
+                        } catch (error) {
+                            console.error('[scan-session-sse] failed to parse pending redirect event', error);
+                        }
+                    }
+
+                    debounceScanSessionRefresh();
+                }
             });
         }
 
