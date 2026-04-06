@@ -167,6 +167,7 @@
             });
 
             table.redraw(true);
+            setupStickyScanSessionSummary();
 
             function syncEmptyTableState() {
                 var emptyRow = document.getElementById("scan-session-empty-row");
@@ -631,6 +632,24 @@
             return '';
         }
 
+        function setupStickyScanSessionSummary() {
+            var summary = document.getElementById('scan-session-latest-summary');
+            if (!summary) {
+                return;
+            }
+
+            function updateSummaryState() {
+                if (window.scrollY > 120) {
+                    summary.classList.add('scan-session-latest-summary-condensed');
+                } else {
+                    summary.classList.remove('scan-session-latest-summary-condensed');
+                }
+            }
+
+            window.addEventListener('scroll', updateSummaryState, { passive: true });
+            updateSummaryState();
+        }
+
         function renderLatestSummary(rowData) {
             var summaryBlock = document.getElementById('scan-session-latest-summary');
             if (!summaryBlock) {
@@ -796,6 +815,14 @@
             border-radius: 8px;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
             padding: 26px 24px 24px;
+            position: sticky;
+            top: 92px;
+            z-index: 40;
+            transition: padding 0.18s ease, box-shadow 0.18s ease;
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed {
+            padding: 12px 14px 12px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
         }
         .scan-session-summary-header {
             display: flex;
@@ -878,6 +905,40 @@
         .scan-session-summary-conditions .condition-indicator img {
             width: 32px;
             height: 32px;
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed .scan-session-summary-header {
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed .scan-session-summary-hub img {
+            width: 36px;
+            height: 36px;
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed .scan-session-summary-shipment {
+            font-size: 12px;
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed .scan-session-summary-tracking {
+            font-size: 22px;
+            margin-bottom: 4px;
+            gap: 8px;
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed .scan-session-summary-emoji {
+            font-size: 22px;
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed .scan-session-summary-mode {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed .scan-session-status {
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed .scan-session-summary-conditions .condition-indicators {
+            gap: 8px;
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed .scan-session-summary-conditions .condition-indicator img {
+            width: 26px;
+            height: 26px;
         }
         .searchform {
             background: #f5f8fa;
