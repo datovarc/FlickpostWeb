@@ -2636,8 +2636,8 @@ pre code {
 
 .container,
 .container-fluid {
-    padding-left: 10px;
-    padding-right: 10px
+    padding-left: 8px;
+    padding-right: 8px
 }
 
 .pre-scrollable {
@@ -6632,10 +6632,10 @@ color: #555;
 
 .navbar-brand {
   float: left;
-  padding: 5px 0;
-  font-size: 18px;
-  line-height: 22px;
-  height: 58px;
+  padding: 2px 0;
+  font-size: 17px;
+  line-height: 20px;
+  height: 46px;
 }
 
 .navbar-brand:focus,
@@ -6646,7 +6646,7 @@ color: #555;
 .navbar-brand img {
   display: block;
   width: 100%;
-	max-height: 50px;
+	max-height: 40px;
   height: 100%;
 }
 
@@ -8189,7 +8189,7 @@ button.list-group-item-danger.active:hover {
   font-weight: bold;
 }
 .panel-heading {
-    padding: 10px 15px;
+    padding: 6px 12px;
     border-bottom: 1px solid transparent;
     border-top-right-radius: 3px;
     border-top-left-radius: 3px;
