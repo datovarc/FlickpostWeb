@@ -72,7 +72,7 @@
             '}' +
             '.recheck-summary-table { width: 100%; margin-bottom: 0; }' +
             '.recheck-summary-table th, .recheck-summary-table td { padding: 10px 12px !important; }' +
-            '.recheck-summary-message { margin: 0 0 14px; color: #5f6f82; font-weight: 600; }' +
+            '.recheck-summary-message { margin: 10px 0 20px; padding: 8px 0; color: #5f6f82; font-weight: 600; text-align: center; }' +
             '@keyframes recheckPendingSpin {' +
             '  from { transform: rotate(0deg); }' +
             '  to { transform: rotate(360deg); }' +
