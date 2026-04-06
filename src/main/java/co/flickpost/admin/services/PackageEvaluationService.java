@@ -66,9 +66,26 @@ public class PackageEvaluationService {
             }
         }
 
+        boolean usedSelectedRows = !requestedTrackingSet.isEmpty();
+
         List<?> pendingRecords = requestedTrackingSet.isEmpty()
                 ? loadAllPending(normalizedContext)
                 : loadPendingByTrackingNumbers(normalizedContext, new ArrayList<>(requestedTrackingSet));
+
+        if (pendingRecords == null || pendingRecords.isEmpty()) {
+            return new RecheckPendingSummaryResponse(
+                    true,
+                    normalizedContext,
+                    0,
+                    0,
+                    0,
+                    0,
+                    usedSelectedRows
+                            ? "Re-checking done, there are no UNKNOWN packages selected"
+                            : "Re-checking done, there are no UNKNOWN packages remaining",
+                    usedSelectedRows
+            );
+        }
 
         List<String> pendingTrackingNumbers = new ArrayList<>();
         for (Object record : pendingRecords) {
@@ -113,7 +130,8 @@ public class PackageEvaluationService {
                 foundFromApiCount,
                 foundFromDbCount,
                 stillMissingCount,
-                recheckedCount == 0 ? "No pending packages matched the request" : "Re-check completed"
+                "Re-check completed",
+                usedSelectedRows
         );
     }
 

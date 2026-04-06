@@ -13,4 +13,5 @@ public class RecheckPendingSummaryResponse {
     private final int foundFromDbCount;
     private final int stillMissingCount;
     private final String message;
+    private final boolean usedSelectedRows;
 }
