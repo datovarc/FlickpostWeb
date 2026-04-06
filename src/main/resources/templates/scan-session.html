@@ -1071,12 +1071,43 @@
         .fp-page-content {
             margin-top: 0;
         }
+        .fp-panel-main {
+            margin-top: 0;
+        }
+        .fp-panel-heading-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 12px !important;
+        }
+        .fp-panel-heading-title {
+            font-weight: 700;
+        }
+        .fp-panel-heading-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .fp-panel-heading-actions .label {
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+        }
 </style>
     <div class="container-fluid fp-page-shell fp-page-content">
         <div class="row">
             <div class="col-md-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading" style="padding:8px 12px;">Scan Session</div>
+                <div class="panel panel-default fp-panel-main">
+                    <div class="panel-heading fp-panel-heading-bar">
+                        <div class="fp-panel-heading-title">Scan Session</div>
+                        <div class="fp-panel-heading-actions">
+                            <a href="#" class="label label-light" title="More actions" aria-label="More actions">...</a>
+                        </div>
+                    </div>
                     <div id="scan-session-latest-summary" class="scan-session-latest-summary"></div>
                     <div class="searchform" style="display:none">
                         <div class="row">
