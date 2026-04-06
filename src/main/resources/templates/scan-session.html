@@ -18,6 +18,7 @@
     <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
     <script src="js/scan-session-toggle.js"></script>
     <script src="js/recheck-pending.js"></script>
+    <script src="js/sticky-table-enhancements.js"></script>
 
     <script th:inline="javascript">
         var token = $("meta[name='_csrf']").attr("content");
@@ -167,6 +168,19 @@
             });
 
             table.redraw(true);
+
+            window.fpScanStickyTable = setupStickyTableEnhancements({
+                tableRootSelector: "#packages-table",
+                stickyBarId: "scan-session-sticky-horizontal-scroll",
+                headerTop: 124
+            });
+            setupStickyScanSessionSummary("#scan-session-latest-summary");
+
+            table.on("renderComplete", function(){
+                if (window.fpScanStickyTable) {
+                    window.fpScanStickyTable.refresh();
+                }
+            });
 
             function syncEmptyTableState() {
                 var emptyRow = document.getElementById("scan-session-empty-row");
@@ -879,6 +893,46 @@
             width: 32px;
             height: 32px;
         }
+        .scan-session-latest-summary {
+            position: sticky;
+            top: 92px;
+            z-index: 40;
+            transition: padding 0.18s ease, gap 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed {
+            padding: 16px 18px 16px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed .scan-session-summary-header {
+            margin-bottom: 12px;
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed .scan-session-summary-mode {
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+        .scan-session-latest-summary.scan-session-latest-summary-condensed .scan-session-status {
+            margin-bottom: 12px;
+            font-size: 28px;
+        }
+        .fp-table-shell {
+            position: relative;
+        }
+        .fp-sticky-horizontal-scroll {
+            position: sticky;
+            top: 92px;
+            z-index: 35;
+            overflow-x: auto;
+            overflow-y: hidden;
+            height: 16px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.96);
+            border: 1px solid #e6edf3;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .fp-sticky-horizontal-scroll-inner {
+            height: 1px;
+        }
         .searchform {
             background: #f5f8fa;
             padding: 15px;
@@ -1084,7 +1138,9 @@
                             </div>
                         </div>
                     </div>
+                    <div class="fp-table-shell">
                     <div id="packages-table"></div>
+                </div>
                     
                 </div>
             </div>

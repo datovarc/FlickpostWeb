@@ -19,6 +19,7 @@
     <!--Tabulator-->
     <link href="https://unpkg.com/tabulator-tables@4.9.3/dist/css/semantic-ui/tabulator_semantic-ui.min.css" rel="stylesheet">
     <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.js"></script>
+    <script src="js/sticky-table-enhancements.js"></script>
     <!--Download-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/downloadjs/1.4.8/download.min.js"></script>
     <script src="js/jquery.quicksearch.js"></script>
@@ -460,6 +461,25 @@
         .status-text-unknown {
             color: #c27a2c;
         }
+        .fp-table-shell {
+            position: relative;
+        }
+        .fp-sticky-horizontal-scroll {
+            position: sticky;
+            top: 92px;
+            z-index: 35;
+            overflow-x: auto;
+            overflow-y: hidden;
+            height: 16px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.96);
+            border: 1px solid #e6edf3;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .fp-sticky-horizontal-scroll-inner {
+            height: 1px;
+        }
 </style>
     <div class="container">
         <div class="row">
@@ -491,7 +511,9 @@
                             </div>
                         </div>
                     </div>
-                    <div id="packages-table"></div>
+                    <div class="fp-table-shell">
+                        <div id="packages-table"></div>
+                    </div>
 
                     <script th:inline="javascript">
                             var tableFilters = [];
@@ -557,6 +579,18 @@
                             });
 
                             table.redraw(true);
+
+                            window.fpWeightStickyTable = setupStickyTableEnhancements({
+                                tableRootSelector: "#packages-table",
+                                stickyBarId: "weight-sticky-horizontal-scroll",
+                                headerTop: 124
+                            });
+
+                            table.on("renderComplete", function(){
+                                if (window.fpWeightStickyTable) {
+                                    window.fpWeightStickyTable.refresh();
+                                }
+                            });
 
 
                             function getStatusTextClass(status){
