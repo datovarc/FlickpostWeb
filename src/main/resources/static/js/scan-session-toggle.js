@@ -273,6 +273,11 @@
                 if (typeof window.updateAddStatusActionState === 'function') {
                     window.updateAddStatusActionState();
                 }
+            } else {
+                window.scanSessionIsActive = false;
+                if (typeof window.updateAddStatusActionState === 'function') {
+                    window.updateAddStatusActionState();
+                }
             }
 
             fetch(endpoint, {

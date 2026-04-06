@@ -273,6 +273,7 @@
                 closeScanSessionEventStream();
                 setTimeout(function() {
                     refreshScanSessionStatus().then(function(status) {
+                        updateAddStatusActionState();
                         if (status && status.active) {
                             ensureScanSessionEventStream();
                         }
