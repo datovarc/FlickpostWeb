@@ -643,7 +643,7 @@
                         '<div class="scan-session-summary-hub">' + getHubImageHtml('HQ') + '</div>' +
                         '<div class="scan-session-summary-shipment">-</div>' +
                     '</div>' +
-                    '<div class="scan-session-summary-tracking"><span class="scan-session-summary-emoji"></span>-</div>' +
+                    '<div class="scan-session-summary-tracking">-<span class="scan-session-summary-emoji"></span></div>' +
                     '<div class="scan-session-summary-mode">(-)</div>' +
                     '<div class="scan-session-status">-</div>' +
                     '<div class="scan-session-summary-conditions">' + getConditionIcons({}) + '</div>';
@@ -655,7 +655,7 @@
                     '<div class="scan-session-summary-hub">' + getHubImageHtml(rowData.hub) + '</div>' +
                     '<div class="scan-session-summary-shipment">' + (rowData.shipmentId || '-') + '</div>' +
                 '</div>' +
-                '<div class="scan-session-summary-tracking"><span class="scan-session-summary-emoji">' + getStatusEmoji(rowData.status) + '</span>' + (rowData.code || '-') + '</div>' +
+                '<div class="scan-session-summary-tracking">' + (rowData.code || '-') + '<span class="scan-session-summary-emoji">' + getStatusEmoji(rowData.status) + '</span></div>' +
                 '<div class="scan-session-summary-mode">(' + ((rowData.shippingMode || '-').toString()) + ')</div>' +
                 '<div class="' + getStatusClass(rowData.status) + '">' + (rowData.status || '-') + '</div>' +
                 '<div class="scan-session-summary-conditions">' + getConditionIcons(rowData) + '</div>';
@@ -876,8 +876,8 @@
             gap: 12px;
         }
         .scan-session-summary-conditions .condition-indicator img {
-            width: 42px;
-            height: 42px;
+            width: 32px;
+            height: 32px;
         }
         .searchform {
             background: #f5f8fa;
