@@ -2636,8 +2636,8 @@ pre code {
 
 .container,
 .container-fluid {
-    padding-left: 15px;
-    padding-right: 15px
+    padding-left: 10px;
+    padding-right: 10px
 }
 
 .pre-scrollable {
@@ -2678,7 +2678,7 @@ pre code {
 }
 @media (min-width:1700px) {
     .container {
-        width: 1680px
+        width: 1780px
     }
 }
 
