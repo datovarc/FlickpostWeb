@@ -1,16 +1,16 @@
 package co.flickpost.admin.controllers;
 
 import co.flickpost.admin.configurations.FlickPostProperties;
+import co.flickpost.admin.models.json.AddStatusSaveRequest;
 import co.flickpost.admin.models.json.DuplicateResolutionRequest;
 import co.flickpost.admin.models.json.FpSessionPackageIngestRequest;
 import co.flickpost.admin.models.json.FpSessionPackageIngestResponse;
-import co.flickpost.admin.models.json.HubReceivedStatusRequest;
 import co.flickpost.admin.models.json.RecheckPendingRequest;
 import co.flickpost.admin.security.UserDetailsImpl;
 import co.flickpost.admin.services.DuplicateSessionPackageResolutionService;
-import co.flickpost.admin.services.HubReceivedStatusService;
 import co.flickpost.admin.services.PackageEvaluationService;
 import co.flickpost.admin.services.PendingDuplicateSessionPackageService;
+import co.flickpost.admin.services.ScanSessionAddStatusService;
 import co.flickpost.admin.services.ScanSessionService;
 import co.flickpost.admin.services.ScanSessionSseService;
 import co.flickpost.admin.services.SessionPackageIngestService;
@@ -55,7 +55,7 @@ public class ScanSessionActionController {
     private PackageEvaluationService packageEvaluationService;
 
     @Autowired
-    private HubReceivedStatusService hubReceivedStatusService;
+    private ScanSessionAddStatusService scanSessionAddStatusService;
 
     @Autowired
     private FlickPostProperties flickPostProperties;
@@ -119,16 +119,14 @@ public class ScanSessionActionController {
     }
 
     @PostMapping("/scan-session/session/add-status")
-    public ResponseEntity<?> addStatus(@RequestBody HubReceivedStatusRequest request,
+    public ResponseEntity<?> addStatus(@RequestBody AddStatusSaveRequest request,
                                        org.springframework.security.core.Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        logger.info("{} - Received scan session add-status API request count={}",
+        logger.info("{} - Received scan session add-status save request count={}",
                 userDetails.getUsername(),
-                request != null && request.getTrackingNumbers() != null ? request.getTrackingNumbers().size() : 0);
+                request != null && request.getPackages() != null ? request.getPackages().size() : 0);
         try {
-            return ResponseEntity.ok(hubReceivedStatusService.sendHubReceivedStatus(
-                    request != null ? request.getTrackingNumbers() : null
-            ));
+            return ResponseEntity.ok(scanSessionAddStatusService.save(request));
         } catch (IllegalArgumentException e) {
             Map<String, Object> error = new LinkedHashMap<>();
             error.put("success", false);

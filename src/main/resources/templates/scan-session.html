@@ -1216,6 +1216,23 @@
         </div>
     </div>
 
+<div id="scanSessionAddStatusResultModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Add Status Result</h4>
+            </div>
+            <div class="modal-body">
+                <p id="scanSessionAddStatusResultMessage" class="text-center" style="margin:0;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="scanSessionAddStatusResultOkButton" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="scanSessionAddStatusModal" class="modal fade" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content" style="position:relative;">
@@ -1536,15 +1553,54 @@
             }
         }
 
-        function getAddStatusTrackingNumbers() {
-            return getEligibleAddStatusRows().map(function(row) {
-                return row && row.code ? row.code : null;
-            }).filter(function(code) { return !!code; });
+        function showAddStatusResult(message, closeAddStatusOnOk) {
+            var messageElement = document.getElementById('scanSessionAddStatusResultMessage');
+            var okButton = document.getElementById('scanSessionAddStatusResultOkButton');
+            if (messageElement) {
+                messageElement.textContent = message || '';
+            }
+            if (okButton) {
+                okButton.onclick = function() {
+                    if (closeAddStatusOnOk) {
+                        $('#scanSessionAddStatusModal').modal('hide');
+                        closeScanSessionMoreActionsMenu();
+                    }
+                    $('#scanSessionAddStatusResultModal').modal('hide');
+                };
+            }
+            $('#scanSessionAddStatusResultModal').modal('show');
+        }
+
+        function getAddStatusPayload() {
+            var timestamp = document.getElementById('addStatusTimestamp');
+            var rows = getEligibleAddStatusRows();
+            return {
+                dateTime: timestamp ? timestamp.value : new Date().toISOString(),
+                packages: rows.map(function(row) {
+                    var images = Array.isArray(row.images) ? row.images : [];
+                    var dwsPictures = images.map(function(image) {
+                        return image && image.path ? image.path : null;
+                    }).filter(function(path) { return !!path; });
+                    return {
+                        trackingNumber: row && row.code ? row.code : null,
+                        auditedActualWeight: row ? row.weight : null,
+                        auditedLength: row ? row.L : null,
+                        auditedWidth: row ? row.W : null,
+                        auditedHeight: row ? row.H : null,
+                        auditedVolumetricWeight: row ? row.audited_volumetric_weight : null,
+                        auditedChargeableWeight: row ? row.audited_chargeable_weight : null,
+                        dwsPictures: dwsPictures,
+                        hubID: row ? row.hid : null,
+                        hubSymbol: row ? row.hub : null,
+                        dateTime: timestamp ? timestamp.value : new Date().toISOString()
+                    };
+                }).filter(function(pkg) { return !!pkg.trackingNumber; })
+            };
         }
 
         if (saveButton) {
             saveButton.addEventListener('click', function() {
-                var trackingNumbers = getAddStatusTrackingNumbers();
+                var payload = getAddStatusPayload();
                 setAddStatusLoading(true);
                 fetch('/scan-session/session/add-status', {
                     method: 'POST',
@@ -1553,27 +1609,25 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-Token': document.querySelector("meta[name='_csrf']").getAttribute('content')
                     },
-                    body: JSON.stringify({ trackingNumbers: trackingNumbers })
+                    body: JSON.stringify(payload)
                 })
                     .then(function(response) {
                         if (!response.ok) {
                             return response.json().then(function(data) {
-                                throw new Error(data && data.message ? data.message : 'Failed to add status');
+                                throw new Error(data && data.message ? data.message : 'Failed to save add status');
                             }).catch(function() {
-                                throw new Error('Failed to add status');
+                                throw new Error('Failed to save add status');
                             });
                         }
                         return response.json();
                     })
                     .then(function(data) {
                         setAddStatusLoading(false);
-                        alert(data && data.message ? data.message : 'Status added successfully');
-                        $('#scanSessionAddStatusModal').modal('hide');
-                        closeScanSessionMoreActionsMenu();
+                        showAddStatusResult(data && data.message ? data.message : 'Updates were successful', !!(data && data.success));
                     })
                     .catch(function(error) {
                         setAddStatusLoading(false);
-                        alert(error && error.message ? error.message : 'Failed to add status');
+                        showAddStatusResult(error && error.message ? error.message : 'Failed to save add status', false);
                     });
             });
         }
