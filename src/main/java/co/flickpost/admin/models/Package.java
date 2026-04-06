@@ -156,4 +156,12 @@ public class Package implements Serializable {
     @Column(name = "is_underdeclared")
     @JsonProperty("isUnderdeclared")
     private Boolean isUnderdeclared;
+
+    @Column(name = "duplicate_ribbon")
+    @JsonProperty("duplicateRibbon")
+    private Boolean duplicateRibbon;
+
+    @Column(name = "duplicate_remark")
+    @JsonProperty("duplicateRemark")
+    private String duplicateRemark;
 }

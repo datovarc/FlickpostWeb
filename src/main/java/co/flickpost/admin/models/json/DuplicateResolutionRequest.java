@@ -8,4 +8,5 @@ import lombok.Setter;
 public class DuplicateResolutionRequest {
     private String trackingNumber;
     private String selectedRecord;
+    private String remark;
 }
