@@ -4,9 +4,11 @@ import co.flickpost.admin.configurations.FlickPostProperties;
 import co.flickpost.admin.models.json.DuplicateResolutionRequest;
 import co.flickpost.admin.models.json.FpSessionPackageIngestRequest;
 import co.flickpost.admin.models.json.FpSessionPackageIngestResponse;
+import co.flickpost.admin.models.json.HubReceivedStatusRequest;
 import co.flickpost.admin.models.json.RecheckPendingRequest;
 import co.flickpost.admin.security.UserDetailsImpl;
 import co.flickpost.admin.services.DuplicateSessionPackageResolutionService;
+import co.flickpost.admin.services.HubReceivedStatusService;
 import co.flickpost.admin.services.PackageEvaluationService;
 import co.flickpost.admin.services.PendingDuplicateSessionPackageService;
 import co.flickpost.admin.services.ScanSessionService;
@@ -51,6 +53,9 @@ public class ScanSessionActionController {
 
     @Autowired
     private PackageEvaluationService packageEvaluationService;
+
+    @Autowired
+    private HubReceivedStatusService hubReceivedStatusService;
 
     @Autowired
     private FlickPostProperties flickPostProperties;
@@ -111,6 +116,25 @@ public class ScanSessionActionController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         logger.info("{} - Received scan session stop API request", userDetails.getUsername());
         return ResponseEntity.ok(scanSessionService.stopSession(userDetails));
+    }
+
+    @PostMapping("/scan-session/session/add-status")
+    public ResponseEntity<?> addStatus(@RequestBody HubReceivedStatusRequest request,
+                                       org.springframework.security.core.Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        logger.info("{} - Received scan session add-status API request count={}",
+                userDetails.getUsername(),
+                request != null && request.getTrackingNumbers() != null ? request.getTrackingNumbers().size() : 0);
+        try {
+            return ResponseEntity.ok(hubReceivedStatusService.sendHubReceivedStatus(
+                    request != null ? request.getTrackingNumbers() : null
+            ));
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> error = new LinkedHashMap<>();
+            error.put("success", false);
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
     }
 
     @PostMapping("/recheck-pending")
