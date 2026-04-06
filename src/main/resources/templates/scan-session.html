@@ -167,6 +167,7 @@
             });
 
             table.redraw(true);
+            setupStickyScanSessionSummary();
 
             function syncEmptyTableState() {
                 var emptyRow = document.getElementById("scan-session-empty-row");
@@ -631,6 +632,24 @@
             return '';
         }
 
+        function setupStickyScanSessionSummary() {
+            var summary = document.getElementById('scan-session-latest-summary');
+            if (!summary) {
+                return;
+            }
+
+            function updateSummaryState() {
+                if (window.scrollY > 120) {
+                    summary.classList.add('scan-session-latest-summary-condensed');
+                } else {
+                    summary.classList.remove('scan-session-latest-summary-condensed');
+                }
+            }
+
+            window.addEventListener('scroll', updateSummaryState, { passive: true });
+            updateSummaryState();
+        }
+
         function renderLatestSummary(rowData) {
             var summaryBlock = document.getElementById('scan-session-latest-summary');
             if (!summaryBlock) {
@@ -917,6 +936,13 @@
         #packages-table .tabulator-row .tabulator-cell {
             text-align: center;
             vertical-align: middle;
+        }
+        #packages-table .tabulator-header {
+            position: sticky;
+            top: 92px;
+            z-index: 50;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         #packages-table .tabulator-header .tabulator-col {
             background: #fff;
