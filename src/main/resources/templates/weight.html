@@ -471,25 +471,51 @@
             padding-right: 2px;
         }
         .fp-subnav {
-            margin-bottom: 3px;
+            margin-bottom: 6px;
             min-height: 36px;
         }
         .fp-page-content {
             margin-top: 0;
         }
+        .fp-panel-main {
+            margin-top: 0;
+        }
+        .fp-panel-heading-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 12px !important;
+        }
+        .fp-panel-heading-title {
+            font-weight: 700;
+        }
+        .fp-panel-heading-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .fp-panel-heading-actions .label {
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+        }
 </style>
     <div class="container-fluid fp-page-shell fp-page-content">
         <div class="row">
             <div class="col-md-12">
-                <div class="pull-right" style="margin:3px 8px;">
-                    <a class="label label-light" onclick="doCheckboxOptions()" id="checkboxOptionsButton"><i class="ti ti-check-box"></i> Checkbox Options </a> &nbsp;
-                    <a class="label label-light" href="#" data-toggle="modal" data-target="#addLine"><i class="ti ti-plus"></i> Add </a> &nbsp;
-                    <a class="label label-light" href="#" data-toggle="modal" data-target="#uploadWeightFile"><i class="ti ti-upload"></i> Upload </a> &nbsp;
-                    <a class="label label-light" href="#" id="downloadButton"><i class="ti ti-download"></i> Download </a> &nbsp;
-                    <a href="#" id="searchButton" class="label label-light"> <i class="ti ti-search"></i> Search </a>
-                </div>
-                <div class="panel panel-default" >
-                    <div class="panel-heading" style="padding:5px 10px;">Manage Audited Weight</div>
+                <div class="panel panel-default fp-panel-main" >
+                    <div class="panel-heading fp-panel-heading-bar">
+                        <div class="fp-panel-heading-title">Manage Audited Weight</div>
+                        <div class="fp-panel-heading-actions">
+                            <a class="label label-light" onclick="doCheckboxOptions()" id="checkboxOptionsButton"><i class="ti ti-check-box"></i> Checkbox Options </a>
+                            <a class="label label-light" href="#" data-toggle="modal" data-target="#addLine"><i class="ti ti-plus"></i> Add </a>
+                            <a class="label label-light" href="#" data-toggle="modal" data-target="#uploadWeightFile"><i class="ti ti-upload"></i> Upload </a>
+                            <a class="label label-light" href="#" id="downloadButton"><i class="ti ti-download"></i> Download </a>
+                            <a href="#" id="searchButton" class="label label-light"><i class="ti ti-search"></i> Search </a>
+                        </div>
+                    </div>
                     <div class="searchform" style="display:none">
                         <div class="row">
                             <div class="col-md-12">

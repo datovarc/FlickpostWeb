@@ -8189,7 +8189,7 @@ button.list-group-item-danger.active:hover {
   font-weight: bold;
 }
 .panel-heading {
-    padding: 6px 12px;
+    padding: 8px 12px;
     border-bottom: 1px solid transparent;
     border-top-right-radius: 3px;
     border-top-left-radius: 3px;
