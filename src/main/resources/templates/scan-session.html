@@ -640,6 +640,25 @@
             return '';
         }
 
+        function getShippingModeSummaryText(rowData) {
+            if (!rowData) {
+                return '-';
+            }
+
+            var shippingMode = rowData.shippingMode != null ? rowData.shippingMode.toString().trim() : '';
+            var serviceProviderName = rowData.serviceProviderName != null ? rowData.serviceProviderName.toString().trim() : '';
+
+            if (!shippingMode) {
+                return '-';
+            }
+
+            if (!serviceProviderName) {
+                return shippingMode;
+            }
+
+            return shippingMode + ' - ' + serviceProviderName;
+        }
+
         function renderLatestSummary(rowData) {
             var summaryBlock = document.getElementById('scan-session-latest-summary');
             if (!summaryBlock) {
@@ -665,7 +684,7 @@
                     '<div class="scan-session-summary-shipment">' + (rowData.shipmentId || '-') + '</div>' +
                 '</div>' +
                 '<div class="scan-session-summary-tracking">' + (rowData.code || '-') + '<span class="scan-session-summary-emoji">' + getStatusEmoji(rowData.status) + '</span></div>' +
-                '<div class="scan-session-summary-mode">(' + ((rowData.shippingMode || '-').toString()) + ')</div>' +
+                '<div class="scan-session-summary-mode">(' + getShippingModeSummaryText(rowData) + ')</div>' +
                 '<div class="' + getStatusClass(rowData.status) + '">' + (rowData.status || '-') + '</div>' +
                 '<div class="scan-session-summary-conditions">' + getConditionIcons(rowData) + '</div>';
         }
