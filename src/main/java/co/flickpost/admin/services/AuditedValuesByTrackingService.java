@@ -20,8 +20,6 @@ import java.util.Map;
 public class AuditedValuesByTrackingService {
 
     private static final Logger logger = LogManager.getLogger(AuditedValuesByTrackingService.class);
-    private static final String AUDITED_VALUES_URL = "https://stg-www.flickpost.com/v1/thirdparty/consignments/parcels/audited-values/by-tracking";
-
     @Autowired
     private FlickPostProperties properties;
 
@@ -40,7 +38,7 @@ public class AuditedValuesByTrackingService {
             for (AuditedValuesByTrackingPayload payload : packages) {
                 HttpEntity<AuditedValuesByTrackingPayload> requestEntity = new HttpEntity<>(payload, headers);
                 ResponseEntity<Map> response = restTemplate.exchange(
-                        AUDITED_VALUES_URL,
+                        properties.getThirdPartyAuditedValuesUrl(),
                         HttpMethod.POST,
                         requestEntity,
                         Map.class

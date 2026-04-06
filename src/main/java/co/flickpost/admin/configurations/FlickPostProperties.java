@@ -27,6 +27,10 @@ public class FlickPostProperties {
     private String thirdPartyParcelDetailsUrl;
     @Value("${thirdparty.api.key:}")
     private String thirdPartyApiKey;
+    @Value("${thirdparty.hub.received.url:}")
+    private String thirdPartyHubReceivedUrl;
+    @Value("${thirdparty.audited.values.url:}")
+    private String thirdPartyAuditedValuesUrl;
 
     @PostConstruct
     public void initializeApplication() {
@@ -37,6 +41,8 @@ public class FlickPostProperties {
         logger.info("packages.images.possible.statuses: {}", this.packageImageStatuses);
         logger.info("thirdparty.parcel.details.url: {}", this.thirdPartyParcelDetailsUrl);
         logger.info("thirdparty.api.key configured: {}", this.thirdPartyApiKey != null && !this.thirdPartyApiKey.isEmpty());
+        logger.info("thirdparty.hub.received.url: {}", this.thirdPartyHubReceivedUrl);
+        logger.info("thirdparty.audited.values.url: {}", this.thirdPartyAuditedValuesUrl);
         logger.info("Properties loaded");
     }
 
@@ -94,5 +100,21 @@ public class FlickPostProperties {
 
     public void setThirdPartyApiKey(String thirdPartyApiKey) {
         this.thirdPartyApiKey = thirdPartyApiKey;
+    }
+
+    public String getThirdPartyHubReceivedUrl() {
+        return thirdPartyHubReceivedUrl;
+    }
+
+    public void setThirdPartyHubReceivedUrl(String thirdPartyHubReceivedUrl) {
+        this.thirdPartyHubReceivedUrl = thirdPartyHubReceivedUrl;
+    }
+
+    public String getThirdPartyAuditedValuesUrl() {
+        return thirdPartyAuditedValuesUrl;
+    }
+
+    public void setThirdPartyAuditedValuesUrl(String thirdPartyAuditedValuesUrl) {
+        this.thirdPartyAuditedValuesUrl = thirdPartyAuditedValuesUrl;
     }
 }
