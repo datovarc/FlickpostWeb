@@ -1,11 +1,13 @@
 package co.flickpost.admin.services;
 
+import co.flickpost.admin.models.Package;
 import co.flickpost.admin.models.PackageReference;
 import co.flickpost.admin.models.SessionPackage;
 import co.flickpost.admin.models.json.FpReferencePayload;
 import co.flickpost.admin.models.json.FpSessionPackageIngestRequest;
 import co.flickpost.admin.models.json.FpSessionPackageIngestResponse;
 import co.flickpost.admin.models.json.PendingDuplicateSessionPackage;
+import co.flickpost.admin.repositories.PackageDao;
 import co.flickpost.admin.repositories.PackageReferenceDao;
 import co.flickpost.admin.repositories.SessionPackageDao;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +39,9 @@ public class SessionPackageIngestService {
     private PackageReferenceDao packageReferenceDao;
 
     @Autowired
+    private PackageDao packageDao;
+
+    @Autowired
     private ScanSessionSseService scanSessionSseService;
 
     @Autowired
@@ -50,6 +55,9 @@ public class SessionPackageIngestService {
         validate(request);
 
         SessionPackage existingSessionPackage = sessionPackageDao.findSessionPackageByTrackingNumber(request.getTrackingNumber());
+        Package existingPackage = existingSessionPackage == null
+                ? packageDao.findByTrackingNumber(request.getTrackingNumber())
+                : null;
         SessionPackage sessionPackage = new SessionPackage();
         if (existingSessionPackage != null) {
             sessionPackage.setId(existingSessionPackage.getId());
@@ -107,7 +115,9 @@ public class SessionPackageIngestService {
             SessionPackage oldRecord = cloneForDuplicate(existingSessionPackage);
             SessionPackage newRecord = cloneForDuplicate(sessionPackage);
             newRecord.setId(null);
-            pendingDuplicateSessionPackageService.put(new PendingDuplicateSessionPackage(sessionPackage.getTrackingNumber(), oldRecord, newRecord));
+            newRecord.setDuplicateRibbon(null);
+            newRecord.setDuplicateRemark(null);
+            pendingDuplicateSessionPackageService.put(PendingDuplicateSessionPackage.forSessionPackage(sessionPackage.getTrackingNumber(), oldRecord, newRecord));
             publishDuplicateDetectedAfterCommit(sessionPackage.getTrackingNumber());
             return new FpSessionPackageIngestResponse(
                     true,
@@ -119,6 +129,26 @@ public class SessionPackageIngestService {
             );
         }
 
+        if (existingPackage != null) {
+            Package oldRecord = clonePackageForDuplicate(existingPackage);
+            SessionPackage newRecord = cloneForDuplicate(sessionPackage);
+            newRecord.setId(null);
+            newRecord.setDuplicateRibbon(null);
+            newRecord.setDuplicateRemark(null);
+            pendingDuplicateSessionPackageService.put(PendingDuplicateSessionPackage.forPackage(sessionPackage.getTrackingNumber(), oldRecord, newRecord));
+            publishDuplicateDetectedAfterCommit(sessionPackage.getTrackingNumber());
+            return new FpSessionPackageIngestResponse(
+                    true,
+                    sessionPackage.getTrackingNumber(),
+                    finalStatus,
+                    dataSource,
+                    isUnderdeclared,
+                    "Duplicate package detected. Awaiting user resolution"
+            );
+        }
+
+        sessionPackage.setDuplicateRibbon(null);
+        sessionPackage.setDuplicateRemark(null);
         sessionPackageDao.insert(sessionPackage);
         scanSessionService.incrementActiveSessionTotalPackages();
         publishPackageIngestedAfterCommit(sessionPackage.getTrackingNumber());
@@ -194,6 +224,46 @@ public class SessionPackageIngestService {
         copy.setImageInfos(source.getImageInfos());
         copy.setReferenceSource(source.getReferenceSource());
         copy.setIsUnderdeclared(source.getIsUnderdeclared());
+        copy.setDuplicateRibbon(source.getDuplicateRibbon());
+        copy.setDuplicateRemark(source.getDuplicateRemark());
+        return copy;
+    }
+
+    private Package clonePackageForDuplicate(Package source) {
+        Package copy = new Package();
+        copy.setId(source.getId());
+        copy.setTrackingNumber(source.getTrackingNumber());
+        copy.setHub(source.getHub());
+        copy.setShipmentId(source.getShipmentId());
+        copy.setStatus(source.getStatus());
+        copy.setAuditedLength(source.getAuditedLength());
+        copy.setAuditedWidth(source.getAuditedWidth());
+        copy.setAuditedHeight(source.getAuditedHeight());
+        copy.setAuditedActualWeight(source.getAuditedActualWeight());
+        copy.setDeclaredLength(source.getDeclaredLength());
+        copy.setDeclaredWidth(source.getDeclaredWidth());
+        copy.setDeclaredHeight(source.getDeclaredHeight());
+        copy.setDeclaredActualWeight(source.getDeclaredActualWeight());
+        copy.setDeclaredChargeableWeight(source.getDeclaredChargeableWeight());
+        copy.setDeclaredVolumetricWeight(source.getDeclaredVolumetricWeight());
+        copy.setClientPaidWeight(source.getClientPaidWeight());
+        copy.setDestinationCountry(source.getDestinationCountry());
+        copy.setServiceProviderName(source.getServiceProviderName());
+        copy.setContainsLiquid(source.getContainsLiquid());
+        copy.setContainsBattery(source.getContainsBattery());
+        copy.setItemCondition(source.getItemCondition());
+        copy.setIsCommercialPackaging(source.getIsCommercialPackaging());
+        copy.setShippingMode(source.getShippingMode());
+        copy.setAuditedVolumetricWeight(source.getAuditedVolumetricWeight());
+        copy.setAuditedChargeableWeight(source.getAuditedChargeableWeight());
+        copy.setHid(source.getHid());
+        copy.setDateTime(source.getDateTime());
+        copy.setSessionId(source.getSessionId());
+        copy.setImageInfos(source.getImageInfos());
+        copy.setReferenceSource(source.getReferenceSource());
+        copy.setIsUnderdeclared(source.getIsUnderdeclared());
+        copy.setDuplicateRibbon(source.getDuplicateRibbon());
+        copy.setDuplicateRemark(source.getDuplicateRemark());
         return copy;
     }
 

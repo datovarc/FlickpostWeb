@@ -55,6 +55,7 @@
         var scanSessionEventSource = null;
         var scanSessionRefreshDebounce = null;
         var pendingDuplicateTrackingNumber = null;
+        var pendingDuplicateType = null;
         var duplicateResolutionInProgress = false;
 
         function executeUploadReport() {
@@ -439,7 +440,8 @@
         }
 
         function updateDuplicateModalTitle(trackingNumber) {
-            $('#duplicateSessionPackageModalTitle').text('Duplicate ' + (trackingNumber || 'session package'));
+            var duplicateLabel = pendingDuplicateType === 'package' ? 'package' : 'session package';
+            $('#duplicateSessionPackageModalTitle').text('Duplicate ' + (trackingNumber || duplicateLabel));
         }
 
         function updateDuplicateIdentityMessage(hasDifferences) {
@@ -466,13 +468,18 @@
             }).then(function(payload) {
                 var oldRecord = payload.oldRecord || null;
                 var newRecord = payload.newRecord || null;
+                pendingDuplicateType = payload && payload.duplicateType ? payload.duplicateType : 'session-package';
                 var fieldsToShow = getDuplicateDifferences(oldRecord, newRecord);
                 updateDuplicateModalTitle((payload && payload.trackingNumber) || trackingNumber);
                 updateDuplicateIdentityMessage(fieldsToShow.length > 0);
                 $('#duplicateOldRecord').html(buildDuplicateComparisonHtml(oldRecord, fieldsToShow));
                 $('#duplicateNewRecord').html(buildDuplicateComparisonHtml(newRecord, fieldsToShow));
+                $('#duplicatePackageOnlyOption').toggle(pendingDuplicateType === 'package');
+                $('#duplicateRemarkGroup').toggle(pendingDuplicateType === 'package');
+                $('#duplicateRemarkInput').val('');
                 $('input[name="duplicateSelection"][value="new"]').prop('checked', true);
                 $('input[name="duplicateSelection"][value="old"]').prop('checked', false);
+                $('input[name="duplicateSelection"][value="both"]').prop('checked', false);
                 setDuplicateResolutionLoading(false);
                 $('#duplicateSessionPackageModal').modal({backdrop:'static', keyboard:false});
                 $('#duplicateSessionPackageModal').modal('show');
@@ -487,6 +494,7 @@
                 .prop('disabled', isLoading)
                 .text(isLoading ? 'Resolving...' : 'Continue');
             $('input[name="duplicateSelection"]').prop('disabled', isLoading);
+            $('#duplicateRemarkInput').prop('disabled', isLoading);
             $('#duplicateResolutionOverlay').css('display', isLoading ? 'flex' : 'none');
         }
 
@@ -512,7 +520,8 @@
                 },
                 body: JSON.stringify({
                     trackingNumber: pendingDuplicateTrackingNumber,
-                    selectedRecord: selected
+                    selectedRecord: selected,
+                    remark: $('#duplicateRemarkInput').val()
                 })
             }).then(function(response) {
                 if (!response.ok) {
@@ -522,6 +531,7 @@
             }).then(function() {
                 $('#duplicateSessionPackageModal').modal('hide');
                 pendingDuplicateTrackingNumber = null;
+                pendingDuplicateType = null;
                 debounceScanSessionRefresh();
             }).catch(function(error) {
                 console.error('[scan-session-sse] failed to resolve duplicate', error);
@@ -699,6 +709,10 @@
                 return;
             }
 
+            var statusSuffix = rowData.duplicateRibbon === true
+                ? '<span class="scan-session-summary-ribbon" title="Duplicate with package kept">🎀</span>'
+                : '';
+
             summaryBlock.innerHTML = '' +
                 '<div class="scan-session-summary-header">' +
                     '<div class="scan-session-summary-hub">' + getHubImageHtml(rowData.hub) + '</div>' +
@@ -706,7 +720,7 @@
                 '</div>' +
                 '<div class="scan-session-summary-tracking">' + (rowData.code || '-') + '<span class="scan-session-summary-emoji">' + getStatusEmoji(rowData.status) + '</span></div>' +
                 '<div class="scan-session-summary-mode">(' + getShippingModeSummaryText(rowData) + ')</div>' +
-                '<div class="' + getStatusClass(rowData.status) + '">' + (rowData.status || '-') + '</div>' +
+                '<div class="' + getStatusClass(rowData.status) + '">' + (rowData.status || '-') + statusSuffix + '</div>' +
                 '<div class="scan-session-summary-conditions">' + getConditionIcons(rowData) + '</div>';
         }
 
@@ -913,6 +927,11 @@
             color: #5f6f82;
             line-height: 1.25;
             margin-bottom: 13px;
+        }
+        .scan-session-summary-ribbon {
+            margin-left: 8px;
+            vertical-align: middle;
+            font-size: 22px;
         }
         .scan-session-status-proceed {
             color: #1f9d55;
@@ -1391,7 +1410,14 @@
                         <div class="radio text-center" style="margin-top:15px;">
                             <label><input type="radio" name="duplicateSelection" value="new"> Keep new</label>
                         </div>
+                        <div class="radio text-center" style="margin-top:10px; display:none;" id="duplicatePackageOnlyOption">
+                            <label><input type="radio" name="duplicateSelection" value="both"> Keep both</label>
+                        </div>
                     </div>
+                </div>
+                <div class="form-group" id="duplicateRemarkGroup" style="display:none; margin:20px 15px 0;">
+                    <label for="duplicateRemarkInput">Remark</label>
+                    <textarea id="duplicateRemarkInput" class="form-control" rows="3" maxlength="500" placeholder="Add remark"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
