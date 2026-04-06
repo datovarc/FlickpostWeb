@@ -72,6 +72,7 @@
             '}' +
             '.recheck-summary-table { width: 100%; margin-bottom: 0; }' +
             '.recheck-summary-table th, .recheck-summary-table td { padding: 10px 12px !important; }' +
+            '.recheck-summary-message { margin: 0 0 14px; color: #5f6f82; font-weight: 600; }' +
             '@keyframes recheckPendingSpin {' +
             '  from { transform: rotate(0deg); }' +
             '  to { transform: rotate(360deg); }' +
@@ -139,7 +140,11 @@
     function showSummaryModal(summary) {
         ensureSummaryModal();
         var body = document.getElementById('recheck-pending-summary-body');
+        var messageHtml = summary && summary.message
+            ? '<p class="recheck-summary-message">' + summary.message + '</p>'
+            : '';
         body.innerHTML = '' +
+            messageHtml +
             '<table class="table table-bordered recheck-summary-table">' +
             '  <thead>' +
             '    <tr><th>Metric</th><th>Count</th></tr>' +
