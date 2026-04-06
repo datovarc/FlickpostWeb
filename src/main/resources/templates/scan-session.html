@@ -498,16 +498,7 @@
             $('#duplicateResolutionOverlay').css('display', isLoading ? 'flex' : 'none');
         }
 
-        function resolveDuplicateSelection() {
-            var selected = $('input[name="duplicateSelection"]:checked').val();
-            if (!selected || !pendingDuplicateTrackingNumber) {
-                alert('Please select which record to keep first.');
-                return;
-            }
-            if (duplicateResolutionInProgress) {
-                return;
-            }
-
+        function submitDuplicateResolution(selected) {
             setDuplicateResolutionLoading(true);
 
             fetch('/scan-session/session/duplicate/resolve', {
@@ -529,6 +520,7 @@
                 }
                 return response.json();
             }).then(function() {
+                $('#deletePackageWarningModal').modal('hide');
                 $('#duplicateSessionPackageModal').modal('hide');
                 pendingDuplicateTrackingNumber = null;
                 pendingDuplicateType = null;
@@ -541,8 +533,31 @@
             });
         }
 
+        function resolveDuplicateSelection() {
+            var selected = $('input[name="duplicateSelection"]:checked').val();
+            if (!selected || !pendingDuplicateTrackingNumber) {
+                alert('Please select which record to keep first.');
+                return;
+            }
+            if (duplicateResolutionInProgress) {
+                return;
+            }
+
+            if (pendingDuplicateType === 'package' && selected === 'new') {
+                $('#deletePackageWarningModal').modal({backdrop:'static', keyboard:false});
+                $('#deletePackageWarningModal').modal('show');
+                return;
+            }
+
+            submitDuplicateResolution(selected);
+        }
+
         $(document).on('click', '#duplicateContinueButton', function() {
             resolveDuplicateSelection();
+        });
+
+        $(document).on('click', '#confirmDeletePackageButton', function() {
+            submitDuplicateResolution('new');
         });
 
         function doPostCall(){
@@ -1468,6 +1483,23 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" disabled>Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="deletePackageWarningModal" class="modal fade" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title text-center">Confirm package deletion</h4>
+            </div>
+            <div class="modal-body">
+                <p class="text-center" style="margin-bottom:0;">If you keep new, the old processed package will be deleted. Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeletePackageButton">Confirm</button>
             </div>
         </div>
     </div>

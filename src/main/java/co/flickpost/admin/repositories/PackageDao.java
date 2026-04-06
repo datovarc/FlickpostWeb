@@ -75,6 +75,22 @@ public class PackageDao {
     }
 
     @Transactional
+    public void delete(Package pkg) {
+        if (pkg == null || pkg.getId() == null) {
+            return;
+        }
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction entityTransaction = entityManager.getTransaction();
+
+        entityTransaction.begin();
+        entityManager.clear();
+        entityManager.remove(entityManager.getReference(Package.class, pkg.getId()));
+        entityTransaction.commit();
+        entityManager.close();
+    }
+
+    @Transactional
     public Package findByTrackingNumber(String trackingNumber){
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();

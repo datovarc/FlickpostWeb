@@ -1,8 +1,10 @@
 package co.flickpost.admin.services;
 
+import co.flickpost.admin.models.Package;
 import co.flickpost.admin.models.SessionPackage;
 import co.flickpost.admin.models.json.DuplicateResolutionRequest;
 import co.flickpost.admin.models.json.PendingDuplicateSessionPackage;
+import co.flickpost.admin.repositories.PackageDao;
 import co.flickpost.admin.repositories.SessionPackageDao;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,9 @@ public class DuplicateSessionPackageResolutionService {
 
     @Autowired
     private SessionPackageDao sessionPackageDao;
+
+    @Autowired
+    private PackageDao packageDao;
 
     @Autowired
     private ScanSessionSseService scanSessionSseService;
@@ -85,6 +90,13 @@ public class DuplicateSessionPackageResolutionService {
         }
 
         if ("new".equalsIgnoreCase(selectedRecord) || "both".equalsIgnoreCase(selectedRecord)) {
+            if ("new".equalsIgnoreCase(selectedRecord)) {
+                Package oldPackage = packageDao.findByTrackingNumber(trackingNumber);
+                if (oldPackage != null) {
+                    packageDao.delete(oldPackage);
+                }
+            }
+
             newRecord.setDuplicateRibbon(true);
             newRecord.setDuplicateRemark(remark);
             sessionPackageDao.insert(newRecord);
