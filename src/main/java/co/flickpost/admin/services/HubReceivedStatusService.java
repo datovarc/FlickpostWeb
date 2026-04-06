@@ -25,8 +25,6 @@ import java.util.Set;
 public class HubReceivedStatusService {
 
     private static final Logger logger = LogManager.getLogger(HubReceivedStatusService.class);
-    private static final String HUB_RECEIVED_URL = "https://stg-www.flickpost.com/v1/thirdparty/consignments/status/hub-received";
-
     @Autowired
     private FlickPostProperties properties;
 
@@ -56,7 +54,7 @@ public class HubReceivedStatusService {
 
             HttpEntity<HubReceivedStatusRequest> requestEntity = new HttpEntity<>(payload, headers);
             ResponseEntity<Map> response = restTemplate.exchange(
-                    HUB_RECEIVED_URL,
+                    properties.getThirdPartyHubReceivedUrl(),
                     HttpMethod.POST,
                     requestEntity,
                     Map.class
