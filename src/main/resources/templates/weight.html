@@ -310,7 +310,12 @@
         #packages-table {
             width: 100%;
         }
-        #packages-table .tabulator {
+        #packages-table .tabulator-tableHolder,
+        #packages-table .tabulator-tableholder {
+            max-height: calc(44px * 10);
+            overflow-y: auto;
+        }
+#packages-table .tabulator {
             min-width: 2400px;
         }
         #packages-table .tabulator-header .tabulator-col,
