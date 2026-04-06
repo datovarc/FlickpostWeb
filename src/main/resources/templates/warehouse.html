@@ -109,7 +109,15 @@
                     <ul class="nav navbar-nav navbar-right menu-nav-right">
                         <li sec:authorize="isAuthenticated()"><a href="#" id="scanSessionToggleButton"><i class="ti ti-control-play"></i> Start</a></li>
                         <li sec:authorize="isAuthenticated()"><a href="#" id="recheckPendingButton" data-recheck-context="unsupported"><i class="ti-reload"></i> Re-check</a></li>
-                        <li sec:authorize="isAuthenticated()"><a href="#" data-toggle="modal" data-target="#uploadReportFile"><i class="ti-upload"></i> Upload Report</a></li>
+                        <li sec:authorize="isAuthenticated()" class="upload-menu-item dropdown">
+                            <a href="#" id="warehouseUploadMenuButton" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                <i class="ti-upload"></i> Upload File
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-right upload-submenu" aria-labelledby="warehouseUploadMenuButton">
+                                <li><a href="#" data-toggle="modal" data-target="#uploadReportFile"><i class="ti-upload"></i> Upload Report</a></li>
+                                <li><a href="#" data-toggle="modal" data-target="#uploadReferenceFile"><i class="ti-layout"></i> Upload Reference</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -127,6 +135,14 @@
         }
         .menu-nav-right {
             float: right !important;
+        }
+        .upload-submenu {
+            min-width: 210px;
+        }
+        .upload-submenu > li > a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
             .fp-page-shell {
             max-width: 1760px;
@@ -218,6 +234,33 @@
             </div>
         </div>
 
+    </div>
+</div>
+
+<div id="uploadReferenceFile" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width:700px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title">Upload Parcels Reference</h4>
+            </div>
+            <div class="modal-body" style="padding: 10px 25px;">
+                <form id="uploadReferenceForm" class="form-horizontal form-groups excelUpload">
+                    <div class="form-group uploadform">
+                        <div class="col-md-6 col-md-offset-3">
+                            <h5>Parcels Reference</h5>
+                            <label class="control-label">Choose File<br></label>
+                            <input class="fileInput" type="file" name="file" accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                            <br>
+                            <p class="text-muted">Reference placeholder only for now. Upload will remain disabled until the Excel template is finalized.</p>
+                            <p>
+                                <button type="button" class="btn btn-success btn-rounded" disabled><i class="ti-upload"></i> Upload File</button>
+                            </p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
