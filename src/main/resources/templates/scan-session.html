@@ -617,6 +617,20 @@
             return '<span class="' + getStatusTextClass(value) + '">' + safeValue + '</span>';
         }
 
+        function getStatusEmoji(status) {
+            var normalizedStatus = (status || '').toString().toUpperCase();
+            if (normalizedStatus === 'PROCEED') {
+                return '😄';
+            }
+            if (normalizedStatus === 'ON HOLD') {
+                return '😓';
+            }
+            if (normalizedStatus === 'UNKNOWN') {
+                return '😐';
+            }
+            return '';
+        }
+
         function renderLatestSummary(rowData) {
             var summaryBlock = document.getElementById('scan-session-latest-summary');
             if (!summaryBlock) {
@@ -627,9 +641,9 @@
                 summaryBlock.innerHTML = '' +
                     '<div class="scan-session-summary-header">' +
                         '<div class="scan-session-summary-hub">' + getHubImageHtml('HQ') + '</div>' +
-                        '<div class="scan-session-summary-shipment">Shipment ID: -</div>' +
+                        '<div class="scan-session-summary-shipment">-</div>' +
                     '</div>' +
-                    '<div class="scan-session-summary-tracking">-</div>' +
+                    '<div class="scan-session-summary-tracking"><span class="scan-session-summary-emoji"></span>-</div>' +
                     '<div class="scan-session-summary-mode">(-)</div>' +
                     '<div class="scan-session-status">-</div>' +
                     '<div class="scan-session-summary-conditions">' + getConditionIcons({}) + '</div>';
@@ -639,9 +653,9 @@
             summaryBlock.innerHTML = '' +
                 '<div class="scan-session-summary-header">' +
                     '<div class="scan-session-summary-hub">' + getHubImageHtml(rowData.hub) + '</div>' +
-                    '<div class="scan-session-summary-shipment">Shipment ID: ' + (rowData.shipmentId || '-') + '</div>' +
+                    '<div class="scan-session-summary-shipment">' + (rowData.shipmentId || '-') + '</div>' +
                 '</div>' +
-                '<div class="scan-session-summary-tracking">' + (rowData.code || '-') + '</div>' +
+                '<div class="scan-session-summary-tracking"><span class="scan-session-summary-emoji">' + getStatusEmoji(rowData.status) + '</span>' + (rowData.code || '-') + '</div>' +
                 '<div class="scan-session-summary-mode">(' + ((rowData.shippingMode || '-').toString()) + ')</div>' +
                 '<div class="' + getStatusClass(rowData.status) + '">' + (rowData.status || '-') + '</div>' +
                 '<div class="scan-session-summary-conditions">' + getConditionIcons(rowData) + '</div>';
@@ -808,6 +822,16 @@
             line-height: 1.25;
             margin-bottom: 8px;
             word-break: break-word;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .scan-session-summary-emoji {
+            font-size: 28px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
         }
         .scan-session-summary-mode {
             text-align: center;
@@ -849,6 +873,11 @@
         }
         .scan-session-summary-conditions .condition-indicators {
             justify-content: center;
+            gap: 12px;
+        }
+        .scan-session-summary-conditions .condition-indicator img {
+            width: 42px;
+            height: 42px;
         }
         .searchform {
             background: #f5f8fa;
