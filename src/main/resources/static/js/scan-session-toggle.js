@@ -269,6 +269,10 @@
 
             if (!isActive) {
                 setCachedState(optimisticState);
+                window.scanSessionIsActive = true;
+                if (typeof window.updateAddStatusActionState === 'function') {
+                    window.updateAddStatusActionState();
+                }
             }
 
             fetch(endpoint, {

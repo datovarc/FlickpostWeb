@@ -222,7 +222,7 @@
                 }
                 return response.json();
             }).then(function(status) {
-                scanSessionIsActive = !!(status && status.active);
+                window.scanSessionIsActive = !!(status && status.active);
                 updateAddStatusActionState();
                 return status;
             }).catch(function(error) {
@@ -262,7 +262,7 @@
 
             scanSessionEventSource.addEventListener('session-stopped', function(event) {
                 console.log('[scan-session-sse] session-stopped', event.data);
-                scanSessionIsActive = false;
+                window.scanSessionIsActive = false;
                 updateAddStatusActionState();
                 closeScanSessionEventStream();
                 debounceScanSessionRefresh();
@@ -1386,7 +1386,7 @@
     })();
 </script>
 <script th:inline="javascript">
-    var scanSessionIsActive = false;
+    window.scanSessionIsActive = false;
 
     function getScanSessionSelectedRows() {
         if (!table || typeof table.getSelectedData !== 'function') {
@@ -1417,7 +1417,7 @@
     function updateAddStatusActionState() {
         var action = document.getElementById('scanSessionAddStatusAction');
         if (!action) return;
-        var enabled = !scanSessionIsActive && hasEligibleAddStatusRows();
+        var enabled = !window.scanSessionIsActive && hasEligibleAddStatusRows();
         action.classList.toggle('disabled', !enabled);
         action.setAttribute('aria-disabled', enabled ? 'false' : 'true');
     }
@@ -1460,6 +1460,8 @@
             select.appendChild(option);
         });
     }
+
+    window.updateAddStatusActionState = updateAddStatusActionState;
 
     function openScanSessionAddStatusModal() {
         var timestampField = document.getElementById('addStatusTimestamp');
