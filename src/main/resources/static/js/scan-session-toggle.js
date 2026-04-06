@@ -1,7 +1,10 @@
 (function() {
     var CACHE_KEY = 'scanSessionMenuState';
     var ACTIVE_BODY_CLASS = 'scan-session-active';
+    var STREAM_REDIRECT_KEY = 'scanSessionPendingRedirectEvent';
     var scanSessionRequestInFlight = false;
+    var sharedScanSessionEventSource = null;
+    var sharedScanSessionReconnectTimer = null;
 
     function getCsrfToken() {
         var csrfMeta = document.querySelector("meta[name='_csrf']");
@@ -54,6 +57,99 @@
         } catch (error) {
             console.error(error);
         }
+    }
+
+    function storePendingRedirectEvent(payload) {
+        try {
+            window.sessionStorage.setItem(STREAM_REDIRECT_KEY, JSON.stringify(payload || {}));
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    function consumePendingRedirectEvent() {
+        try {
+            var raw = window.sessionStorage.getItem(STREAM_REDIRECT_KEY);
+            if (!raw) {
+                return null;
+            }
+            window.sessionStorage.removeItem(STREAM_REDIRECT_KEY);
+            return JSON.parse(raw);
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
+
+    function scheduleSharedStreamReconnect() {
+        if (sharedScanSessionReconnectTimer) {
+            clearTimeout(sharedScanSessionReconnectTimer);
+        }
+        sharedScanSessionReconnectTimer = setTimeout(function() {
+            sharedScanSessionReconnectTimer = null;
+            loadScanSessionStatus().then(function(status) {
+                if (status && status.active) {
+                    ensureSharedScanSessionEventStream();
+                }
+            });
+        }, 1000);
+    }
+
+    function closeSharedScanSessionEventStream() {
+        if (sharedScanSessionReconnectTimer) {
+            clearTimeout(sharedScanSessionReconnectTimer);
+            sharedScanSessionReconnectTimer = null;
+        }
+        if (sharedScanSessionEventSource) {
+            sharedScanSessionEventSource.close();
+            sharedScanSessionEventSource = null;
+        }
+    }
+
+    function redirectToScanSessionForIncomingEvent(payload) {
+        storePendingRedirectEvent(payload);
+        if (window.location.pathname !== '/scan-session') {
+            window.location.href = '/scan-session';
+        }
+    }
+
+    function ensureSharedScanSessionEventStream() {
+        if (sharedScanSessionEventSource) {
+            return;
+        }
+
+        sharedScanSessionEventSource = new EventSource('/scan-session/session/stream');
+
+        sharedScanSessionEventSource.addEventListener('package-ingested', function(event) {
+            if (window.location.pathname !== '/scan-session') {
+                redirectToScanSessionForIncomingEvent({
+                    type: 'package-ingested',
+                    data: event && event.data ? event.data : null,
+                    createdAt: new Date().toISOString()
+                });
+            }
+        });
+
+        sharedScanSessionEventSource.addEventListener('duplicate-detected', function(event) {
+            if (window.location.pathname !== '/scan-session') {
+                redirectToScanSessionForIncomingEvent({
+                    type: 'duplicate-detected',
+                    data: event && event.data ? event.data : null,
+                    createdAt: new Date().toISOString()
+                });
+            }
+        });
+
+        sharedScanSessionEventSource.addEventListener('session-stopped', function() {
+            clearCachedState();
+            updateScanSessionMenuItem(getDefaultState());
+            closeSharedScanSessionEventStream();
+        });
+
+        sharedScanSessionEventSource.onerror = function() {
+            closeSharedScanSessionEventStream();
+            scheduleSharedStreamReconnect();
+        };
     }
 
     function setMenuItemsDisabled(disabled) {
@@ -296,8 +392,10 @@
                 .then(function(data) {
                     if (data && data.active) {
                         setCachedState(data);
+                        ensureSharedScanSessionEventStream();
                     } else {
                         clearCachedState();
+                        closeSharedScanSessionEventStream();
                     }
                     updateScanSessionMenuItem(data || getDefaultState());
                     if (!isActive && window.location.pathname === '/scan-session' && typeof window.ensureScanSessionEventStream === 'function') {
@@ -400,10 +498,20 @@
 
         injectMenuFeedbackStyles();
         applyCachedStateImmediately();
-        loadScanSessionStatus();
+        loadScanSessionStatus().then(function(status) {
+            if (status && status.active) {
+                ensureSharedScanSessionEventStream();
+            } else {
+                closeSharedScanSessionEventStream();
+            }
+        });
 
         Array.prototype.forEach.call(menuItems, function(menuItem) {
             menuItem.addEventListener('click', handleScanSessionClick);
         });
     });
+
+    window.consumePendingScanSessionRedirectEvent = consumePendingRedirectEvent;
+    window.ensureSharedScanSessionEventStream = ensureSharedScanSessionEventStream;
+    window.closeSharedScanSessionEventStream = closeSharedScanSessionEventStream;
 })();
