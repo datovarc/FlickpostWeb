@@ -221,6 +221,10 @@
                     throw new Error('Unable to refresh scan session status');
                 }
                 return response.json();
+            }).then(function(status) {
+                scanSessionIsActive = !!(status && status.active);
+                updateAddStatusActionState();
+                return status;
             }).catch(function(error) {
                 console.error('[scan-session-sse] status refresh failed', error);
                 return null;
@@ -258,6 +262,8 @@
 
             scanSessionEventSource.addEventListener('session-stopped', function(event) {
                 console.log('[scan-session-sse] session-stopped', event.data);
+                scanSessionIsActive = false;
+                updateAddStatusActionState();
                 closeScanSessionEventStream();
                 debounceScanSessionRefresh();
             });
@@ -1500,10 +1506,7 @@
             }
         });
 
-        refreshScanSessionStatus().then(function(status) {
-            scanSessionIsActive = !!(status && status.active);
-            updateAddStatusActionState();
-        });
+        refreshScanSessionStatus();
     });
 </script>
 
