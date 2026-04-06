@@ -300,6 +300,9 @@
                         clearCachedState();
                     }
                     updateScanSessionMenuItem(data || getDefaultState());
+                    if (!isActive && window.location.pathname === '/scan-session' && typeof window.ensureScanSessionEventStream === 'function') {
+                        window.ensureScanSessionEventStream();
+                    }
                     if (!isActive && window.location.pathname !== '/scan-session') {
                         window.location.href = '/scan-session';
                     }

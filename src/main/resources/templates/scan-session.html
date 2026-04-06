@@ -282,6 +282,8 @@
             };
         }
 
+        window.ensureScanSessionEventStream = ensureScanSessionEventStream;
+
         function initializeScanSessionEventStream() {
             refreshScanSessionStatus().then(function(status) {
                 console.log('[scan-session-sse] initial status', status);
