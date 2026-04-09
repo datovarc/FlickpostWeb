@@ -1758,6 +1758,8 @@
 
         function getAddStatusPayload() {
             var timestamp = document.getElementById('addStatusTimestamp');
+            var locationSelect = document.getElementById('addStatusLocation');
+            var selectedLocationCode = locationSelect ? locationSelect.value : null;
             var rows = getEligibleAddStatusRows();
             return {
                 dateTime: timestamp ? timestamp.value : new Date().toISOString(),
@@ -1775,8 +1777,8 @@
                         auditedVolumetricWeight: row ? row.audited_volumetric_weight : null,
                         auditedChargeableWeight: row ? row.audited_chargeable_weight : null,
                         dwsPictures: dwsPictures,
-                        hubID: row ? row.hub : null,
-                        hubSymbol: row ? row.hub : null,
+                        hubID: selectedLocationCode,
+                        hubSymbol: selectedLocationCode,
                         dateTime: timestamp ? timestamp.value : new Date().toISOString()
                     };
                 }).filter(function(pkg) { return !!pkg.trackingNumber; })
