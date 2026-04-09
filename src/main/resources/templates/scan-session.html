@@ -1759,10 +1759,21 @@
         function getAddStatusPayload() {
             var timestamp = document.getElementById('addStatusTimestamp');
             var locationSelect = document.getElementById('addStatusLocation');
+            var mainStatusSelect = document.getElementById('addStatusMainStatus');
+            var subStatusSelect = document.getElementById('addStatusSubStatus');
+            var notesField = document.getElementById('addStatusNotes');
             var selectedLocationCode = locationSelect ? locationSelect.value : null;
+            var selectedMainStatus = mainStatusSelect ? mainStatusSelect.value : null;
+            var selectedSubStatus = subStatusSelect ? subStatusSelect.value : null;
+            var note = notesField ? notesField.value : null;
             var rows = getEligibleAddStatusRows();
+            var dateTime = timestamp ? timestamp.value : new Date().toISOString();
             return {
-                dateTime: timestamp ? timestamp.value : new Date().toISOString(),
+                dateTime: dateTime,
+                location: selectedLocationCode,
+                shipmentMainStatus: selectedMainStatus,
+                shipmentParcelStatus: selectedSubStatus,
+                note: note,
                 packages: rows.map(function(row) {
                     var images = Array.isArray(row.images) ? row.images : [];
                     var dwsPictures = images.map(function(image) {
@@ -1779,7 +1790,7 @@
                         dwsPictures: dwsPictures,
                         hubID: selectedLocationCode,
                         hubSymbol: selectedLocationCode,
-                        dateTime: timestamp ? timestamp.value : new Date().toISOString()
+                        dateTime: dateTime
                     };
                 }).filter(function(pkg) { return !!pkg.trackingNumber; })
             };
