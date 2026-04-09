@@ -52,6 +52,7 @@ public class ScanSessionViewController {
         model.addAttribute("companies", companies);
         model.addAttribute("defaultCompany", userDetails.getCompany());
         model.addAttribute("addStatusMainStatusOptions", flickPostProperties.getScanSessionAddStatusMainStatusOptionEntries());
+        model.addAttribute("addStatusSubStatusOptionsByMainStatus", flickPostProperties.getScanSessionAddStatusSubStatusOptionEntriesByMainStatus());
         return "scan-session";
     }
 

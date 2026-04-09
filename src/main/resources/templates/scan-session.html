@@ -1362,15 +1362,10 @@
                         <div class="col-sm-6">
                             <div class="form-group">
                                 <label for="addStatusSubStatus">Shipment status (Sub status)</label>
-                                <select id="addStatusSubStatus" class="form-control">
-                                    <option value="Awaiting parcel audit">Awaiting parcel audit</option>
-                                    <option value="On Hold">On Hold</option>
-                                    <option value="Require DG packaging">Require DG packaging</option>
-                                    <option value="Proceed">Proceed</option>
-                                    <option value="Consolidate">Consolidate</option>
-                                    <option value="Returned">Returned</option>
-                                    <option value="Unknown">Unknown</option>
-                                </select>
+                                <select id="addStatusSubStatus" class="form-control"></select>
+                                <script th:inline="javascript">
+                                    window.addStatusSubStatusOptionsByMainStatus = /*[[${addStatusSubStatusOptionsByMainStatus}]]*/ {};
+                                </script>
                             </div>
                         </div>
                     </div>
@@ -1644,12 +1639,39 @@
 
     window.updateAddStatusActionState = updateAddStatusActionState;
 
+    function renderAddStatusSubStatusOptions(selectedMainStatusValue) {
+        var subStatusSelect = document.getElementById('addStatusSubStatus');
+        if (!subStatusSelect) {
+            return;
+        }
+
+        var optionsByMainStatus = window.addStatusSubStatusOptionsByMainStatus || {};
+        var options = optionsByMainStatus[selectedMainStatusValue] || [];
+        subStatusSelect.innerHTML = '';
+
+        options.forEach(function(option) {
+            var optionElement = document.createElement('option');
+            optionElement.value = option.value;
+            optionElement.textContent = option.label;
+            subStatusSelect.appendChild(optionElement);
+        });
+    }
+
+    function syncAddStatusSubStatusOptions() {
+        var mainStatusSelect = document.getElementById('addStatusMainStatus');
+        if (!mainStatusSelect) {
+            return;
+        }
+        renderAddStatusSubStatusOptions(mainStatusSelect.value);
+    }
+
     function openScanSessionAddStatusModal() {
         var timestampField = document.getElementById('addStatusTimestamp');
         if (timestampField) {
             timestampField.value = new Date().toLocaleString();
         }
         populateAddStatusLocations();
+        syncAddStatusSubStatusOptions();
         $('#scanSessionAddStatusModal').modal('show');
     }
 
@@ -1657,6 +1679,7 @@
         var moreActionsButton = document.getElementById('scanSessionMoreActionsButton');
         var addStatusAction = document.getElementById('scanSessionAddStatusAction');
         var saveButton = document.getElementById('scanSessionAddStatusSaveButton');
+        var mainStatusSelect = document.getElementById('addStatusMainStatus');
 
         if (moreActionsButton) {
             moreActionsButton.addEventListener('click', function(event) {
@@ -1674,6 +1697,11 @@
                 closeScanSessionMoreActionsMenu();
                 openScanSessionAddStatusModal();
             });
+        }
+
+        if (mainStatusSelect) {
+            mainStatusSelect.addEventListener('change', syncAddStatusSubStatusOptions);
+            syncAddStatusSubStatusOptions();
         }
 
         function setAddStatusLoading(isLoading) {

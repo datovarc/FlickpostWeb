@@ -37,6 +37,8 @@ public class FlickPostProperties {
     private String thirdPartyAuditedValuesUrl;
     @Value("#{${scan.session.add-status.main-status.options:{'ARRIVED_AT_HUB':'Arrived At Hub'}}}")
     private Map<String, String> scanSessionAddStatusMainStatusOptions;
+    @Value("#{${scan.session.add-status.sub-status.options.by-main-status:{'ARRIVED_AT_HUB':'AWAITING_PARCEL_AUDIT:Awaiting parcel audit|ON_HOLD:On hold|DG_PACKAGING_REQUIRED:Require DG packaging|PROCEED_TO_NEXT_STAGE:Proceed|CONSOLIDATED:Consolidate|RETURNED:Returned|UNKNOWN_STATUS:Unknown'}}}")
+    private Map<String, String> scanSessionAddStatusSubStatusOptionsByMainStatus;
 
     @PostConstruct
     public void initializeApplication() {
@@ -50,6 +52,7 @@ public class FlickPostProperties {
         logger.info("thirdparty.hub.received.url: {}", this.thirdPartyHubReceivedUrl);
         logger.info("thirdparty.audited.values.url: {}", this.thirdPartyAuditedValuesUrl);
         logger.info("scan.session.add-status.main-status.options: {}", this.scanSessionAddStatusMainStatusOptions);
+        logger.info("scan.session.add-status.sub-status.options.by-main-status: {}", this.scanSessionAddStatusSubStatusOptionsByMainStatus);
         logger.info("Properties loaded");
     }
 
@@ -145,6 +148,48 @@ public class FlickPostProperties {
             Map<String, String> option = new LinkedHashMap<>();
             option.put("value", entry.getKey());
             option.put("label", entry.getValue());
+            entries.add(option);
+        }
+        return entries;
+    }
+
+    public Map<String, List<Map<String, String>>> getScanSessionAddStatusSubStatusOptionEntriesByMainStatus() {
+        Map<String, List<Map<String, String>>> result = new LinkedHashMap<>();
+        if (scanSessionAddStatusSubStatusOptionsByMainStatus == null) {
+            return result;
+        }
+        for (Map.Entry<String, String> entry : scanSessionAddStatusSubStatusOptionsByMainStatus.entrySet()) {
+            result.put(entry.getKey(), parseOptionList(entry.getValue()));
+        }
+        return result;
+    }
+
+    private List<Map<String, String>> parseOptionList(String rawValue) {
+        List<Map<String, String>> entries = new ArrayList<>();
+        if (rawValue == null || rawValue.trim().isEmpty()) {
+            return entries;
+        }
+
+        String[] options = rawValue.split("\\|");
+        for (String optionValue : options) {
+            if (optionValue == null) {
+                continue;
+            }
+            String trimmedOption = optionValue.trim();
+            if (trimmedOption.isEmpty()) {
+                continue;
+            }
+
+            String[] parts = trimmedOption.split(":", 2);
+            String value = parts[0].trim();
+            String label = parts.length > 1 ? parts[1].trim() : value;
+            if (value.isEmpty()) {
+                continue;
+            }
+
+            Map<String, String> option = new LinkedHashMap<>();
+            option.put("value", value);
+            option.put("label", label);
             entries.add(option);
         }
         return entries;
