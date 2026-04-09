@@ -7,7 +7,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 public class FlickPostProperties {
@@ -31,6 +35,8 @@ public class FlickPostProperties {
     private String thirdPartyHubReceivedUrl;
     @Value("${thirdparty.audited.values.url:}")
     private String thirdPartyAuditedValuesUrl;
+    @Value("#{${scan.session.add-status.main-status.options:{'ARRIVED_AT_HUB':'Arrived At Hub'}}}")
+    private Map<String, String> scanSessionAddStatusMainStatusOptions;
 
     @PostConstruct
     public void initializeApplication() {
@@ -43,6 +49,7 @@ public class FlickPostProperties {
         logger.info("thirdparty.api.key configured: {}", this.thirdPartyApiKey != null && !this.thirdPartyApiKey.isEmpty());
         logger.info("thirdparty.hub.received.url: {}", this.thirdPartyHubReceivedUrl);
         logger.info("thirdparty.audited.values.url: {}", this.thirdPartyAuditedValuesUrl);
+        logger.info("scan.session.add-status.main-status.options: {}", this.scanSessionAddStatusMainStatusOptions);
         logger.info("Properties loaded");
     }
 
@@ -116,5 +123,30 @@ public class FlickPostProperties {
 
     public void setThirdPartyAuditedValuesUrl(String thirdPartyAuditedValuesUrl) {
         this.thirdPartyAuditedValuesUrl = thirdPartyAuditedValuesUrl;
+    }
+
+    public Map<String, String> getScanSessionAddStatusMainStatusOptions() {
+        if (scanSessionAddStatusMainStatusOptions == null) {
+            return Collections.emptyMap();
+        }
+        return new LinkedHashMap<>(scanSessionAddStatusMainStatusOptions);
+    }
+
+    public void setScanSessionAddStatusMainStatusOptions(Map<String, String> scanSessionAddStatusMainStatusOptions) {
+        this.scanSessionAddStatusMainStatusOptions = scanSessionAddStatusMainStatusOptions;
+    }
+
+    public List<Map<String, String>> getScanSessionAddStatusMainStatusOptionEntries() {
+        List<Map<String, String>> entries = new ArrayList<>();
+        if (scanSessionAddStatusMainStatusOptions == null) {
+            return entries;
+        }
+        for (Map.Entry<String, String> entry : scanSessionAddStatusMainStatusOptions.entrySet()) {
+            Map<String, String> option = new LinkedHashMap<>();
+            option.put("value", entry.getKey());
+            option.put("label", entry.getValue());
+            entries.add(option);
+        }
+        return entries;
     }
 }
