@@ -6,6 +6,8 @@ import co.flickpost.admin.models.json.AuditedValuesByTrackingPayload;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +32,16 @@ public class ScanSessionAddStatusService {
             }
         }
 
-        boolean statusUpdated = hubReceivedStatusService.sendHubReceivedStatus(trackingNumbers).isSuccess();
+        request.setDateTime(normalizeDateTime(request.getDateTime()));
+        for (AuditedValuesByTrackingPayload payload : request.getPackages()) {
+            if (payload != null) {
+                payload.setDateTime(request.getDateTime());
+                payload.setHubID(request.getLocation());
+                payload.setHubSymbol(request.getLocation());
+            }
+        }
+
+        boolean statusUpdated = hubReceivedStatusService.sendHubReceivedStatus(request, trackingNumbers).isSuccess();
         boolean coreSystemUpdated = auditedValuesByTrackingService.sendAuditedValues(request.getPackages());
 
         if (statusUpdated && coreSystemUpdated) {
@@ -43,5 +54,17 @@ public class ScanSessionAddStatusService {
             return new AddStatusSaveResponse(false, false, true, "Update status failed");
         }
         return new AddStatusSaveResponse(false, true, false, "Update core system failed");
+    }
+
+    private String normalizeDateTime(String rawDateTime) {
+        if (rawDateTime == null || rawDateTime.trim().isEmpty()) {
+            return Instant.now().toString();
+        }
+
+        try {
+            return Instant.parse(rawDateTime.trim()).toString();
+        } catch (DateTimeParseException ignored) {
+            return rawDateTime;
+        }
     }
 }

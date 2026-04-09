@@ -1,6 +1,7 @@
 package co.flickpost.admin.services;
 
 import co.flickpost.admin.configurations.FlickPostProperties;
+import co.flickpost.admin.models.json.AddStatusSaveRequest;
 import co.flickpost.admin.models.json.HubReceivedStatusRequest;
 import co.flickpost.admin.models.json.HubReceivedStatusResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +31,7 @@ public class HubReceivedStatusService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public HubReceivedStatusResponse sendHubReceivedStatus(List<String> trackingNumbers) {
+    public HubReceivedStatusResponse sendHubReceivedStatus(AddStatusSaveRequest request, List<String> trackingNumbers) {
         Set<String> uniqueTrackingNumbers = new LinkedHashSet<>();
         if (trackingNumbers != null) {
             for (String trackingNumber : trackingNumbers) {
@@ -50,6 +51,11 @@ public class HubReceivedStatusService {
             headers.set("x-api-key", properties.getThirdPartyApiKey());
 
             HubReceivedStatusRequest payload = new HubReceivedStatusRequest();
+            payload.setDateTime(request != null ? request.getDateTime() : null);
+            payload.setLocation(request != null ? request.getLocation() : null);
+            payload.setShipmentMainStatus(request != null ? request.getShipmentMainStatus() : null);
+            payload.setShipmentParcelStatus(request != null ? request.getShipmentParcelStatus() : null);
+            payload.setNote(request != null ? request.getNote() : null);
             payload.setTrackingNumbers(new ArrayList<>(uniqueTrackingNumbers));
 
             HttpEntity<HubReceivedStatusRequest> requestEntity = new HttpEntity<>(payload, headers);
