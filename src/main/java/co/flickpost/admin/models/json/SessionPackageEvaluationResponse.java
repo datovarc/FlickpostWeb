@@ -12,5 +12,6 @@ public class SessionPackageEvaluationResponse {
     private final String dataSource;
     private final boolean backfilledFromReference;
     private final Boolean isUnderdeclared;
+    private final Boolean oversized;
     private final String message;
 }

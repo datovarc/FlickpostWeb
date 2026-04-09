@@ -99,16 +99,25 @@ public class SessionPackageIngestService {
                 sessionPackage.getAuditedActualWeight(),
                 sessionPackage.getAuditedVolumetricWeight()
         );
+        Boolean oversized = evaluateIsOversized(
+                request.getTrackingNumber(),
+                sessionPackage.getShippingMode(),
+                sessionPackage.getAuditedLength(),
+                sessionPackage.getAuditedWidth(),
+                sessionPackage.getAuditedHeight()
+        );
         String finalStatus = evaluateFinalStatus(
                 sessionPackage.getContainsLiquid(),
                 sessionPackage.getContainsBattery(),
                 sessionPackage.getItemCondition(),
                 sessionPackage.getIsCommercialPackaging(),
                 isUnderdeclared,
+                oversized,
                 sessionPackage.getReferenceSource()
         );
 
         sessionPackage.setIsUnderdeclared(isUnderdeclared);
+        sessionPackage.setOversized(oversized);
         sessionPackage.setStatus(finalStatus);
 
         if (existingSessionPackage != null) {
@@ -125,6 +134,7 @@ public class SessionPackageIngestService {
                     finalStatus,
                     dataSource,
                     isUnderdeclared,
+                    oversized,
                     "Duplicate record detected. Awaiting user resolution"
             );
         }
@@ -143,6 +153,7 @@ public class SessionPackageIngestService {
                     finalStatus,
                     dataSource,
                     isUnderdeclared,
+                    oversized,
                     "Duplicate package detected. Awaiting user resolution"
             );
         }
@@ -159,6 +170,7 @@ public class SessionPackageIngestService {
                 finalStatus,
                 dataSource,
                 isUnderdeclared,
+                oversized,
                 "SessionPackage ingested successfully"
         );
     }
@@ -224,6 +236,7 @@ public class SessionPackageIngestService {
         copy.setImageInfos(source.getImageInfos());
         copy.setReferenceSource(source.getReferenceSource());
         copy.setIsUnderdeclared(source.getIsUnderdeclared());
+        copy.setOversized(source.getOversized());
         copy.setDuplicateRibbon(source.getDuplicateRibbon());
         copy.setDuplicateRemark(source.getDuplicateRemark());
         return copy;
@@ -262,6 +275,7 @@ public class SessionPackageIngestService {
         copy.setImageInfos(source.getImageInfos());
         copy.setReferenceSource(source.getReferenceSource());
         copy.setIsUnderdeclared(source.getIsUnderdeclared());
+        copy.setOversized(source.getOversized());
         copy.setDuplicateRibbon(source.getDuplicateRibbon());
         copy.setDuplicateRemark(source.getDuplicateRemark());
         return copy;
@@ -379,11 +393,30 @@ public class SessionPackageIngestService {
         return declared < evaluationWeight;
     }
 
+    private Boolean evaluateIsOversized(String trackingNumber,
+                                         String shippingMode,
+                                         BigDecimal auditedLength,
+                                         BigDecimal auditedWidth,
+                                         BigDecimal auditedHeight) {
+        if (!"Economy".equalsIgnoreCase(StringUtils.trimToEmpty(shippingMode))) {
+            return null;
+        }
+        if (auditedLength == null || auditedWidth == null || auditedHeight == null) {
+            logger.info("{} - oversized could not be evaluated because one or more audited dimensions are null", trackingNumber);
+            return null;
+        }
+
+        return auditedLength.doubleValue() > 90.0
+                || auditedWidth.doubleValue() > 90.0
+                || auditedHeight.doubleValue() > 90.0;
+    }
+
     private String evaluateFinalStatus(Boolean containsLiquid,
                                        Boolean containsBattery,
                                        String itemCondition,
                                        Boolean isCommercialPackaging,
                                        Boolean isUnderdeclared,
+                                       Boolean oversized,
                                        String referenceSource) {
         if (referenceSource == null || isUnderdeclared == null) {
             return PENDING;
@@ -393,7 +426,8 @@ public class SessionPackageIngestService {
                 || Boolean.TRUE.equals(containsBattery)
                 || isUsed(itemCondition)
                 || Boolean.FALSE.equals(isCommercialPackaging)
-                || Boolean.TRUE.equals(isUnderdeclared)) {
+                || Boolean.TRUE.equals(isUnderdeclared)
+                || Boolean.TRUE.equals(oversized)) {
             return ON_HOLD;
         }
 

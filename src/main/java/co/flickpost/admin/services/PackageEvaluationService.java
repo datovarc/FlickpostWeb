@@ -167,6 +167,7 @@ public class PackageEvaluationService {
 
         pkg.setReferenceSource(null);
         pkg.setIsUnderdeclared(null);
+        pkg.setOversized(null);
         pkg.setStatus(PENDING);
         packageDao.singleUpdate(pkg);
         return RecheckOutcome.MISSING;
@@ -196,6 +197,7 @@ public class PackageEvaluationService {
 
         sessionPackage.setReferenceSource(null);
         sessionPackage.setIsUnderdeclared(null);
+        sessionPackage.setOversized(null);
         sessionPackage.setStatus(PENDING);
         sessionPackageDao.singleUpdate(sessionPackage);
         publishSessionPackageUpdatedAfterCommit(trackingNumber);
@@ -210,13 +212,22 @@ public class PackageEvaluationService {
                 pkg.getAuditedActualWeight(),
                 pkg.getAuditedVolumetricWeight()
         );
+        Boolean oversized = evaluateIsOversized(
+                pkg.getTrackingNumber(),
+                pkg.getShippingMode(),
+                pkg.getAuditedLength(),
+                pkg.getAuditedWidth(),
+                pkg.getAuditedHeight()
+        );
         pkg.setIsUnderdeclared(isUnderdeclared);
+        pkg.setOversized(oversized);
         pkg.setStatus(evaluateFinalStatus(
                 pkg.getContainsLiquid(),
                 pkg.getContainsBattery(),
                 pkg.getItemCondition(),
                 pkg.getIsCommercialPackaging(),
                 isUnderdeclared,
+                oversized,
                 pkg.getReferenceSource()
         ));
     }
@@ -229,13 +240,22 @@ public class PackageEvaluationService {
                 pkg.getAuditedActualWeight(),
                 pkg.getAuditedVolumetricWeight()
         );
+        Boolean oversized = evaluateIsOversized(
+                pkg.getTrackingNumber(),
+                pkg.getShippingMode(),
+                pkg.getAuditedLength(),
+                pkg.getAuditedWidth(),
+                pkg.getAuditedHeight()
+        );
         pkg.setIsUnderdeclared(isUnderdeclared);
+        pkg.setOversized(oversized);
         pkg.setStatus(evaluateFinalStatus(
                 pkg.getContainsLiquid(),
                 pkg.getContainsBattery(),
                 pkg.getItemCondition(),
                 pkg.getIsCommercialPackaging(),
                 isUnderdeclared,
+                oversized,
                 pkg.getReferenceSource()
         ));
     }
@@ -315,11 +335,30 @@ public class PackageEvaluationService {
         return declared < evaluationWeight;
     }
 
+    private Boolean evaluateIsOversized(String trackingNumber,
+                                         String shippingMode,
+                                         BigDecimal auditedLength,
+                                         BigDecimal auditedWidth,
+                                         BigDecimal auditedHeight) {
+        if (!"Economy".equalsIgnoreCase(StringUtils.trimToEmpty(shippingMode))) {
+            return null;
+        }
+        if (auditedLength == null || auditedWidth == null || auditedHeight == null) {
+            logger.info("{} - oversized could not be evaluated because one or more audited dimensions are null", trackingNumber);
+            return null;
+        }
+
+        return auditedLength.doubleValue() > 90.0
+                || auditedWidth.doubleValue() > 90.0
+                || auditedHeight.doubleValue() > 90.0;
+    }
+
     private String evaluateFinalStatus(Boolean containsLiquid,
                                        Boolean containsBattery,
                                        String itemCondition,
                                        Boolean isCommercialPackaging,
                                        Boolean isUnderdeclared,
+                                       Boolean oversized,
                                        String referenceSource) {
         if (referenceSource == null || isUnderdeclared == null) {
             return PENDING;
@@ -329,7 +368,8 @@ public class PackageEvaluationService {
                 || Boolean.TRUE.equals(containsBattery)
                 || isUsed(itemCondition)
                 || Boolean.FALSE.equals(isCommercialPackaging)
-                || Boolean.TRUE.equals(isUnderdeclared)) {
+                || Boolean.TRUE.equals(isUnderdeclared)
+                || Boolean.TRUE.equals(oversized)) {
             return ON_HOLD;
         }
 

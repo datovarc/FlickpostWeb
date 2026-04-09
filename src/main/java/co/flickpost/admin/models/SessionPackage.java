@@ -157,6 +157,10 @@ public class SessionPackage implements Serializable {
     @JsonProperty("isUnderdeclared")
     private Boolean isUnderdeclared;
 
+    @Column(name = "is_oversized")
+    @JsonProperty("oversized")
+    private Boolean oversized;
+
     @Column(name = "duplicate_ribbon")
     @JsonProperty("duplicateRibbon")
     private Boolean duplicateRibbon;
