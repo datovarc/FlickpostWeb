@@ -1,5 +1,6 @@
 package co.flickpost.admin.controllers;
 
+import co.flickpost.admin.configurations.FlickPostProperties;
 import co.flickpost.admin.models.Company;
 import co.flickpost.admin.models.SessionPackage;
 import co.flickpost.admin.models.json.PaginationRequest;
@@ -33,6 +34,8 @@ public class ScanSessionViewController {
     SessionPackageDao sessionPackageDao;
     @Autowired
     CompanyDao companyDao;
+    @Autowired
+    FlickPostProperties flickPostProperties;
 
     private static final Logger logger = LogManager.getLogger(ScanSessionViewController.class);
 
@@ -48,6 +51,7 @@ public class ScanSessionViewController {
 
         model.addAttribute("companies", companies);
         model.addAttribute("defaultCompany", userDetails.getCompany());
+        model.addAttribute("addStatusMainStatusOptions", flickPostProperties.getScanSessionAddStatusMainStatusOptionEntries());
         return "scan-session";
     }
 

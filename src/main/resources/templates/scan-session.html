@@ -1351,20 +1351,11 @@
                             <div class="form-group">
                                 <label for="addStatusMainStatus">Shipment status (Main Status)</label>
                                 <select id="addStatusMainStatus" class="form-control">
-                                    <option value="ARRIVED_AT_HUB">Arrived At Hub</option>
-                                    <option value="DELIVERED">Delivered</option>
-                                    <option value="DRAFT">Draft</option>
-                                    <option value="DROPOFF_INITIATED">Drop-Off Initiated</option>
-                                    <option value="EXCEPTION">Exception</option>
-                                    <option value="FAILED_ATTEMPT">Failed Attempt</option>
-                                    <option value="IN_TRANSIT">In Transit</option>
-                                    <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
-                                    <option value="PARCEL_ABANDONED">Parcel Abandoned</option>
-                                    <option value="PICKUP_SCHEDULED">Pickup Scheduled</option>
-                                    <option value="SHIPMENT_ORDER_CANCELLED">Shipment Order Cancelled</option>
-                                    <option value="SHIPMENT_ORDER_CONVERTED">Shipment Order Converted</option>
-                                    <option value="SHIPMENT_ORDER_RECEIVED">Shipment Order Received</option>
-                                    <option value="SHIPMENT_ORDER_SPLIT">Shipment Order Split</option>
+                                    <option th:each="statusOption : ${addStatusMainStatusOptions}"
+                                            th:value="${statusOption.value}"
+                                            th:text="${statusOption.label}">
+                                        Arrived At Hub
+                                    </option>
                                 </select>
                             </div>
                         </div>
