@@ -11,5 +11,6 @@ public class FpSessionPackageIngestResponse {
     private final String finalStatus;
     private final String dataSource;
     private final Boolean isUnderdeclared;
+    private final Boolean oversized;
     private final String message;
 }

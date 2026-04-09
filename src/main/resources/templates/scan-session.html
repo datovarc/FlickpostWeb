@@ -340,6 +340,7 @@
                 [{ keys: ['clientPaidWeight'], label: 'Client Paid Weight' }],
                 [{ keys: ['containsLiquid'], label: 'Contains Liquid' }],
                 [{ keys: ['containsBattery'], label: 'Contains Battery' }],
+                [{ keys: ['oversized'], label: 'Oversized' }],
                 [{ keys: ['itemCondition'], label: 'Item Condition' }],
                 [{ keys: ['isCommercialPackaging'], label: 'Commercial Packaging' }],
                 [{ keys: ['isUnderdeclared'], label: 'Underdeclared' }],
@@ -594,6 +595,7 @@
 
         function getConditionIcons(rowData) {
             var isUnderdeclared = rowData.isUnderdeclared;
+            var oversized = rowData.oversized;
             var containsBattery = rowData.containsBattery;
             var containsLiquid = rowData.containsLiquid;
             var isCommercialPackaging = rowData.isCommercialPackaging;
@@ -613,6 +615,11 @@
                         'images/conditions/scale_' + (isUnderdeclared === true ? 'on' : 'off') + '.png',
                         'declared weight',
                         'Declared weight - ' + (isUnderdeclared === true ? 'under' : 'ok')
+                    ) +
+                    conditionIcon(
+                        'images/conditions/ruler_' + (oversized === true ? 'on' : 'off') + '.png',
+                        'oversized',
+                        'Oversized (Economy only) - ' + (oversized === true ? 'yes' : 'no')
                     ) +
                     conditionIcon(
                         'images/conditions/new_' + (isUsed ? 'on' : 'off') + '.png',
