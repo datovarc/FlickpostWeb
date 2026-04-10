@@ -330,8 +330,8 @@ public class ExcelHelper {
         packageReference.setDeclaredActualWeight(getCellDecimal(row, headers, "declaredactualweight", dataFormatter, formulaEvaluator));
         packageReference.setClientPaidWeight(getCellDecimal(row, headers, "clientpaidweight", dataFormatter, formulaEvaluator));
 
-        BigDecimal auditedChargeableWeight = getCellDecimal(row, headers, "auditedchargeableweight", dataFormatter, formulaEvaluator);
-        packageReference.setDeclaredChargeableWeight(auditedChargeableWeight);
+        BigDecimal declaredchargeableweight = getCellDecimal(row, headers, "declaredchargeableweight", dataFormatter, formulaEvaluator);
+        packageReference.setDeclaredChargeableWeight(declaredchargeableweight);
     }
 
     private static void accumulateItemRow(ItemAggregate itemAggregate, Row row, Map<String, Integer> headers, DataFormatter dataFormatter, FormulaEvaluator formulaEvaluator) {
