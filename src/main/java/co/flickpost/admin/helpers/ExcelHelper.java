@@ -8,6 +8,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.FormulaEvaluator;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -144,23 +145,24 @@ public class ExcelHelper {
         }
 
         DataFormatter dataFormatter = new DataFormatter();
+        FormulaEvaluator formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
         Iterator<Row> rowIterator = sheet.rowIterator();
         if (!rowIterator.hasNext()) {
             return packageReferences;
         }
 
         Row headerRow = rowIterator.next();
-        Map<String, Integer> headers = buildCaseInsensitiveHeaderMap(headerRow, dataFormatter);
+        Map<String, Integer> headers = buildCaseInsensitiveHeaderMap(headerRow, dataFormatter, formulaEvaluator);
         PackageReference currentReference = null;
         ItemAggregate itemAggregate = new ItemAggregate();
 
         while (rowIterator.hasNext()) {
             Row row = rowIterator.next();
-            if (row == null || isRowBlank(row, dataFormatter)) {
+            if (row == null || isRowBlank(row, dataFormatter, formulaEvaluator)) {
                 continue;
             }
 
-            String recordType = getCellString(row, headers, "recordtype", dataFormatter);
+            String recordType = getCellString(row, headers, "recordtype", dataFormatter, formulaEvaluator);
             if (StringUtils.isBlank(recordType)) {
                 continue;
             }
@@ -174,9 +176,9 @@ public class ExcelHelper {
 
                 currentReference = new PackageReference();
                 itemAggregate = new ItemAggregate();
-                populatePackageReference(currentReference, row, headers, dataFormatter);
+                populatePackageReference(currentReference, row, headers, dataFormatter, formulaEvaluator);
             } else if ("ITEM".equalsIgnoreCase(recordType.trim()) && currentReference != null) {
-                accumulateItemRow(itemAggregate, row, headers, dataFormatter);
+                accumulateItemRow(itemAggregate, row, headers, dataFormatter, formulaEvaluator);
             }
         }
 
@@ -314,26 +316,26 @@ public class ExcelHelper {
         }
     }
 
-    private static void populatePackageReference(PackageReference packageReference, Row row, Map<String, Integer> headers, DataFormatter dataFormatter) {
-        packageReference.setTrackingNumber(getCellString(row, headers, "trackingnumber", dataFormatter));
-        packageReference.setShipmentId(getCellString(row, headers, "shipmentid", dataFormatter));
-        packageReference.setDestinationCountry(getCellString(row, headers, "destinationcountry", dataFormatter));
-        packageReference.setShippingMode(getCellString(row, headers, "shippingmode", dataFormatter));
-        packageReference.setServiceProviderName(getCellString(row, headers, "preferredserviceprovider", dataFormatter));
+    private static void populatePackageReference(PackageReference packageReference, Row row, Map<String, Integer> headers, DataFormatter dataFormatter, FormulaEvaluator formulaEvaluator) {
+        packageReference.setTrackingNumber(getCellString(row, headers, "trackingnumber", dataFormatter, formulaEvaluator));
+        packageReference.setShipmentId(getCellString(row, headers, "shipmentid", dataFormatter, formulaEvaluator));
+        packageReference.setDestinationCountry(getCellString(row, headers, "destinationcountry", dataFormatter, formulaEvaluator));
+        packageReference.setShippingMode(getCellString(row, headers, "shippingmode", dataFormatter, formulaEvaluator));
+        packageReference.setServiceProviderName(getCellString(row, headers, "preferredserviceprovider", dataFormatter, formulaEvaluator));
 
-        packageReference.setDeclaredLength(getCellDecimal(row, headers, "declaredlength", dataFormatter));
-        packageReference.setDeclaredWidth(getCellDecimal(row, headers, "declaredwidth", dataFormatter));
-        packageReference.setDeclaredHeight(getCellDecimal(row, headers, "declaredheight", dataFormatter));
-        packageReference.setDeclaredVolumetricWeight(getCellDecimal(row, headers, "declaredvolumetricweight", dataFormatter));
-        packageReference.setDeclaredActualWeight(getCellDecimal(row, headers, "declaredactualweight", dataFormatter));
-        packageReference.setClientPaidWeight(getCellDecimal(row, headers, "clientpaidweight", dataFormatter));
+        packageReference.setDeclaredLength(getCellDecimal(row, headers, "declaredlength", dataFormatter, formulaEvaluator));
+        packageReference.setDeclaredWidth(getCellDecimal(row, headers, "declaredwidth", dataFormatter, formulaEvaluator));
+        packageReference.setDeclaredHeight(getCellDecimal(row, headers, "declaredheight", dataFormatter, formulaEvaluator));
+        packageReference.setDeclaredVolumetricWeight(getCellDecimal(row, headers, "declaredvolumetricweight", dataFormatter, formulaEvaluator));
+        packageReference.setDeclaredActualWeight(getCellDecimal(row, headers, "declaredactualweight", dataFormatter, formulaEvaluator));
+        packageReference.setClientPaidWeight(getCellDecimal(row, headers, "clientpaidweight", dataFormatter, formulaEvaluator));
 
-        BigDecimal auditedChargeableWeight = getCellDecimal(row, headers, "auditedchargeableweight", dataFormatter);
+        BigDecimal auditedChargeableWeight = getCellDecimal(row, headers, "auditedchargeableweight", dataFormatter, formulaEvaluator);
         packageReference.setDeclaredChargeableWeight(auditedChargeableWeight);
     }
 
-    private static void accumulateItemRow(ItemAggregate itemAggregate, Row row, Map<String, Integer> headers, DataFormatter dataFormatter) {
-        String itemCondition = getCellString(row, headers, "itemconditionsnewused", dataFormatter);
+    private static void accumulateItemRow(ItemAggregate itemAggregate, Row row, Map<String, Integer> headers, DataFormatter dataFormatter, FormulaEvaluator formulaEvaluator) {
+        String itemCondition = getCellString(row, headers, "itemconditionsnewused", dataFormatter, formulaEvaluator);
         if (StringUtils.isNotBlank(itemCondition)) {
             if ("used".equalsIgnoreCase(itemCondition.trim())) {
                 itemAggregate.hasUsed = true;
@@ -343,9 +345,9 @@ public class ExcelHelper {
             }
         }
 
-        itemAggregate.containsBattery = itemAggregate.containsBattery || parseBooleanFlag(getCellString(row, headers, "containsbatteryyesno", dataFormatter));
-        itemAggregate.containsLiquid = itemAggregate.containsLiquid || parseBooleanFlag(getCellString(row, headers, "containsliquidyesno", dataFormatter));
-        itemAggregate.isCommercialPackaging = itemAggregate.isCommercialPackaging || parseBooleanFlag(getCellString(row, headers, "hascommercialpackingyesno", dataFormatter));
+        itemAggregate.containsBattery = itemAggregate.containsBattery || parseBooleanFlag(getCellString(row, headers, "containsbatteryyesno", dataFormatter, formulaEvaluator));
+        itemAggregate.containsLiquid = itemAggregate.containsLiquid || parseBooleanFlag(getCellString(row, headers, "containsliquidyesno", dataFormatter, formulaEvaluator));
+        itemAggregate.isCommercialPackaging = itemAggregate.isCommercialPackaging || parseBooleanFlag(getCellString(row, headers, "hascommercialpackingyesno", dataFormatter, formulaEvaluator));
     }
 
     private static void applyItemAggregate(PackageReference packageReference, ItemAggregate itemAggregate) {
@@ -360,7 +362,7 @@ public class ExcelHelper {
         packageReference.setIsCommercialPackaging(itemAggregate.isCommercialPackaging);
     }
 
-    private static Map<String, Integer> buildCaseInsensitiveHeaderMap(Row headerRow, DataFormatter dataFormatter) {
+    private static Map<String, Integer> buildCaseInsensitiveHeaderMap(Row headerRow, DataFormatter dataFormatter, FormulaEvaluator formulaEvaluator) {
         Map<String, Integer> headers = new LinkedHashMap<>();
         if (headerRow == null) {
             return headers;
@@ -369,7 +371,7 @@ public class ExcelHelper {
         short lastCellNum = headerRow.getLastCellNum();
         for (int cellIndex = 0; cellIndex < lastCellNum; cellIndex++) {
             Cell cell = headerRow.getCell(cellIndex);
-            String header = normalizeHeader(dataFormatter.formatCellValue(cell));
+            String header = normalizeHeader(dataFormatter.formatCellValue(cell, formulaEvaluator));
             if (StringUtils.isNotBlank(header)) {
                 headers.put(header, cellIndex);
             }
@@ -386,18 +388,18 @@ public class ExcelHelper {
                 .trim();
     }
 
-    private static String getCellString(Row row, Map<String, Integer> headers, String headerKey, DataFormatter dataFormatter) {
+    private static String getCellString(Row row, Map<String, Integer> headers, String headerKey, DataFormatter dataFormatter, FormulaEvaluator formulaEvaluator) {
         Integer columnIndex = headers.get(headerKey);
         if (columnIndex == null) {
             return null;
         }
         Cell cell = row.getCell(columnIndex);
-        String value = dataFormatter.formatCellValue(cell);
+        String value = dataFormatter.formatCellValue(cell, formulaEvaluator);
         return StringUtils.trimToNull(value);
     }
 
-    private static BigDecimal getCellDecimal(Row row, Map<String, Integer> headers, String headerKey, DataFormatter dataFormatter) {
-        String value = getCellString(row, headers, headerKey, dataFormatter);
+    private static BigDecimal getCellDecimal(Row row, Map<String, Integer> headers, String headerKey, DataFormatter dataFormatter, FormulaEvaluator formulaEvaluator) {
+        String value = getCellString(row, headers, headerKey, dataFormatter, formulaEvaluator);
         if (StringUtils.isBlank(value)) {
             return null;
         }
@@ -418,14 +420,14 @@ public class ExcelHelper {
         return "yes".equals(normalized) || "y".equals(normalized) || "true".equals(normalized);
     }
 
-    private static boolean isRowBlank(Row row, DataFormatter dataFormatter) {
+    private static boolean isRowBlank(Row row, DataFormatter dataFormatter, FormulaEvaluator formulaEvaluator) {
         if (row == null) {
             return true;
         }
         short lastCellNum = row.getLastCellNum();
         for (int cellIndex = 0; cellIndex < lastCellNum; cellIndex++) {
             Cell cell = row.getCell(cellIndex);
-            if (StringUtils.isNotBlank(dataFormatter.formatCellValue(cell))) {
+            if (StringUtils.isNotBlank(dataFormatter.formatCellValue(cell, formulaEvaluator))) {
                 return false;
             }
         }
