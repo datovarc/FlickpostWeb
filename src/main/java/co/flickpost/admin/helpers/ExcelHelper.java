@@ -2,14 +2,17 @@ package co.flickpost.admin.helpers;
 
 import co.flickpost.admin.models.Shipment;
 import co.flickpost.admin.models.Package;
+import co.flickpost.admin.models.PackageReference;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -21,6 +24,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Iterator;
 import java.util.List;
 
@@ -122,6 +129,68 @@ public class ExcelHelper {
 
         return recordShipments;
 
+    }
+
+    public static List<PackageReference> readPackageReferences(Workbook workbook) {
+        List<PackageReference> packageReferences = new ArrayList<>();
+
+        if (workbook == null || workbook.getNumberOfSheets() < 1) {
+            return packageReferences;
+        }
+
+        Sheet sheet = workbook.getSheetAt(0);
+        if (sheet == null) {
+            return packageReferences;
+        }
+
+        DataFormatter dataFormatter = new DataFormatter();
+        Iterator<Row> rowIterator = sheet.rowIterator();
+        if (!rowIterator.hasNext()) {
+            return packageReferences;
+        }
+
+        Row headerRow = rowIterator.next();
+        Map<String, Integer> headers = buildCaseInsensitiveHeaderMap(headerRow, dataFormatter);
+        PackageReference currentReference = null;
+        ItemAggregate itemAggregate = new ItemAggregate();
+
+        while (rowIterator.hasNext()) {
+            Row row = rowIterator.next();
+            if (row == null || isRowBlank(row, dataFormatter)) {
+                continue;
+            }
+
+            String recordType = getCellString(row, headers, "recordtype", dataFormatter);
+            if (StringUtils.isBlank(recordType)) {
+                continue;
+            }
+
+            if ("PARCEL".equalsIgnoreCase(recordType.trim())) {
+                if (currentReference != null && StringUtils.isNotBlank(currentReference.getTrackingNumber())) {
+                    applyItemAggregate(currentReference, itemAggregate);
+                    currentReference.setTtlTimestamp(LocalDateTime.now());
+                    packageReferences.add(currentReference);
+                }
+
+                currentReference = new PackageReference();
+                itemAggregate = new ItemAggregate();
+                populatePackageReference(currentReference, row, headers, dataFormatter);
+            } else if ("ITEM".equalsIgnoreCase(recordType.trim()) && currentReference != null) {
+                accumulateItemRow(itemAggregate, row, headers, dataFormatter);
+            }
+        }
+
+        if (currentReference != null && StringUtils.isNotBlank(currentReference.getTrackingNumber())) {
+            applyItemAggregate(currentReference, itemAggregate);
+            currentReference.setTtlTimestamp(LocalDateTime.now());
+            packageReferences.add(currentReference);
+        }
+
+        return packageReferences;
+    }
+
+    public static Workbook readWorkbook(java.io.InputStream inputStream) throws IOException {
+        return WorkbookFactory.create(inputStream);
     }
 
     public static byte[] packagesToExcel(List<Package> packages) {
@@ -243,6 +312,132 @@ public class ExcelHelper {
                 }
                 break;
         }
+    }
+
+    private static void populatePackageReference(PackageReference packageReference, Row row, Map<String, Integer> headers, DataFormatter dataFormatter) {
+        packageReference.setTrackingNumber(getCellString(row, headers, "trackingnumber", dataFormatter));
+        packageReference.setShipmentId(getCellString(row, headers, "shipmentid", dataFormatter));
+        packageReference.setDestinationCountry(getCellString(row, headers, "destinationcountry", dataFormatter));
+        packageReference.setShippingMode(getCellString(row, headers, "shippingmode", dataFormatter));
+        packageReference.setServiceProviderName(getCellString(row, headers, "preferredserviceprovider", dataFormatter));
+
+        packageReference.setDeclaredLength(getCellDecimal(row, headers, "declaredlength", dataFormatter));
+        packageReference.setDeclaredWidth(getCellDecimal(row, headers, "declaredwidth", dataFormatter));
+        packageReference.setDeclaredHeight(getCellDecimal(row, headers, "declaredheight", dataFormatter));
+        packageReference.setDeclaredVolumetricWeight(getCellDecimal(row, headers, "declaredvolumetricweight", dataFormatter));
+        packageReference.setDeclaredActualWeight(getCellDecimal(row, headers, "declaredactualweight", dataFormatter));
+        packageReference.setClientPaidWeight(getCellDecimal(row, headers, "clientpaidweight", dataFormatter));
+
+        BigDecimal auditedChargeableWeight = getCellDecimal(row, headers, "auditedchargeableweight", dataFormatter);
+        packageReference.setDeclaredChargeableWeight(auditedChargeableWeight);
+    }
+
+    private static void accumulateItemRow(ItemAggregate itemAggregate, Row row, Map<String, Integer> headers, DataFormatter dataFormatter) {
+        String itemCondition = getCellString(row, headers, "itemconditionsnewused", dataFormatter);
+        if (StringUtils.isNotBlank(itemCondition)) {
+            if ("used".equalsIgnoreCase(itemCondition.trim())) {
+                itemAggregate.hasUsed = true;
+            }
+            if ("new".equalsIgnoreCase(itemCondition.trim())) {
+                itemAggregate.hasNew = true;
+            }
+        }
+
+        itemAggregate.containsBattery = itemAggregate.containsBattery || parseBooleanFlag(getCellString(row, headers, "containsbatteryyesno", dataFormatter));
+        itemAggregate.containsLiquid = itemAggregate.containsLiquid || parseBooleanFlag(getCellString(row, headers, "containsliquidyesno", dataFormatter));
+        itemAggregate.isCommercialPackaging = itemAggregate.isCommercialPackaging || parseBooleanFlag(getCellString(row, headers, "hascommercialpackingyesno", dataFormatter));
+    }
+
+    private static void applyItemAggregate(PackageReference packageReference, ItemAggregate itemAggregate) {
+        if (itemAggregate.hasUsed) {
+            packageReference.setItemCondition("Used");
+        } else if (itemAggregate.hasNew) {
+            packageReference.setItemCondition("New");
+        }
+
+        packageReference.setContainsBattery(itemAggregate.containsBattery);
+        packageReference.setContainsLiquid(itemAggregate.containsLiquid);
+        packageReference.setIsCommercialPackaging(itemAggregate.isCommercialPackaging);
+    }
+
+    private static Map<String, Integer> buildCaseInsensitiveHeaderMap(Row headerRow, DataFormatter dataFormatter) {
+        Map<String, Integer> headers = new LinkedHashMap<>();
+        if (headerRow == null) {
+            return headers;
+        }
+
+        short lastCellNum = headerRow.getLastCellNum();
+        for (int cellIndex = 0; cellIndex < lastCellNum; cellIndex++) {
+            Cell cell = headerRow.getCell(cellIndex);
+            String header = normalizeHeader(dataFormatter.formatCellValue(cell));
+            if (StringUtils.isNotBlank(header)) {
+                headers.put(header, cellIndex);
+            }
+        }
+        return headers;
+    }
+
+    private static String normalizeHeader(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replaceAll("[^A-Za-z0-9]", "")
+                .toLowerCase(Locale.ROOT)
+                .trim();
+    }
+
+    private static String getCellString(Row row, Map<String, Integer> headers, String headerKey, DataFormatter dataFormatter) {
+        Integer columnIndex = headers.get(headerKey);
+        if (columnIndex == null) {
+            return null;
+        }
+        Cell cell = row.getCell(columnIndex);
+        String value = dataFormatter.formatCellValue(cell);
+        return StringUtils.trimToNull(value);
+    }
+
+    private static BigDecimal getCellDecimal(Row row, Map<String, Integer> headers, String headerKey, DataFormatter dataFormatter) {
+        String value = getCellString(row, headers, headerKey, dataFormatter);
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+
+        String normalized = value.replace(",", "").trim();
+        if (StringUtils.isBlank(normalized)) {
+            return null;
+        }
+
+        return new BigDecimal(normalized);
+    }
+
+    private static boolean parseBooleanFlag(String value) {
+        if (StringUtils.isBlank(value)) {
+            return false;
+        }
+        String normalized = value.trim().toLowerCase(Locale.ROOT);
+        return "yes".equals(normalized) || "y".equals(normalized) || "true".equals(normalized);
+    }
+
+    private static boolean isRowBlank(Row row, DataFormatter dataFormatter) {
+        if (row == null) {
+            return true;
+        }
+        short lastCellNum = row.getLastCellNum();
+        for (int cellIndex = 0; cellIndex < lastCellNum; cellIndex++) {
+            Cell cell = row.getCell(cellIndex);
+            if (StringUtils.isNotBlank(dataFormatter.formatCellValue(cell))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static class ItemAggregate {
+        private boolean hasNew;
+        private boolean hasUsed;
+        private boolean containsBattery;
+        private boolean containsLiquid;
+        private boolean isCommercialPackaging;
     }
 
     private static void updateShipment(Shipment shipment, Cell cell, int cellIndex) throws Exception {

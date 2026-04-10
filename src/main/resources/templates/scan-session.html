@@ -64,6 +64,13 @@
             $("#uploadReportForm").submit();
         }
 
+        function executeUploadReference() {
+            var fileUpload = $('#uploadReferenceForm input[name=file]');
+            if (fileUpload.val() !== '') {
+                $("#uploadReferenceForm").submit();
+            }
+        }
+
 
         $(document).ready(function(){
             $(window).keydown(function(event){
@@ -1627,16 +1634,17 @@
                 <h4 class="modal-title">Upload Parcels Reference</h4>
             </div>
             <div class="modal-body">
-                <form id="uploadReferenceForm">
+                <form id="uploadReferenceForm" method="POST" enctype="multipart/form-data" th:action="@{'/reference/upload'}">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
                     <div class="form-group">
-                        <input type="file" name="file" class="form-control" accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                        <input type="file" name="file" class="form-control" accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
                     </div>
-                    <p class="text-muted" style="margin-bottom:0;">Reference placeholder only for now. Upload will remain disabled until the Excel template is finalized.</p>
+                    <p class="text-muted" style="margin-bottom:0;">Upload an Excel reference file (.xls or .xlsx). Parcel rows create PackageReference records, and following item rows aggregate package conditions.</p>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" disabled>Upload</button>
+                <button type="button" class="btn btn-primary" onclick="executeUploadReference()">Upload</button>
             </div>
         </div>
     </div>
