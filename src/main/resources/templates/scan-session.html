@@ -1860,6 +1860,15 @@
                 $(this).removeData('closeAddStatusOnOk');
             });
 
+        $('#deletePackageWarningModal')
+            .on('show.bs.modal', function() {
+                var zIndex = 1060;
+                $(this).css('z-index', zIndex);
+                setTimeout(function() {
+                    $('.modal-backdrop').not('.modal-stack').last().css('z-index', zIndex - 1).addClass('modal-stack');
+                }, 0);
+            });
+
         function getAddStatusPayload() {
             var timestamp = document.getElementById('addStatusTimestamp');
             var locationSelect = document.getElementById('addStatusLocation');
