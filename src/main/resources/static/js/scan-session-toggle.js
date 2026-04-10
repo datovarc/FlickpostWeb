@@ -452,6 +452,7 @@
             '  background: #e53935;' +
             '  vertical-align: 2px;' +
             '  animation: scanSessionLiveFade 1.8s ease-in-out infinite;' +
+            '  animation-delay: 0s;' +
             '}' +
             '.scan-session-confirmation-dialog {' +
             '  width: 420px;' +

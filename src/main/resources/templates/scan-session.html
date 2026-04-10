@@ -845,7 +845,7 @@
         </div>
     </nav>
     <div class="scan-session-active-banner-shell" aria-hidden="true">
-        <div class="scan-session-active-banner">Scanning...</div>
+        <div class="scan-session-active-banner"><span class="scan-session-active-banner-text">Scanning...</span></div>
     </div>
     <div class="container-fluid fp-page-shell">
         <nav class="navbar navbar-default fp-subnav">
@@ -1283,7 +1283,7 @@
             display: none;
             align-items: center;
             justify-content: center;
-            border-radius: 999px;
+            border-radius: 6px;
             background: #e53935;
             color: #fff;
             font-size: 11px;
@@ -1291,7 +1291,11 @@
             letter-spacing: 0.06em;
             text-transform: none;
             box-shadow: 0 4px 10px rgba(229, 57, 53, 0.22);
+        }
+        .scan-session-active-banner-text {
+            display: inline-block;
             animation: scanSessionLiveFade 1.8s ease-in-out infinite;
+            animation-delay: 0s;
         }
         body.scan-session-active .scan-session-active-banner {
             display: flex;
