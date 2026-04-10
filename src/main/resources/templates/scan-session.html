@@ -414,11 +414,16 @@
                 return '<p class="text-muted text-center">No different fields</p>';
             }
 
-            var html = '<table class="table table-bordered table-condensed">';
+            var html = '' +
+                '<table class="table table-bordered table-condensed duplicate-comparison-table">' +
+                    '<colgroup>' +
+                        '<col class="duplicate-comparison-table-label-col">' +
+                        '<col class="duplicate-comparison-table-value-col">' +
+                    '</colgroup>';
             fields.forEach(function(field) {
                 var value = getDuplicateFieldValue(record, field);
                 html += '<tr>' +
-                    '<th style="width:45%;">' + field.label + '</th>' +
+                    '<th>' + field.label + '</th>' +
                     '<td>' + formatDuplicateValue(value) + '</td>' +
                     '</tr>';
             });
@@ -990,6 +995,66 @@
             width: 26px;
             height: 26px;
         }
+        .duplicate-session-package-modal-dialog {
+            width: 1140px;
+            max-width: calc(100vw - 30px);
+        }
+        .duplicate-comparison-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-left: -10px;
+            margin-right: -10px;
+        }
+        .duplicate-comparison-column {
+            display: flex;
+            flex-direction: column;
+            padding-left: 10px;
+            padding-right: 10px;
+            margin-bottom: 0;
+        }
+        .duplicate-comparison-table {
+            width: 100%;
+            table-layout: fixed;
+            margin-bottom: 0;
+        }
+        .duplicate-comparison-table-label-col {
+            width: 42%;
+        }
+        .duplicate-comparison-table-value-col {
+            width: 58%;
+        }
+        .duplicate-comparison-table th,
+        .duplicate-comparison-table td {
+            vertical-align: middle !important;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+        .duplicate-selection-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 16px;
+        }
+        .duplicate-selection-option {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+        @media (max-width: 991px) {
+            .duplicate-session-package-modal-dialog {
+                width: auto;
+                max-width: calc(100vw - 20px);
+            }
+            .duplicate-comparison-row,
+            .duplicate-selection-row {
+                display: block;
+            }
+            .duplicate-comparison-column {
+                margin-bottom: 16px;
+            }
+            .duplicate-selection-option {
+                margin-top: 12px;
+            }
+        }
         .searchform {
             background: #f5f8fa;
             padding: 15px;
@@ -1409,7 +1474,7 @@
 <div id="condition-global-tooltip" class="condition-global-tooltip"></div>
 
 <div id="duplicateSessionPackageModal" class="modal fade" role="dialog" tabindex="-1">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog modal-xl duplicate-session-package-modal-dialog" role="document">
         <div class="modal-content" style="position:relative;">
             <div id="duplicateResolutionOverlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.45); z-index:10; align-items:center; justify-content:center; color:#fff; font-size:18px; font-weight:600; text-align:center; padding:20px;">
                 <div>
@@ -1422,22 +1487,30 @@
             </div>
             <div class="modal-body">
                 <p id="duplicateIdentityMessage" class="text-center text-muted" style="display:none;"></p>
-                <div class="row text-center">
-                    <div class="col-md-6">
+                <div class="row text-center duplicate-comparison-row">
+                    <div class="col-md-6 duplicate-comparison-column">
                         <h5 class="text-center">Old record</h5>
                         <div id="duplicateOldRecord"></div>
-                        <div class="radio text-center" style="margin-top:15px;">
+                    </div>
+                    <div class="col-md-6 duplicate-comparison-column">
+                        <h5 class="text-center">New record</h5>
+                        <div id="duplicateNewRecord"></div>
+                    </div>
+                </div>
+                <div class="row text-center duplicate-selection-row">
+                    <div class="col-sm-4">
+                        <div class="radio text-center duplicate-selection-option">
                             <label><input type="radio" name="duplicateSelection" value="old"> Keep old</label>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <h5 class="text-center">New record</h5>
-                        <div id="duplicateNewRecord"></div>
-                        <div class="radio text-center" style="margin-top:15px;">
-                            <label><input type="radio" name="duplicateSelection" value="new"> Keep new</label>
-                        </div>
-                        <div class="radio text-center" style="margin-top:10px; display:none;" id="duplicatePackageOnlyOption">
+                    <div class="col-sm-4">
+                        <div class="radio text-center duplicate-selection-option" id="duplicatePackageOnlyOption" style="display:none;">
                             <label><input type="radio" name="duplicateSelection" value="both"> Keep both</label>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="radio text-center duplicate-selection-option">
+                            <label><input type="radio" name="duplicateSelection" value="new"> Keep new</label>
                         </div>
                     </div>
                 </div>
