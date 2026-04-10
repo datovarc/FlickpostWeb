@@ -1,5 +1,6 @@
 package co.flickpost.admin.services;
 
+import org.apache.catalina.connector.ClientAbortException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -47,9 +48,7 @@ public class ScanSessionSseService {
                         .name("package-ingested")
                         .data(Map.of("trackingNumber", trackingNumber)));
             } catch (Exception e) {
-                logger.debug("Removing failed SSE emitter after package-ingested publish", e);
-                emitters.remove(emitter);
-                emitter.complete();
+                removeFailedEmitter(emitter, "package-ingested", e);
             }
         }
     }
@@ -63,9 +62,7 @@ public class ScanSessionSseService {
                         .name("duplicate-detected")
                         .data(Map.of("trackingNumber", trackingNumber)));
             } catch (Exception e) {
-                logger.debug("Removing failed SSE emitter after duplicate-detected publish", e);
-                emitters.remove(emitter);
-                emitter.complete();
+                removeFailedEmitter(emitter, "duplicate-detected", e);
             }
         }
     }
@@ -79,10 +76,41 @@ public class ScanSessionSseService {
                         .name("session-stopped")
                         .data(Map.of("active", false)));
             } catch (Exception e) {
-                logger.debug("Removing failed SSE emitter after session-stopped publish", e);
-                emitters.remove(emitter);
-                emitter.complete();
+                removeFailedEmitter(emitter, "session-stopped", e);
             }
         }
+    }
+
+    private void removeFailedEmitter(SseEmitter emitter, String eventName, Exception exception) {
+        if (isClientDisconnect(exception)) {
+            logger.debug("Removing failed SSE emitter after {} publish due to client disconnect: {}",
+                    eventName,
+                    exception.getMessage());
+        } else {
+            logger.debug("Removing failed SSE emitter after {} publish", eventName, exception);
+        }
+        emitters.remove(emitter);
+        emitter.complete();
+    }
+
+    private boolean isClientDisconnect(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof ClientAbortException) {
+                return true;
+            }
+            String message = current.getMessage();
+            if (message != null) {
+                String normalizedMessage = message.toLowerCase();
+                if (normalizedMessage.contains("broken pipe")
+                        || normalizedMessage.contains("connection reset")
+                        || normalizedMessage.contains("connection aborted")
+                        || normalizedMessage.contains("forcibly closed")) {
+                    return true;
+                }
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }
