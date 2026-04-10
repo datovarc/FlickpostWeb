@@ -748,6 +748,7 @@
         function conditionsFormatter(cell){
             var rowData = cell.getRow().getData();
             var isUnderdeclared = rowData.isUnderdeclared;
+            var oversized = rowData.oversized;
             var containsBattery = rowData.containsBattery;
             var containsLiquid = rowData.containsLiquid;
             var isCommercialPackaging = rowData.isCommercialPackaging;
@@ -767,6 +768,11 @@
                         'images/conditions/scale_' + (isUnderdeclared === true ? 'on' : 'off') + '.png',
                         'declared weight',
                         'Declared weight - ' + (isUnderdeclared === true ? 'under' : 'ok')
+                    ) +
+                    conditionIcon(
+                        'images/conditions/ruler_' + (oversized === true ? 'on' : 'off') + '.png',
+                        'oversized',
+                        'Oversized (Economy only) - ' + (oversized === true ? 'yes' : 'no')
                     ) +
                     conditionIcon(
                         'images/conditions/new_' + (isUsed ? 'on' : 'off') + '.png',
