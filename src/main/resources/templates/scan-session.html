@@ -1676,19 +1676,8 @@
         return table.getSelectedData() || [];
     }
 
-    function getScanSessionAllRows() {
-        if (!table || typeof table.getData !== 'function') {
-            return [];
-        }
-        return table.getData() || [];
-    }
-
     function getEligibleAddStatusRows() {
-        var selectedRows = getScanSessionSelectedRows();
-        if (selectedRows.length > 0) {
-            return selectedRows;
-        }
-        return getScanSessionAllRows();
+        return getScanSessionSelectedRows();
     }
 
     function hasEligibleAddStatusRows() {
