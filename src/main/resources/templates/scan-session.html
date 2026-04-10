@@ -547,11 +547,17 @@
 
         function resolveDuplicateSelection() {
             var selected = $('input[name="duplicateSelection"]:checked').val();
+            var remark = ($('#duplicateRemarkInput').val() || '').trim();
             if (!selected || !pendingDuplicateTrackingNumber) {
                 alert('Please select which record to keep first.');
                 return;
             }
             if (duplicateResolutionInProgress) {
+                return;
+            }
+            if (pendingDuplicateType === 'package' && !remark) {
+                alert('Please add a remark before continuing.');
+                $('#duplicateRemarkInput').focus();
                 return;
             }
 
