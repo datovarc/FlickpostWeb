@@ -569,6 +569,7 @@
         });
 
         $(document).on('click', '#confirmDeletePackageButton', function() {
+            $('#deletePackageWarningModal').modal('hide');
             submitDuplicateResolution('new');
         });
 
@@ -1494,7 +1495,7 @@
 <div id="duplicateSessionPackageModal" class="modal fade" role="dialog" tabindex="-1">
     <div class="modal-dialog modal-xl duplicate-session-package-modal-dialog" role="document">
         <div class="modal-content" style="position:relative;">
-            <div id="duplicateResolutionOverlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.45); z-index:10; align-items:center; justify-content:center; color:#fff; font-size:18px; font-weight:600; text-align:center; padding:20px;">
+            <div id="duplicateResolutionOverlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.55); z-index:1080; align-items:center; justify-content:center; color:#fff; font-size:18px; font-weight:600; text-align:center; padding:20px;">
                 <div>
                     <span class="duplicate-resolution-spinner" aria-hidden="true"></span>
                     <div>Resolving duplicate...</div>
@@ -1867,6 +1868,13 @@
                 setTimeout(function() {
                     $('.modal-backdrop').not('.modal-stack').last().css('z-index', zIndex - 1).addClass('modal-stack');
                 }, 0);
+            })
+            .on('hidden.bs.modal', function() {
+                $(this).css('z-index', '');
+                $('.modal-backdrop.modal-stack').last().remove();
+                if ($('.modal.in').length) {
+                    $('body').addClass('modal-open');
+                }
             });
 
         function getAddStatusPayload() {
