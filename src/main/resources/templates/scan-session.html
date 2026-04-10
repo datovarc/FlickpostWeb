@@ -446,7 +446,14 @@
 
         function updateDuplicateModalTitle(trackingNumber) {
             var duplicateLabel = pendingDuplicateType === 'package' ? 'package' : 'session package';
-            $('#duplicateSessionPackageModalTitle').text('Duplicate ' + (trackingNumber || duplicateLabel));
+            var resolvedTrackingNumber = trackingNumber || duplicateLabel;
+            var titleHtml = 'Duplicate <span class="duplicate-modal-title-tracking">' + $('<div/>').text(resolvedTrackingNumber).html() + '</span>';
+
+            if (pendingDuplicateType === 'package') {
+                titleHtml += '<span class="duplicate-modal-title-ribbon" title="Duplicate with package kept">🎀</span>';
+            }
+
+            $('#duplicateSessionPackageModalTitle').html(titleHtml);
         }
 
         function updateDuplicateIdentityMessage(hasDifferences) {
@@ -1038,6 +1045,17 @@
         .duplicate-selection-option {
             margin-top: 0;
             margin-bottom: 0;
+        }
+        .duplicate-modal-title-tracking {
+            display: inline-block;
+            margin-left: 4px;
+        }
+        .duplicate-modal-title-ribbon {
+            display: inline-block;
+            margin-left: 8px;
+            vertical-align: middle;
+            font-size: 20px;
+            line-height: 1;
         }
         @media (max-width: 991px) {
             .duplicate-session-package-modal-dialog {
