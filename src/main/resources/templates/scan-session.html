@@ -579,6 +579,13 @@
             submitDuplicateResolution('new');
         });
 
+        $(document).on('click', '#duplicateCancelButton', function() {
+            pendingDuplicateTrackingNumber = null;
+            pendingDuplicateType = null;
+            $('#deletePackageWarningModal').modal('hide');
+            $('#duplicateSessionPackageModal').modal('hide');
+        });
+
         function doPostCall(){
             tableFilters.length = 0;
             var normalizedFromDate = $('#from_date').val();
@@ -1582,6 +1589,7 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-default" id="duplicateCancelButton">Cancel</button>
                 <button type="button" class="btn btn-primary" id="duplicateContinueButton">Continue</button>
             </div>
         </div>
