@@ -138,7 +138,6 @@
                     if (e.target && (e.target.closest("button") || e.target.closest("a") || e.target.closest("input") || e.target.closest("textarea") || e.target.closest("select") || e.target.closest("label"))) {
                         return;
                     }
-                    row.toggleSelect();
                 },
                 columns:[
                     {formatter:"rowSelection", titleFormatter:"rowSelection", width:60, hozAlign:"center", vertAlign:"middle", headerSort:false, frozen:true, headerTooltip:true, cellClick:function(e, cell){
