@@ -95,7 +95,7 @@ public class SessionPackageIngestService {
         Boolean isUnderdeclared = evaluateIsUnderdeclared(
                 request.getTrackingNumber(),
                 sessionPackage.getShippingMode(),
-                sessionPackage.getDeclaredActualWeight(),
+                sessionPackage.getClientPaidWeight(),
                 sessionPackage.getAuditedActualWeight(),
                 sessionPackage.getAuditedVolumetricWeight()
         );
@@ -358,11 +358,11 @@ public class SessionPackageIngestService {
 
     private Boolean evaluateIsUnderdeclared(String trackingNumber,
                                             String shippingMode,
-                                            BigDecimal declaredWeight,
+                                            BigDecimal clientPaidWeight,
                                             BigDecimal auditedActualWeight,
                                             BigDecimal auditedVolumetricWeight) {
-        if (declaredWeight == null) {
-            logger.info("{} - isUnderdeclared could not be evaluated because declaredWeight is null", trackingNumber);
+        if (clientPaidWeight == null) {
+            logger.info("{} - isUnderdeclared could not be evaluated because clientPaidWeight is null", trackingNumber);
             return null;
         }
         if (auditedActualWeight == null) {
@@ -374,7 +374,7 @@ public class SessionPackageIngestService {
             return null;
         }
 
-        double declared = declaredWeight.doubleValue();
+        double paid = clientPaidWeight.doubleValue();
         double audited = auditedActualWeight.doubleValue();
         double volumetric = auditedVolumetricWeight != null ? auditedVolumetricWeight.doubleValue() : 0D;
         double evaluationWeight;
@@ -390,7 +390,7 @@ public class SessionPackageIngestService {
             return null;
         }
 
-        return declared < evaluationWeight;
+        return paid < evaluationWeight;
     }
 
     private Boolean evaluateIsOversized(String trackingNumber,
